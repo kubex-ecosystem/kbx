@@ -37,7 +37,7 @@ type IValidation[T any] interface {
 
 type ValidationResult struct {
 	*Mutexes
-	*Reference
+	*GlobalRef
 	IsValid  bool
 	Message  string
 	Error    error
@@ -51,7 +51,7 @@ func newValidationResult(isValid bool, message string, metadata map[string]any, 
 	}
 	return &ValidationResult{
 		Mutexes:   NewMutexesType(),
-		Reference: newReference("ValidationResult"),
+		GlobalRef: newGlobalRef("ValidationResult"),
 		IsValid:   isValid,
 		Message:   message,
 		Error:     err,
@@ -80,7 +80,7 @@ func (vr *ValidationResult) GetID() uuid.UUID {
 	if vr == nil {
 		return uuid.Nil
 	}
-	return vr.Reference.GetID()
+	return vr.GlobalRef.GetID()
 }
 func (vr *ValidationResult) GetName() string {
 	if !reflect.ValueOf(vr).IsValid() {
@@ -88,7 +88,7 @@ func (vr *ValidationResult) GetName() string {
 	}
 	vr.Mutexes.MuRLock()
 	defer vr.Mutexes.MuRUnlock()
-	return vr.Reference.GetName()
+	return vr.GlobalRef.GetName()
 }
 func (vr *ValidationResult) GetIsValid() bool {
 	if vr == nil {

@@ -1,0 +1,50 @@
+{
+  "name": "Canalize - BE",
+  "application": "canalize_be",
+  "version": "0.0.1",
+  "private": true,
+  "published": false,
+  "aliases": [
+    "canalize_be"
+  ],
+  "repository": "https://github.com/canalize-prm/canalize_be",
+  "homepage": "https://github.com/canalize-prm/canalize_be",
+  "description": "Canalize PRM Backend Project",
+  "go_version": "1.25.5",
+  "main": "cmd/main.go",
+  "bin": "canalize_be",
+  "author": "Rafael Mori <faelmori@gmail.com>",
+  "organization": "canalize-prm",
+  "license": "Proprietary",
+  "keywords": [
+    "prm",
+    "backend",
+    "golang",
+    "canalize-prm",
+    "kubex",
+    "control",
+    "command-line",
+    "tool",
+    "management"
+  ],
+  "platforms": [
+    "linux/amd64",
+    "linux/arm64",
+    "darwin/amd64",
+    "darwin/arm64",
+    "windows/amd64"
+  ],
+  "dependencies": [
+    "tar",
+    "gzip",
+    "curl",
+    "git",
+    "zip",
+    "unzip",
+    "jq",
+    "upx"
+  ],
+  "healthcheck_type": "http",
+  "healthcheck_url": "http://localhost:4000/health",
+  "healthcheck_cmd": "systemctl --user is-active canalize-be.service"
+}

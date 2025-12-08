@@ -37,13 +37,13 @@ type ValidationListener struct {
 	*Mutexes
 	Filters   map[ValidationFilterType]func(*ValidationResult) bool
 	Handlers  []func(*ValidationResult)
-	Listeners map[Reference]map[ValidationListenerType]func(*ValidationResult)
+	Listeners map[GlobalRef]map[ValidationListenerType]func(*ValidationResult)
 }
 
 func NewValidationListener() *ValidationListener {
 	return &ValidationListener{
 		Mutexes:   NewMutexesType(),
-		Listeners: make(map[Reference]map[ValidationListenerType]func(*ValidationResult)),
+		Listeners: make(map[GlobalRef]map[ValidationListenerType]func(*ValidationResult)),
 		Filters:   make(map[ValidationFilterType]func(*ValidationResult) bool),
 		Handlers:  []func(*ValidationResult){},
 	}
@@ -106,7 +106,7 @@ func (vl *ValidationListener) RemoveHandler(handler func(*ValidationResult)) {
 	}
 }
 
-func (vl *ValidationListener) AddListener(reference Reference, listenerType ValidationListenerType, handler func(*ValidationResult)) {
+func (vl *ValidationListener) AddListener(reference GlobalRef, listenerType ValidationListenerType, handler func(*ValidationResult)) {
 	if vl == nil {
 		gl.Log("error", "RegisterListener: ValidationListener is nil")
 		return
@@ -120,7 +120,7 @@ func (vl *ValidationListener) AddListener(reference Reference, listenerType Vali
 	vl.Listeners[reference][listenerType] = handler
 }
 
-func (vl *ValidationListener) RemoveListener(reference Reference, listenerType ValidationListenerType) {
+func (vl *ValidationListener) RemoveListener(reference GlobalRef, listenerType ValidationListenerType) {
 	if vl == nil {
 		gl.Log("error", "RegisterListener: ValidationListener is nil")
 		return
@@ -186,7 +186,7 @@ func (vl *ValidationListener) GetHandlers() []func(*ValidationResult) {
 	return handlers
 }
 
-func (vl *ValidationListener) GetListeners() map[Reference]map[ValidationListenerType]func(*ValidationResult) {
+func (vl *ValidationListener) GetListeners() map[GlobalRef]map[ValidationListenerType]func(*ValidationResult) {
 	if vl == nil {
 		gl.Log("error", "RegisterListener: ValidationListener is nil")
 		return nil
@@ -194,7 +194,7 @@ func (vl *ValidationListener) GetListeners() map[Reference]map[ValidationListene
 	vl.Mutexes.MuLock()
 	defer vl.Mutexes.MuUnlock()
 
-	listeners := make(map[Reference]map[ValidationListenerType]func(*ValidationResult))
+	listeners := make(map[GlobalRef]map[ValidationListenerType]func(*ValidationResult))
 	for k, v := range vl.Listeners {
 		listeners[k] = v
 	}
@@ -217,7 +217,7 @@ func (vl *ValidationListener) GetListenersByName(name string) map[ValidationList
 	return nil
 }
 
-func (vl *ValidationListener) GetListenersKeys() map[string]Reference {
+func (vl *ValidationListener) GetListenersKeys() map[string]GlobalRef {
 	if vl == nil {
 		gl.Log("error", "RegisterListener: ValidationListener is nil")
 		return nil
@@ -225,14 +225,14 @@ func (vl *ValidationListener) GetListenersKeys() map[string]Reference {
 	vl.Mutexes.MuLock()
 	defer vl.Mutexes.MuUnlock()
 
-	keys := make(map[string]Reference)
+	keys := make(map[string]GlobalRef)
 	for k := range vl.Listeners {
 		keys[k.GetName()] = k
 	}
 	return keys
 }
 
-func (vl *ValidationListener) RegisterListener(reference Reference, handler func(*ValidationResult)) {
+func (vl *ValidationListener) RegisterListener(reference GlobalRef, handler func(*ValidationResult)) {
 	if vl == nil {
 		gl.Log("error", "RegisterListener: ValidationListener is nil")
 		return

@@ -9,24 +9,24 @@ import (
 	gl "github.com/kubex-ecosystem/logz"
 )
 
-type IReference interface {
+type IGlobalRef interface {
 	GetID() uuid.UUID
 	GetName() string
 	SetName(name string)
 	String() string
-	GetReference() *Reference
+	GetGlobalRef() *GlobalRef
 }
 
-// Reference is a struct that holds the Reference ID and name.
-type Reference struct {
+// GlobalRef is a struct that holds the GlobalRef ID and name.
+type GlobalRef struct {
 	// refID is the unique identifier for this context.
 	ID uuid.UUID
 	// refName is the name of the context.
 	Name string
 }
 
-// newReference is a function that creates a new Reference instance.
-func newReference(name string) *Reference {
+// newGlobalRef is a function that creates a new GlobalRef instance.
+func newGlobalRef(name string) *GlobalRef {
 	if name == "" {
 		pc, _, line, ok := runtime.Caller(1)
 		if ok {
@@ -36,53 +36,53 @@ func newReference(name string) *Reference {
 			name = "unknown"
 		}
 	}
-	return &Reference{
+	return &GlobalRef{
 		ID:   uuid.New(),
 		Name: name,
 	}
 }
 
-// NewReference is a function that creates a new IReference instance.
-func NewReference(name string) IReference {
-	return newReference(name)
+// NewGlobalRef is a function that creates a new IGlobalRef instance.
+func NewGlobalRef(name string) IGlobalRef {
+	return newGlobalRef(name)
 }
 
-// String is a method that returns the string representation of the reference.
-func (r *Reference) String() string {
+// String is a method that returns the string representation of the GlobalRef.
+func (r *GlobalRef) String() string {
 	return fmt.Sprintf("ID: %s, Name: %s", r.ID.String(), r.Name)
 }
 
-// GetID is a method that returns the ID of the reference.
-func (r *Reference) GetID() uuid.UUID {
+// GetID is a method that returns the ID of the GlobalRef.
+func (r *GlobalRef) GetID() uuid.UUID {
 	if r == nil {
-		gl.Log("error", "GetID: reference does not exist (", reflect.TypeFor[Reference]().String(), ")")
+		gl.Log("error", "GetID: GlobalRef does not exist (", reflect.TypeFor[GlobalRef]().String(), ")")
 		return uuid.Nil
 	}
 	return r.ID
 }
 
-// GetName is a method that returns the name of the reference.
-func (r *Reference) GetName() string {
+// GetName is a method that returns the name of the GlobalRef.
+func (r *GlobalRef) GetName() string {
 	if r == nil {
-		gl.Log("error", "GetName: reference does not exist (", reflect.TypeFor[Reference]().String(), ")")
+		gl.Log("error", "GetName: GlobalRef does not exist (", reflect.TypeFor[GlobalRef]().String(), ")")
 		return ""
 	}
 	return r.Name
 }
 
-// SetName is a method that sets the name of the reference.
-func (r *Reference) SetName(name string) {
+// SetName is a method that sets the name of the GlobalRef.
+func (r *GlobalRef) SetName(name string) {
 	if r == nil {
-		gl.Log("error", "SetName: reference does not exist (", reflect.TypeFor[Reference]().String(), ")")
+		gl.Log("error", "SetName: GlobalRef does not exist (", reflect.TypeFor[GlobalRef]().String(), ")")
 		return
 	}
 	r.Name = name
 }
 
-// GetReference is a method that returns the reference struct (non-interface).
-func (r *Reference) GetReference() *Reference {
+// GetGlobalRef is a method that returns the GlobalRef struct (non-interface).
+func (r *GlobalRef) GetGlobalRef() *GlobalRef {
 	if r == nil {
-		gl.Errorf("GetReference: reference does not exist (%s)", reflect.TypeFor[Reference]().String())
+		gl.Errorf("GetGlobalRef: GlobalRef does not exist (%s)", reflect.TypeFor[GlobalRef]().String())
 		return nil
 	}
 	return r

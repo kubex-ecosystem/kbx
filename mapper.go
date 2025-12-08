@@ -28,6 +28,10 @@ type IMapper[T any] interface {
 	Serialize(format string) ([]byte, error)
 	// Deserialize converts a byte array in the specified format to an object of type T.
 	Deserialize(data []byte, format string) (*T, error)
+	// GetValue returns the current value of the mapped object.
+	GetValue() *T
+	// SetValue sets the value of the mapped object.
+	SetValue(value *T) error
 }
 
 // Mapper serializa/desserializa T com decoders streaming.
@@ -329,6 +333,18 @@ func (m *Mapper[T]) decodeJSONStream(r io.Reader) (*T, error) {
 		return nil, err
 	}
 	return m.ptr, nil
+}
+
+func (m *Mapper[T]) GetValue() *T {
+	return m.ptr
+}
+
+func (m *Mapper[T]) SetValue(value *T) error {
+	if value == nil {
+		return gl.Errorf("JSON: valor não pode ser nulo")
+	}
+	*m.ptr = *value
+	return nil
 }
 
 func consumeWhitespace(dec *json.Decoder) error {

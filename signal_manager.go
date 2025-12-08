@@ -18,7 +18,7 @@ type SignalManager[T chan string] struct {
 	// Logger is the Logger instance for this canalize_ds instance.
 	Logger *gl.LoggerZ
 	// Reference is the reference ID and name.
-	*Reference
+	*GlobalRef
 	// SigChan is the channel for the signal.
 	SigChan    chan os.Signal
 	channelCtl T
@@ -31,7 +31,7 @@ func newSignalManager[T chan string](channelCtl T, logger *gl.LoggerZ) *SignalMa
 	}
 	return &SignalManager[T]{
 		Logger:     logger,
-		Reference:  newReference("SignalManager"),
+		GlobalRef:  newGlobalRef("kbx"),
 		SigChan:    make(chan os.Signal, 1),
 		channelCtl: channelCtl,
 	}
