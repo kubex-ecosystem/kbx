@@ -1,0 +1,385 @@
+/// mail/types.go ///
+package mail
+
+import "time"
+
+type Email struct {
+    From        string
+    To          []string
+    Cc          []string
+    Bcc         []string
+    Subject     string
+    Text        string
+    HTML        string
+    Attachments []Attachment
+}
+
+type Attachment struct {
+    Filename string
+    Data     []byte
+    Mime     string
+}
+
+type SMTPConfig struct {
+    Provider string // "gmail", "outlook", "microsoft", "sendmail"
+    Host     string
+    Port     int
+    User     string
+    Pass     string
+    SSL      bool
+    TLS      bool
+    Timeout  time.Duration
+}
+
+type MailProvider interface {
+    Send(cfg SMTPConfig, msg *Email) error
+}
+
+/// mail/provider/common.go ///
+package provider
+
+import (
+    "fmt"
+    "net/smtp"
+    "bytes"
+    "io"
+    "mime/multipart"
+    "mime/quotedprintable"
+
+    "github.com/kubex-ecosystem/kbx/mail"
+)
+
+// formatAddr builds host:port
+func formatAddr(host string, port int) string {
+    return fmt.Sprintf("%s:%d", host, port)
+}
+
+// sendSMTPMessage normalizes RFC-style message assembly
+func sendSMTPMessage(c *smtp.Client, msg *mail.Email) error {
+    if err := c.Mail(msg.From); err != nil {
+        return err
+    }
+    for _, r := range msg.To {
+        if err := c.Rcpt(r); err != nil {
+            return err
+        }
+    }
+
+    wc, err := c.Data()
+    if err != nil {
+        return err
+    }
+    defer wc.Close()
+
+    buf := bytes.NewBuffer(nil)
+    writeRFC822(buf, msg)
+
+    _, err = wc.Write(buf.Bytes())
+    return err
+}
+
+// writeRFC822 – builds a *very clean* RFC message
+func writeRFC822(w io.Writer, msg *mail.Email) {
+    boundary := "KBXMAIL-" + "BOUNDARY"
+
+    fmt.Fprintf(w, "From: %s\r\n", msg.From)
+    fmt.Fprintf(w, "To: %s\r\n", joinAddressList(msg.To))
+    fmt.Fprintf(w, "Subject: %s\r\n", msg.Subject)
+    fmt.Fprintf(w, "MIME-Version: 1.0\r\n")
+    fmt.Fprintf(w, "Content-Type: multipart/mixed; boundary=\"%s\"\r\n\r\n", boundary)
+
+    // TEXT
+    if msg.Text != "" {
+        fmt.Fprintf(w, "--%s\r\n", boundary)
+        fmt.Fprintf(w, "Content-Type: text/plain; charset=\"utf-8\"\r\n")
+        qp := quotedprintable.NewWriter(w)
+        qp.Write([]byte(msg.Text))
+        qp.Close()
+        fmt.Fprintf(w, "\r\n")
+    }
+
+    // HTML
+    if msg.HTML != "" {
+        fmt.Fprintf(w, "--%s\r\n", boundary)
+        fmt.Fprintf(w, "Content-Type: text/html; charset=\"utf-8\"\r\n")
+        qp := quotedprintable.NewWriter(w)
+        qp.Write([]byte(msg.HTML))
+        qp.Close()
+        fmt.Fprintf(w, "\r\n")
+    }
+
+    // attachments
+    for _, att := range msg.Attachments {
+        fmt.Fprintf(w, "--%s\r\n", boundary)
+        fmt.Fprintf(w, "Content-Type: %s\r\n", att.Mime)
+        fmt.Fprintf(w, "Content-Disposition: attachment; filename=\"%s\"\r\n", att.Filename)
+        fmt.Fprintf(w, "Content-Transfer-Encoding: base64\r\n\r\n")
+
+        encoded := make([]byte, base64.StdEncoding.EncodedLen(len(att.Data)))
+        base64.StdEncoding.Encode(encoded, att.Data)
+        w.Write(encoded)
+        fmt.Fprintf(w, "\r\n")
+    }
+
+    fmt.Fprintf(w, "--%s--", boundary)
+}
+
+func joinAddressList(list []string) string {
+    if len(list) == 0 {
+        return ""
+    }
+    if len(list) == 1 {
+        return list[0]
+    }
+    return strings.Join(list, ", ")
+}
+
+/// mail/provider/gmail.go ///
+package provider
+
+import (
+    "crypto/tls"
+    "net/smtp"
+
+    "github.com/kubex-ecosystem/kbx/mail"
+)
+
+type GmailProvider struct{}
+
+func (g GmailProvider) Send(cfg mail.SMTPConfig, msg *mail.Email) error {
+    auth := smtp.PlainAuth("", cfg.User, cfg.Pass, cfg.Host)
+
+    tlsCfg := &tls.Config{
+        ServerName: cfg.Host,
+    }
+
+    conn, err := tls.Dial("tcp", formatAddr(cfg.Host, cfg.Port), tlsCfg)
+    if err != nil {
+        return err
+    }
+
+    client, err := smtp.NewClient(conn, cfg.Host)
+    if err != nil {
+        return err
+    }
+
+    if err := client.Auth(auth); err != nil {
+        return err
+    }
+
+    defer client.Close()
+
+    return sendSMTPMessage(client, msg)
+}
+
+/// mail/provider/outlook.go ///
+package provider
+
+import (
+    "fmt"
+    "net/smtp"
+
+    "github.com/kubex-ecosystem/kbx/mail"
+)
+
+type OutlookProvider struct{}
+
+func (o OutlookProvider) Send(cfg mail.SMTPConfig, msg *mail.Email) error {
+    auth := smtp.PlainAuth("", cfg.User, cfg.Pass, cfg.Host)
+
+    c, err := smtp.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
+    if err != nil {
+        return err
+    }
+    defer c.Close()
+
+    if err := c.Auth(auth); err != nil {
+        return err
+    }
+
+    return sendSMTPMessage(c, msg)
+}
+
+/// mail/provider/microsoft.go ///
+package provider
+
+import (
+    "fmt"
+    "net/smtp"
+
+    "github.com/kubex-ecosystem/kbx/mail"
+)
+
+type MicrosoftProvider struct{}
+
+func (m MicrosoftProvider) Send(cfg mail.SMTPConfig, msg *mail.Email) error {
+    auth := smtp.PlainAuth("", cfg.User, cfg.Pass, cfg.Host)
+
+    c, err := smtp.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
+    if err != nil {
+        return err
+    }
+    defer c.Close()
+
+    if err := c.Auth(auth); err != nil {
+        return err
+    }
+
+    return sendSMTPMessage(c, msg)
+}
+
+/// mail/provider/sendmail.go ///
+package provider
+
+import (
+    "bytes"
+    "os/exec"
+
+    "github.com/kubex-ecosystem/kbx/mail"
+)
+
+type SendmailProvider struct{}
+
+func (s SendmailProvider) Send(_ mail.SMTPConfig, msg *mail.Email) error {
+    cmd := exec.Command("/usr/sbin/sendmail", "-t", "-i")
+
+    buf := new(bytes.Buffer)
+    writeRFC822(buf, msg)
+
+    cmd.Stdin = buf
+    return cmd.Run()
+}
+
+/// mail/kbxmail.go ///
+package mail
+
+import (
+    "errors"
+    "strings"
+    "time"
+
+    "github.com/kubex-ecosystem/kbx/mail/provider"
+)
+
+var providerMap = map[string]MailProvider{
+    "gmail":     provider.GmailProvider{},
+    "outlook":   provider.OutlookProvider{},
+    "microsoft": provider.MicrosoftProvider{},
+    "sendmail":  provider.SendmailProvider{},
+}
+
+// fallback order: Kubex-style chaos-first resiliency
+var fallbackOrder = []string{
+    "gmail",
+    "outlook",
+    "microsoft",
+    "sendmail",
+}
+
+func SendEmail(cfg SMTPConfig, msg *Email) error {
+    if cfg.Timeout <= 0 {
+        cfg.Timeout = 10 * time.Second
+    }
+
+    primary := strings.ToLower(cfg.Provider)
+    if p, ok := providerMap[primary]; ok {
+        if err := p.Send(cfg, msg); err == nil {
+            return nil
+        }
+    }
+
+    // fallback
+    for _, name := range fallbackOrder {
+        if name == primary {
+            continue
+        }
+        if p, ok := providerMap[name]; ok {
+            if err := p.Send(cfg, msg); err == nil {
+                return nil
+            }
+        }
+    }
+
+    return errors.New("KBX-Mail: all providers failed")
+}
+
+/// mail/imap/client.go ///
+package imap
+
+import (
+    "github.com/emersion/go-imap/client"
+)
+
+func Connect(host string, user string, pass string) (*client.Client, error) {
+    c, err := client.DialTLS(host, nil)
+    if err != nil {
+        return nil, err
+    }
+    if err := c.Login(user, pass); err != nil {
+        return nil, err
+    }
+    return c, nil
+}
+
+/// mail/imap/parser.go ///
+package imap
+
+import (
+    "github.com/emersion/go-imap"
+    "github.com/emersion/go-message/mail"
+    "io"
+)
+
+type ParsedAttachment struct {
+    Filename string
+    Data     []byte
+}
+
+func ParseAttachments(msg *imap.Message) ([]ParsedAttachment, error) {
+    r := msg.GetBody(&imap.BodySectionName{})
+    if r == nil {
+        return nil, nil
+    }
+
+    mr, err := mail.CreateReader(r)
+    if err != nil {
+        return nil, err
+    }
+
+    var result []ParsedAttachment
+
+    for {
+        p, err := mr.NextPart()
+        if err == io.EOF {
+            break
+        }
+        if err != nil {
+            return nil, err
+        }
+
+        switch h := p.Header.(type) {
+        case *mail.AttachmentHeader:
+            filename, _ := h.Filename()
+            data, _ := io.ReadAll(p.Body)
+            result = append(result, ParsedAttachment{
+                Filename: filename,
+                Data:     data,
+            })
+        }
+    }
+
+    return result, nil
+}
+
+/// mail/imap/xml_parser.go ///
+package imap
+
+import "encoding/xml"
+
+func ParseXMLAttachment[T any](data []byte) (*T, error) {
+    var v T
+    if err := xml.Unmarshal(data, &v); err != nil {
+        return nil, err
+    }
+    return &v, nil
+}

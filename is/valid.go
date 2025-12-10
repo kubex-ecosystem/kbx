@@ -98,3 +98,110 @@ func SpecVar(c uint8) bool {
 func AlphaN(c uint8) bool {
 	return c == '_' || '0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'
 }
+
+func Alpha(c uint8) bool {
+	return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_'
+}
+
+func Numeric(c any) bool {
+	switch c := c.(type) {
+	case uint8:
+		return '0' <= c && c <= '9'
+	default:
+		return false
+	}
+}
+
+func SameType[T any](obj any) bool {
+	v := reflect.ValueOf(obj)
+	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return false
+		}
+		v = v.Elem()
+	}
+	if v.Type() != reflect.TypeFor[T]() {
+		return false
+	}
+	return true
+}
+
+func Slice[T any](obj any) bool {
+	v := reflect.ValueOf(obj)
+	if SameType[any](obj) || !Valid(obj) {
+		return false
+	}
+	if !types.KindMap[v.Kind()] && SameType[T](v.Interface()) {
+		return false
+	}
+	if v.Type().Elem() != reflect.TypeFor[T]() {
+		return false
+	}
+	return true
+}
+
+func Map[K, V any](obj any) bool {
+	v := reflect.ValueOf(obj)
+	if SameType[any](obj) || !Valid(obj) {
+		return false
+	}
+	if !types.KindMap[v.Kind()] && (SameType[K](v.Interface()) || SameType[V](v.Interface())) {
+		return false
+	}
+	if v.Type().Key() != reflect.TypeFor[K]() || v.Type().Elem() != reflect.TypeFor[V]() {
+		return false
+	}
+	return true
+}
+
+func Struct[T any](obj any) bool {
+	v := reflect.ValueOf(obj)
+	if SameType[any](obj) || !Valid(obj) {
+		return false
+	}
+	if !types.KindMap[v.Kind()] && SameType[T](v.Interface()) {
+		return false
+	}
+	if v.Type() != reflect.TypeFor[T]() {
+		return false
+	}
+	return true
+}
+
+func Compatible[T any](obj any) bool {
+	v := reflect.ValueOf(obj)
+	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return false
+		}
+		v = v.Elem()
+	}
+	if !v.Type().ConvertibleTo(reflect.TypeFor[T]()) {
+		return false
+	}
+	return true
+}
+
+func Implements[T any](obj any) bool {
+	v := reflect.ValueOf(obj)
+	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return false
+		}
+		v = v.Elem()
+	}
+	if !v.Type().Implements(reflect.TypeFor[T]()) {
+		return false
+	}
+	return true
+}
+
+func NilPtr(obj any) bool {
+	v := reflect.ValueOf(obj)
+	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return true
+		}
+	}
+	return false
+}
