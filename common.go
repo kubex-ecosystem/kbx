@@ -62,6 +62,17 @@ func GetValueOrDefault[T any](value T, defaultValue T) (T, reflect.Type) {
 	return value, reflect.TypeFor[T]()
 }
 
+func GetValErrOrDefault[T any](fn func() (T, error), defaultValue T) T {
+	if IsObjSafe(fn, false) {
+		value, err := fn()
+		if err != nil || !IsObjValid(value) {
+			return defaultValue
+		}
+		return value
+	}
+	return defaultValue
+}
+
 func GetValueOrDefaultSimple[T any](value T, defaultValue T) T {
 	if !IsObjValid(value) {
 		return defaultValue
