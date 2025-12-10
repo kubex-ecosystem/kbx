@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/kubex-ecosystem/kbx/get"
 	"github.com/kubex-ecosystem/kbx/tools"
 	"github.com/kubex-ecosystem/kbx/tools/mail/provider"
@@ -74,6 +75,22 @@ func DefaultSMTPConfigPath() string { return getFullExpandedPath(defaultSMTPConf
 func DefaultTemplatePath() string   { return getFullExpandedPath(defaultTemplatePath) }
 func DefaultEnvFilePath() string    { return getFullExpandedPath(defaultEnvFilePath) }
 
+// ------------------------------- New Mail Params Functions -----------------------------//
+
+type MailParams struct {
+	ConfigPath string
+	*types.MailParams
+}
+
+func NewMailParams(configPath string) *MailParams {
+	return &MailParams{ConfigPath: configPath, MailParams: types.NewMailParams()}
+}
+
+func (mp *MailParams) LoadSMTPConfig(cfgFilePath string) (*types.SMTPConfig, error) {
+	cfgLoader := get.Loader[types.SMTPConfig](get.ValOrType(cfgFilePath, mp.ConfigPath))
+	return cfgLoader.DeserializeFromFile(get.FileExt(get.ValOrType(cfgFilePath, mp.ConfigPath)))
+}
+
 // ------------------------------- New Logz Params Functions -----------------------------//
 
 func NewLogzParams() *types.LogzParams { return types.NewLogzParams() }
@@ -114,4 +131,25 @@ func NewMailSvc(cfgPath string) MailSvc {
 		return nil
 	}
 	return msvc
+}
+
+type GlobalRef struct {
+	ID   uuid.UUID
+	Name string
+}
+
+func NewGlobalRef(name string) *GlobalRef {
+	return &GlobalRef{
+		ID:   uuid.New(),
+		Name: name,
+	}
+}
+
+func (gr *GlobalRef) GetGlobalRef() *GlobalRef { return gr }
+func (gr *GlobalRef) GetName() string          { return gr.Name }
+func (gr *GlobalRef) GetID() uuid.UUID         { return gr.ID }
+func (gr *GlobalRef) SetName(name string)      { gr.Name = name }
+func (gr *GlobalRef) SetID(id uuid.UUID)       { gr.ID = id }
+func (gr *GlobalRef) String() string {
+	return gr.Name + "-" + gr.ID.String()
 }

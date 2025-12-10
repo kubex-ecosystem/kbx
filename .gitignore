@@ -1,3 +1,6 @@
 # Ignore all files, except those all of them.. hehe
 
 #*
+.notes/MAILING_V2.lkt.txt
+.notes/MAINLING.lkt.txt
+.notes/RESP_V2.1.md

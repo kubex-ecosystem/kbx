@@ -1,9 +1,12 @@
 // Package types defines types and interfaces for sending emails using various SMTP providers.
 package types
 
-import "time"
+import (
+	"time"
+)
 
 type Email struct {
+	Name        string
 	From        string
 	To          []string
 	Cc          []string
@@ -33,4 +36,18 @@ type SMTPConfig struct {
 
 type MailProvider interface {
 	Send(cfg SMTPConfig, msg *Email) error
+}
+
+type MailParams struct {
+	*SMTPConfig
+	*Email
+	Provider MailProvider
+}
+
+func NewMailParams() *MailParams {
+	return &MailParams{
+		&SMTPConfig{},
+		&Email{},
+		nil,
+	}
 }

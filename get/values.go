@@ -58,3 +58,19 @@ func ValOrAny[T any](value T, d T) T {
 	}
 	return value
 }
+
+func FileExt(filePath string) string {
+	ext := ""
+	if len(filePath) > 0 {
+		for i := len(filePath) - 1; i >= 0; i-- {
+			if filePath[i] == '.' {
+				ext = filePath[i+1:]
+				break
+			}
+			if filePath[i] == '/' || filePath[i] == '\\' {
+				break
+			}
+		}
+	}
+	return ext
+}
