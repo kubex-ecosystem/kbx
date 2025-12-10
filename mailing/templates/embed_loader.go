@@ -1,3 +1,4 @@
+// Package templates fornece funcionalidades para carregar e renderizar templates de email.
 package templates
 
 import (

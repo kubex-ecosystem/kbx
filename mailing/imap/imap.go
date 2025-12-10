@@ -1,3 +1,4 @@
+// Package imap fornece funcionalidades para acessar e ler emails via protocolo IMAP.
 package imap
 
 import (

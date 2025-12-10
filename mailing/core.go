@@ -1,3 +1,4 @@
+// Package mailing fornece funcionalidades relacionadas ao envio de emails.
 package mailing
 
 import "github.com/kubex-ecosystem/kbx/types"
