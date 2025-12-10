@@ -5,18 +5,18 @@ import (
 	"errors"
 	"time"
 
+	"github.com/kubex-ecosystem/kbx/load"
 	"github.com/kubex-ecosystem/kbx/mailing/templates"
 	"github.com/kubex-ecosystem/kbx/tools"
 	"github.com/kubex-ecosystem/kbx/tools/mail"
-	"github.com/kubex-ecosystem/kbx/types"
 )
 
 var errNilRequest = errors.New("mailing: mail request is nil")
 
 // Config parametriza o envio com retry/timeout via tools.Retry.
 type Config struct {
-	SMTP  *types.SMTPConfig  `json:"smtp" yaml:"smtp" xml:"smtp" toml:"smtp"`
-	Retry *tools.RetryConfig `json:"retry" yaml:"retry" xml:"retry" toml:"retry"`
+	MailConnection *load.MailConnection `json:"smtp" yaml:"smtp" xml:"smtp" toml:"smtp"`
+	Retry          *tools.RetryConfig   `json:"retry" yaml:"retry" xml:"retry" toml:"retry"`
 }
 
 // Mailer expõe a API única usada pelo backend.
@@ -52,7 +52,7 @@ func (m *Mailer) Send(ctx context.Context, req *MailRequest) error {
 			return struct{}{}, ctx.Err()
 		default:
 		}
-		return struct{}{}, mail.Send(m.cfg.SMTP, email)
+		return struct{}{}, mail.Send(m.cfg.MailConnection, email)
 	},
 		tools.WithRetries(m.cfg.Retry.Retries),
 		tools.WithDelay(m.cfg.Retry.Delay),

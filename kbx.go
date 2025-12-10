@@ -5,15 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/kubex-ecosystem/kbx/get"
-	"github.com/kubex-ecosystem/kbx/tools"
-	"github.com/kubex-ecosystem/kbx/tools/mail/provider"
+	"github.com/kubex-ecosystem/kbx/load"
 	"github.com/kubex-ecosystem/kbx/types"
-
-	gl "github.com/kubex-ecosystem/logz"
 )
 
 const (
@@ -77,79 +72,35 @@ func DefaultEnvFilePath() string    { return getFullExpandedPath(defaultEnvFileP
 
 // ------------------------------- New Mail Params Functions -----------------------------//
 
-type MailParams struct {
-	ConfigPath        string `json:"config_path,omitempty"`
-	*types.MailParams `json:",inline" mapstructure:",squash"`
+type MailSrvParams = load.MailSrvParams
+type MailConfig = load.MailConfig
+type MailConnection = types.MailConnection
+type MailAttachment = types.Attachment
+type Email = types.Email
+
+type LogzConfig = types.LogzConfig
+type SrvConfig = types.SrvConfig
+type GlobalRef = load.GlobalRef
+
+func NewMailSrvParams(cfgPath string) *MailSrvParams { return load.NewMailSrvParams(cfgPath) }
+func NewMailConfig(cfgPath string) *MailConfig       { return load.NewMailConfig(cfgPath) }
+func NewMailConnection() *MailConnection             { return types.NewMailConnection() }
+func NewMailAttachment() *MailAttachment             { return &MailAttachment{} }
+func NewEmail() *Email                               { return &Email{} }
+// func NewMailSender(params *MailSrvParams) MailSender { return nil }
+
+func NewLogzParams() *types.LogzConfig    { return load.NewLogzParams() }
+func NewSrvArgs() *types.SrvConfig        { return load.NewSrvArgs() }
+func NewGlobalRef(name string) *GlobalRef { return load.NewGlobalRef(name) }
+
+func ParseLogzArgs(level string, minLevel string, maxLevel string, output string) *types.LogzConfig {
+	return load.ParseLogzArgs(level, minLevel, maxLevel, output)
+}
+func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) *types.SrvConfig {
+	return load.ParseSrvArgs(bind, pubCertKeyPath, pubKeyPath, privKeyPath, accessTokenTTL, refreshTokenTTL, issuer)
 }
 
-func NewMailParams(configPath string) *MailParams {
-	return &MailParams{ConfigPath: configPath, MailParams: types.NewMailParams()}
-}
-
-func (mp *MailParams) LoadSMTPConfig(cfgFilePath string) (*types.SMTPConfig, error) {
-	cfgLoader := get.Loader[types.SMTPConfig](get.ValOrType(cfgFilePath, mp.ConfigPath))
-	return cfgLoader.DeserializeFromFile(get.FileExt(get.ValOrType(cfgFilePath, mp.ConfigPath)))
-}
-
-// ------------------------------- New Logz Params Functions -----------------------------//
-
-func NewLogzParams() *types.LogzParams { return types.NewLogzParams() }
-
-func ParseLogzArgs(level string, minLevel string, maxLevel string, output string) *types.LogzParams {
-	LogzArgs := NewLogzParams()
-	LogzArgs.Level = gl.Level(get.ValOrType(level, "info"))
-	LogzArgs.MinLevel = gl.Level(get.ValOrType(minLevel, "debug"))
-	LogzArgs.MaxLevel = gl.Level(get.ValOrType(maxLevel, "fatal"))
-	return LogzArgs
-}
-func LoadLogzConfig(cfgPath string) (*types.LogzParams, error) {
-	cfgMapper := tools.NewEmptyMapperType[types.LogzParams](cfgPath)
-	return cfgMapper.DeserializeFromFile(filepath.Ext(cfgPath)[1:])
-}
-
-// ------------------------------- New Srv Params Functions -----------------------------//
-
-func NewSrvArgs() *types.SrvParams { return types.NewSrvParams() }
-
-func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) *types.SrvParams {
-	SrvArgs := NewSrvArgs()
-	SrvArgs.Bind = get.ValOrType(bind, ":8080")
-	SrvArgs.PubCertKeyPath = get.ValOrType(pubCertKeyPath, "")
-	SrvArgs.PubKeyPath = get.ValOrType(pubKeyPath, "")
-	SrvArgs.PrivKeyPath = get.ValOrType(privKeyPath, "")
-	SrvArgs.AccessTokenTTL = time.Duration(get.ValOrType(accessTokenTTL, 15)) * time.Minute
-	SrvArgs.RefreshTokenTTL = time.Duration(get.ValOrType(refreshTokenTTL, 60)) * time.Minute
-	SrvArgs.Issuer = get.ValOrType(issuer, "kubex-ecosystem")
-	return SrvArgs
-}
-
-type MailSvc = types.MailProvider
-
-func NewMailSvc(cfgPath string) MailSvc {
-	msvc, err := provider.NewProvider[MailSvc](cfgPath)
-	if err != nil {
-		return nil
-	}
-	return msvc
-}
-
-type GlobalRef struct {
-	ID   uuid.UUID `json:"id,omitempty"`
-	Name string    `json:"name,omitempty"`
-}
-
-func NewGlobalRef(name string) *GlobalRef {
-	return &GlobalRef{
-		ID:   uuid.New(),
-		Name: name,
-	}
-}
-
-func (gr *GlobalRef) GetGlobalRef() *GlobalRef { return gr }
-func (gr *GlobalRef) GetName() string          { return gr.Name }
-func (gr *GlobalRef) GetID() uuid.UUID         { return gr.ID }
-func (gr *GlobalRef) SetName(name string)      { gr.Name = name }
-func (gr *GlobalRef) SetID(id uuid.UUID)       { gr.ID = id }
-func (gr *GlobalRef) String() string {
-	return gr.Name + "-" + gr.ID.String()
+func LoadConfig[T any](path string) (*T, error) { return load.LoadConfig[T](path) }
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig](cfgPath string, genFile bool) (*T, error) {
+	return load.LoadConfigOrDefault[T](cfgPath, genFile)
 }

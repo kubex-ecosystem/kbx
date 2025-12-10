@@ -8,9 +8,10 @@ import (
 )
 
 type SMTP struct {
-	Mail string `json:"mail,omitempty" yaml:"mail,omitempty" db:"mail,omitempty" bson:"mail,omitempty" form:"mail,omitempty" mapstructure:"mail,omitempty"`
-	From string `json:"from_email,omitempty" yaml:"from_email,omitempty" db:"from_email,omitempty" bson:"from_email,omitempty" form:"from_email,omitempty" mapstructure:"from_email,omitempty"`
-	Name string `json:"from_name,omitempty" yaml:"from_name,omitempty" db:"from_name,omitempty" bson:"from_name,omitempty" form:"from_name,omitempty" mapstructure:"from_name,omitempty"`
+	Protocol string `json:"protocol,omitempty" yaml:"protocol,omitempty" db:"protocol,omitempty" bson:"protocol,omitempty" form:"protocol,omitempty" mapstructure:"protocol,omitempty"`
+	Mail     string `json:"mail,omitempty" yaml:"mail,omitempty" db:"mail,omitempty" bson:"mail,omitempty" form:"mail,omitempty" mapstructure:"mail,omitempty"`
+	From     string `json:"from_email,omitempty" yaml:"from_email,omitempty" db:"from_email,omitempty" bson:"from_email,omitempty" form:"from_email,omitempty" mapstructure:"from_email,omitempty"`
+	Name     string `json:"from_name,omitempty" yaml:"from_name,omitempty" db:"from_name,omitempty" bson:"from_name,omitempty" form:"from_name,omitempty" mapstructure:"from_name,omitempty"`
 
 	Host string `json:"host,omitempty" yaml:"host,omitempty" db:"host,omitempty" bson:"host,omitempty" form:"host,omitempty" mapstructure:"host,omitempty"`
 	Port string `json:"port,omitempty" yaml:"port,omitempty" db:"port,omitempty" bson:"port,omitempty" form:"port,omitempty" mapstructure:"port,omitempty"`

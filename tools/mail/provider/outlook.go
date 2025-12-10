@@ -9,7 +9,7 @@ import (
 
 type OutlookProvider struct{}
 
-func (o OutlookProvider) Send(cfg *types.SMTPConfig, msg *types.Email) error {
+func (o OutlookProvider) Send(cfg *types.MailConnection, msg *types.Email) error {
 	auth := smtp.PlainAuth("", cfg.User, cfg.Pass, cfg.Host)
 
 	c, err := smtp.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))

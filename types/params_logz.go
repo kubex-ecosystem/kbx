@@ -20,7 +20,7 @@ const (
 	DBTypeOracle   DBType = "oracle"
 )
 
-type LogzParams struct {
+type LogzConfig struct {
 	ID uuid.UUID
 
 	*gl.LogzGeneralOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
@@ -41,8 +41,8 @@ type RootParams struct {
 	Enabled  *bool  `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty" default:"true"`
 }
 
-func NewLogzParams() *LogzParams {
-	return &LogzParams{
+func NewLogzConfig() *LogzConfig {
+	return &LogzConfig{
 		ID:                   uuid.New(),
 		LogzGeneralOptions:   &gl.LogzGeneralOptions{},
 		LogzFormatOptions:    &gl.LogzFormatOptions{},

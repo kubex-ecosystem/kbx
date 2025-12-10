@@ -25,7 +25,7 @@ var fbkOrder = []string{
 	"sendmail",
 }
 
-func Send(cfg *types.SMTPConfig, msg *types.Email) error {
+func Send(cfg *types.MailConnection, msg *types.Email) error {
 	if cfg.Timeout <= 0 {
 		cfg.Timeout = 10 * time.Second
 	}

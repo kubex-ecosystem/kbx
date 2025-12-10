@@ -69,7 +69,7 @@ type SrvPerformanceParams struct {
 	Hash      string `yaml:"hash,omitempty" json:"hash,omitempty" mapstructure:"hash,omitempty"`
 }
 
-type SrvParams struct {
+type SrvConfig struct {
 	ID                    uuid.UUID
 	*SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
 	*SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
@@ -79,8 +79,8 @@ type SrvParams struct {
 	*SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
 }
 
-func NewSrvParams() *SrvParams {
-	return &SrvParams{
+func NewSrvConfig() *SrvConfig {
+	return &SrvConfig{
 		ID:                   uuid.New(),
 		SrvBasicParams:       &SrvBasicParams{},
 		SrvFilesParams:       &SrvFilesParams{},
