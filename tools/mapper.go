@@ -173,12 +173,12 @@ func (m *Mapper[T]) DeserializeFromFile(format string) (*T, error) {
 		gl.Log("error", fmt.Sprintf("Error opening file: %v", err))
 		return nil, err
 	}
-	defer func() {
-		gl.Log("debug", "Closing input file")
+	defer func(ipt string) {
+		gl.Debugf("Closing input file %s", ipt)
 		if cerr := f.Close(); cerr != nil {
 			gl.Log("error", fmt.Sprintf("Error closing file: %v", cerr))
 		}
-	}()
+	}(m.filePath)
 
 	if format == "" {
 		format = detectFormatByExt(m.filePath)
@@ -263,6 +263,7 @@ func (m *Mapper[T]) decodeJSONStream(r io.Reader) (*T, error) {
 					if isBenignJSONEnd(err) {
 						break
 					}
+					gl.Debugf("JSON: erro decodificando arquivo: %s(%s)", m.filePath, reflect.TypeFor[T]())
 					return nil, gl.Errorf("JSON: erro decodificando elemento subsequente: %v", err)
 				}
 				sliceVal = reflect.Append(sliceVal, reflect.ValueOf(nextElem).Elem())
@@ -274,6 +275,7 @@ func (m *Mapper[T]) decodeJSONStream(r io.Reader) (*T, error) {
 
 	// T = objeto/map simples
 	if err := dec.Decode(m.ptr); err != nil {
+		gl.Debugf("JSON: erro decodificando arquivo: %s(%s)", m.filePath, reflect.TypeFor[T]())
 		return nil, gl.Errorf("JSON: erro decodificando objeto: %v", err)
 	}
 	// garantir que não há lixo após o objeto

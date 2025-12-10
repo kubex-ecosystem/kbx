@@ -9,7 +9,7 @@ import (
 
 type GmailProvider struct{}
 
-func (g GmailProvider) Send(cfg types.SMTPConfig, msg *types.Email) error {
+func (g GmailProvider) Send(cfg *types.SMTPConfig, msg *types.Email) error {
 	auth := smtp.PlainAuth("", cfg.User, cfg.Pass, cfg.Host)
 
 	tlsCfg := &tls.Config{

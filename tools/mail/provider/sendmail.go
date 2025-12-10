@@ -15,7 +15,7 @@ type SendmailProviderImpl struct {
 }
 
 type SendmailProvider interface {
-	Send(_ types.SMTPConfig, msg *types.Email) error
+	Send(_ *types.SMTPConfig, msg *types.Email) error
 }
 
 func NewProvider[T SendmailProvider](cfgFilePath string) (SendmailProvider, error) {
@@ -32,7 +32,7 @@ func NewProvider[T SendmailProvider](cfgFilePath string) (SendmailProvider, erro
 	return empty, nil
 }
 
-func (s SendmailProviderImpl) Send(_ types.SMTPConfig, msg *types.Email) error {
+func (s SendmailProviderImpl) Send(_ *types.SMTPConfig, msg *types.Email) error {
 	cmd := exec.Command("/usr/sbin/sendmail", "-t", "-i")
 
 	buf := new(bytes.Buffer)

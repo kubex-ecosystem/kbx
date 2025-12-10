@@ -15,17 +15,17 @@ var errNilRequest = errors.New("mailing: mail request is nil")
 
 // Config parametriza o envio com retry/timeout via tools.Retry.
 type Config struct {
-	SMTP  types.SMTPConfig
-	Retry tools.RetryConfig
+	SMTP  *types.SMTPConfig  `json:"smtp" yaml:"smtp" xml:"smtp" toml:"smtp"`
+	Retry *tools.RetryConfig `json:"retry" yaml:"retry" xml:"retry" toml:"retry"`
 }
 
 // Mailer expõe a API única usada pelo backend.
 type Mailer struct {
-	cfg Config
+	cfg *Config `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
 }
 
 // NewMailer cria um Mailer com defaults para retry/timeout se não informados.
-func NewMailer(cfg Config) *Mailer {
+func NewMailer(cfg *Config) *Mailer {
 	if cfg.Retry.Retries <= 0 {
 		cfg.Retry.Retries = 3
 	}

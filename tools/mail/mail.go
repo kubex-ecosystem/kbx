@@ -11,9 +11,9 @@ import (
 )
 
 var provMap = map[string]types.MailProvider{
-	"gmail":     provider.GmailProvider{},
-	"outlook":   provider.OutlookProvider{},
-	"microsoft": provider.MicrosoftProvider{},
+	"gmail":     &provider.GmailProvider{},
+	"outlook":   &provider.OutlookProvider{},
+	"microsoft": &provider.MicrosoftProvider{},
 	// "sendmail":  provider.SendmailProvider{},
 }
 
@@ -25,7 +25,7 @@ var fbkOrder = []string{
 	"sendmail",
 }
 
-func Send(cfg types.SMTPConfig, msg *types.Email) error {
+func Send(cfg *types.SMTPConfig, msg *types.Email) error {
 	if cfg.Timeout <= 0 {
 		cfg.Timeout = 10 * time.Second
 	}

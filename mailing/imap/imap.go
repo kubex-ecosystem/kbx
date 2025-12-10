@@ -15,8 +15,8 @@ import (
 type Config struct {
 	Host     string
 	Port     int
-	Username string
-	Password string
+	User string
+	Pass string
 	UseTLS   bool
 	Mailbox  string
 	Limit    int
@@ -51,7 +51,7 @@ func FetchUnread(ctx context.Context, cfg Config) ([]*Message, error) {
 	}
 	defer c.Logout()
 
-	if err := c.Login(cfg.Username, cfg.Password); err != nil {
+	if err := c.Login(cfg.User, cfg.Pass); err != nil {
 		return nil, err
 	}
 

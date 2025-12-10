@@ -5,14 +5,14 @@ type State string
 type Event string
 
 type Transition struct {
-	From  State
-	Event Event
-	To    State
+	From  State `json:"from" yaml:"from" xml:"from" toml:"from" mapstructure:"from"`
+	Event Event `json:"event" yaml:"event" xml:"event" toml:"event" mapstructure:"event"`
+	To    State `json:"to" yaml:"to" xml:"to" toml:"to" mapstructure:"to"`
 }
 
 type FSM struct {
-	current State
-	table   map[State]map[Event]State
+	current State                     `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
+	table   map[State]map[Event]State `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
 }
 
 func NewFSM(initial State, transitions []Transition) *FSM {

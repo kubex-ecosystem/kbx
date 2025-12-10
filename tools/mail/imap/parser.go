@@ -7,7 +7,7 @@ import (
 )
 
 type ParsedAttachment struct {
-    Filename string
+    Filename string 
     Data     []byte
 }
 

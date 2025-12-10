@@ -78,8 +78,8 @@ func DefaultEnvFilePath() string    { return getFullExpandedPath(defaultEnvFileP
 // ------------------------------- New Mail Params Functions -----------------------------//
 
 type MailParams struct {
-	ConfigPath string
-	*types.MailParams
+	ConfigPath        string `json:"config_path,omitempty"`
+	*types.MailParams `json:",inline" mapstructure:",squash"`
 }
 
 func NewMailParams(configPath string) *MailParams {
@@ -134,8 +134,8 @@ func NewMailSvc(cfgPath string) MailSvc {
 }
 
 type GlobalRef struct {
-	ID   uuid.UUID
-	Name string
+	ID   uuid.UUID `json:"id,omitempty"`
+	Name string    `json:"name,omitempty"`
 }
 
 func NewGlobalRef(name string) *GlobalRef {
