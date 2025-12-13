@@ -18,12 +18,15 @@ type MailGeneralConfig struct {
 }
 
 type MailAuthConfig struct {
-	Provider string    `json:"provider,omitempty" yaml:"provider" xml:"provider" toml:"provider" mapstructure:"provider"`
-	Host     string    `json:"host,omitempty" yaml:"host" xml:"host" toml:"host" mapstructure:"host"`
-	Port     int       `json:"port,omitempty" yaml:"port" xml:"port" toml:"port" mapstructure:"port"`
-	User     string    `json:"username,omitempty" yaml:"username" xml:"username" toml:"username" mapstructure:"username"`
-	Pass     string    `json:"password,omitempty" yaml:"password" xml:"password" toml:"password" mapstructure:"password"`
-	Auth     smtp.Auth `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
+	Provider      string    `json:"provider,omitempty" yaml:"provider" xml:"provider" toml:"provider" mapstructure:"provider"`
+	Host          string    `json:"host,omitempty" yaml:"host" xml:"host" toml:"host" mapstructure:"host"`
+	Port          int       `json:"port,omitempty" yaml:"port" xml:"port" toml:"port" mapstructure:"port"`
+	User          string    `json:"username,omitempty" yaml:"username" xml:"username" toml:"username" mapstructure:"username"`
+	Pass          string    `json:"password,omitempty" yaml:"password" xml:"password" toml:"password" mapstructure:"password"`
+	Auth          smtp.Auth `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
+	From          string    `json:"from_email,omitempty" yaml:"from_email" xml:"from_email" toml:"from_email" mapstructure:"from_email"`
+	Name          string    `json:"from_name,omitempty" yaml:"from_name" xml:"from_name" toml:"from_name" mapstructure:"from_name"`
+	TestRecipient string    `json:"test_recipient,omitempty" yaml:"test_recipient" xml:"test_recipient" toml:"test_recipient" mapstructure:"test_recipient"`
 }
 type MailProtocolConfig struct {
 	Protocol string        `json:"protocol,omitempty" yaml:"protocol,omitempty" xml:"protocol,omitempty" toml:"protocol,omitempty" mapstructure:"protocol,omitempty"` // "smtp" (default) ou "imap"
@@ -37,14 +40,14 @@ type MailConnection struct {
 	*MailProtocolConfig `json:",inline" yaml:",inline" xml:"protocol" toml:",inline" mapstructure:"squash"`
 }
 type MailConfig struct {
-	Provider    string                     `json:"provider,omitempty" yaml:"provider" xml:"provider" toml:"provider" mapstructure:"provider"`
-	Connections map[string]*MailConnection `json:"connections,omitempty" yaml:"connections" xml:"connections" toml:"connections" mapstructure:"connections"`
+	Provider    string            `json:"provider,omitempty" yaml:"provider" xml:"provider" toml:"provider" mapstructure:"provider"`
+	Connections []*MailConnection `json:"connections,omitempty" yaml:"connections" xml:"connections" toml:"connections" mapstructure:"connections"`
 }
 
 func NewMailConfig(provider string) *MailConfig {
 	return &MailConfig{
 		Provider:    provider,
-		Connections: make(map[string]*MailConnection),
+		Connections: make([]*MailConnection, 0),
 	}
 }
 
@@ -57,9 +60,9 @@ func NewMailConnection() *MailConnection {
 }
 
 type MailSrvParams struct {
-	ConfigPath  string `json:"config_path,omitempty"`
-	*MailConfig `json:",inline" mapstructure:",squash"`
-	*Email      `json:",inline" mapstructure:",squash"`
+	ConfigPath  string `json:"config_path,omitempty" yaml:"config_path" xml:"config_path" toml:"config_path" mapstructure:"config_path"`
+	*MailConfig `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	*Email      `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
 }
 
 func NewMailSrvParams(configPath string) *MailSrvParams {

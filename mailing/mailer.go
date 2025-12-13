@@ -9,33 +9,36 @@ import (
 	"github.com/kubex-ecosystem/kbx/mailing/templates"
 	"github.com/kubex-ecosystem/kbx/tools"
 	"github.com/kubex-ecosystem/kbx/tools/mail"
+	"github.com/kubex-ecosystem/kbx/types"
+
+	gl "github.com/kubex-ecosystem/logz"
 )
 
 var errNilRequest = errors.New("mailing: mail request is nil")
 
 // Config parametriza o envio com retry/timeout via tools.Retry.
-type Config struct {
-	MailConnection *load.MailConnection `json:"smtp" yaml:"smtp" xml:"smtp" toml:"smtp"`
-	Retry          *tools.RetryConfig   `json:"retry" yaml:"retry" xml:"retry" toml:"retry"`
-}
+type Config = load.MailConfig
 
 // Mailer expõe a API única usada pelo backend.
 type Mailer struct {
-	cfg *Config `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
+	*Config `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	Sender  types.MailProvider `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
 }
 
 // NewMailer cria um Mailer com defaults para retry/timeout se não informados.
 func NewMailer(cfg *Config) *Mailer {
-	if cfg.Retry.Retries <= 0 {
-		cfg.Retry.Retries = 3
+	for _, conn := range cfg.Connections {
+		if conn.RetryCount <= 0 {
+			conn.RetryCount = 3
+		}
+		if conn.RetryInterval == 0 {
+			conn.RetryInterval = 2 * time.Second
+		}
+		if conn.Timeout == 0 {
+			conn.Timeout = 5 * time.Second
+		}
 	}
-	if cfg.Retry.Delay == 0 {
-		cfg.Retry.Delay = 2 * time.Second
-	}
-	if cfg.Retry.Timeout == 0 {
-		cfg.Retry.Timeout = 5 * time.Second
-	}
-	return &Mailer{cfg: cfg}
+	return &Mailer{Config: cfg}
 }
 
 // Send dispara um e-mail convertendo MailRequest -> types.Email e delegando para tools/mail.
@@ -52,14 +55,29 @@ func (m *Mailer) Send(ctx context.Context, req *MailRequest) error {
 			return struct{}{}, ctx.Err()
 		default:
 		}
-		return struct{}{}, mail.Send(m.cfg.MailConnection, email)
+		return struct{}{}, mail.Send(m.GetSMTPConnection(), email)
 	},
-		tools.WithRetries(m.cfg.Retry.Retries),
-		tools.WithDelay(m.cfg.Retry.Delay),
-		tools.WithTimeout(m.cfg.Retry.Timeout),
+		tools.WithRetries(m.GetSMTPConnection().RetryCount),
+		tools.WithDelay(m.GetSMTPConnection().RetryInterval),
+		tools.WithTimeout(m.GetSMTPConnection().Timeout),
 	)
 
 	return err
+}
+
+func (m *Mailer) GetSMTPConnection() *types.MailConnection {
+	for _, conn := range m.Config.Connections {
+		if conn.Protocol == "smtp" || conn.Protocol == "" {
+			return conn
+		}
+	}
+	conn := types.NewMailConnection()
+	conn.Protocol = "smtp"
+	conn.RetryCount = 3
+	conn.RetryInterval = 2 * time.Second
+	conn.Timeout = 5 * time.Second
+	gl.Warn("mailing: no SMTP connection found in config, using default parameters")
+	return conn
 }
 
 // SendTemplate aplica o template loader + render e envia.
