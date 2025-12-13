@@ -50,7 +50,7 @@ func NewLogzParams() *LogzConfig { return &LogzConfig{} }
 func ParseLogzArgs(level string, minLevel string, maxLevel string, output string) *LogzConfig {
 	LogzArgs := NewLogzParams()
 	LogzArgs.Level = gl.Level(get.ValOrType(level, "info"))
-	LogzArgs.MinLevel = gl.Level(get.ValOrType(minLevel, "debug"))
+	LogzArgs.MinLevel = gl.Level(get.ValOrType(minLevel, "info"))
 	LogzArgs.MaxLevel = gl.Level(get.ValOrType(maxLevel, "fatal"))
 	return LogzArgs
 }
