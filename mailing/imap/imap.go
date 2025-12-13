@@ -8,32 +8,19 @@ import (
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
+	"github.com/kubex-ecosystem/kbx"
 	imapparser "github.com/kubex-ecosystem/kbx/tools/mail/imap"
 )
 
 // Config define parâmetros mínimos para acesso IMAP.
-type Config struct {
-	Host     string
-	Port     int
-	User string
-	Pass string
-	UseTLS   bool
-	Mailbox  string
-	Limit    int
-}
+type Config = kbx.MailConnection
 
 // Message representa um email básico retornado do IMAP.
-type Message struct {
-	UID         uint32
-	From        string
-	Subject     string
-	Body        string
-	Attachments []imapparser.ParsedAttachment
-}
+type Message = kbx.Email
 
 // FetchUnread obtém mensagens não lidas da mailbox (default INBOX).
-func FetchUnread(ctx context.Context, cfg Config) ([]*Message, error) {
-	mailbox := cfg.Mailbox
+func FetchUnread(ctx context.Context, cfg *Config) ([]*Message, error) {
+	mailbox := cfg.MailBox
 	if mailbox == "" {
 		mailbox = "INBOX"
 	}
@@ -41,7 +28,7 @@ func FetchUnread(ctx context.Context, cfg Config) ([]*Message, error) {
 
 	var c *client.Client
 	var err error
-	if cfg.UseTLS {
+	if cfg.TLS {
 		c, err = client.DialTLS(address, nil)
 	} else {
 		c, err = client.Dial(address)
@@ -83,7 +70,7 @@ func FetchUnread(ctx context.Context, cfg Config) ([]*Message, error) {
 	}()
 
 	out := []*Message{}
-	limit := cfg.Limit
+	limit := cfg.MaxEmailsPerRun
 	if limit <= 0 || limit > len(uids) {
 		limit = len(uids)
 	}
@@ -104,7 +91,7 @@ func FetchUnread(ctx context.Context, cfg Config) ([]*Message, error) {
 			UID:         msg.Uid,
 			From:        envelopeAddr(msg),
 			Subject:     msg.Envelope.Subject,
-			Body:        body,
+			Text:        body,
 			Attachments: attachments,
 		})
 	}

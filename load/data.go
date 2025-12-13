@@ -14,20 +14,23 @@ import (
 )
 
 type MailConfig struct {
-	ConfigPath        string `json:"config_path,omitempty"`
-	*types.MailConfig `json:",inline" mapstructure:",squash"`
+	ConfigPath        string `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
+	*types.MailConfig `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
 }
 type MailConnection = types.MailConnection
 
 // ------------------------------- New Mail Srv Params Functions -----------------------------//
 
 type MailSrvParams struct {
-	ConfigPath           string `json:"config_path,omitempty"`
-	*types.MailSrvParams `json:",inline" mapstructure:",squash"`
+	ConfigPath         string `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
+	*types.Attachment  `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	*types.Email       `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	*types.MailConfig  `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	types.MailProvider `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
 }
 
 func NewMailSrvParams(configPath string) *MailSrvParams {
-	return &MailSrvParams{ConfigPath: configPath, MailSrvParams: types.NewMailSrvParams(configPath)}
+	return &MailSrvParams{ConfigPath: configPath, MailConfig: types.NewMailConfig(configPath), Attachment: &types.Attachment{}, Email: &types.Email{}}
 }
 
 // ------------------------------- New Mail Params Functions -----------------------------//
