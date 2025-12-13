@@ -13,11 +13,9 @@ import (
 	gl "github.com/kubex-ecosystem/logz"
 )
 
-type MailConfig struct {
-	ConfigPath        string `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
-	*types.MailConfig `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
-}
+type MailConfig = types.MailConfig
 type MailConnection = types.MailConnection
+type Email = types.Email
 
 // ------------------------------- New Mail Srv Params Functions -----------------------------//
 
@@ -36,7 +34,11 @@ func NewMailSrvParams(configPath string) *MailSrvParams {
 // ------------------------------- New Mail Params Functions -----------------------------//
 
 func NewMailConfig(configPath string) *MailConfig {
-	return &MailConfig{ConfigPath: configPath, MailConfig: types.NewMailConfig(configPath)}
+	return &MailConfig{
+		ConfigPath:  configPath,
+		Provider:    "",
+		Connections: make([]*MailConnection, 0),
+	}
 }
 
 // ------------------------------- New Logz Params Functions -----------------------------//
@@ -120,7 +122,7 @@ func LoadConfig[T any](cfgPath string) (*T, error) {
 	return nil, gl.Errorf("configuration type not registered")
 }
 
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email](cfgPath string, genFile bool) (*T, error) {
 	// Só entra aqui se o tipo for algum já registrado, então não me preocupo em checar o erro, só logo retorno o default
 	cfgMapper := tools.NewEmptyMapperType[T](cfgPath)
 	cfg, err := cfgMapper.DeserializeFromFile(get.FileExt(cfgPath))

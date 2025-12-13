@@ -3,36 +3,46 @@ package provider
 import (
 	"bytes"
 	"os/exec"
-	"path/filepath"
 	"reflect"
 
-	"github.com/kubex-ecosystem/kbx/tools"
+	"github.com/kubex-ecosystem/kbx/load"
 	"github.com/kubex-ecosystem/kbx/types"
 )
 
 type SendmailProviderImpl struct {
-	cfgMap map[reflect.Type]*types.MailConfig
+	cfgMap map[reflect.Type]*load.MailConnection
 }
 
 type SendmailProvider interface {
-	Send(_ *types.MailConfig, msg *types.Email) error
+	Send(_ *types.MailConnection, msg *types.Email) error
 }
 
 func NewProvider[T SendmailProvider](cfgFilePath string) (SendmailProvider, error) {
 	// Load the SMTP config from the specified file
-	cfgMapper := tools.NewEmptyMapperType[types.MailConfig](cfgFilePath)
-	smtpConfig, err := cfgMapper.DeserializeFromFile(filepath.Ext(cfgFilePath)[1:])
+	mailConfig, err := load.LoadConfigOrDefault[load.MailConfig](cfgFilePath, true)
 	if err != nil {
-		var empty T
-		return empty, err
+		return nil, err
 	}
-	empty := any(&SendmailProviderImpl{cfgMap: map[reflect.Type]*types.MailConfig{
-		reflect.TypeOf(types.MailConfig{}): smtpConfig,
-	}}).(T)
+	empty := SendmailProviderImpl{
+		cfgMap: make(map[reflect.Type]*load.MailConnection),
+	}
+	if mailConfig == nil {
+		return empty, nil
+	}
+	for _, conn := range mailConfig.Connections {
+		if conn == nil {
+			continue
+		}
+		if conn.Protocol == "smtp" || conn.Protocol == "" {
+			empty.cfgMap[reflect.TypeOf(*conn)] = conn
+			return empty, nil
+		}
+	}
+
 	return empty, nil
 }
 
-func (s SendmailProviderImpl) Send(_ *types.MailConfig, msg *types.Email) error {
+func (s SendmailProviderImpl) Send(_ *types.MailConnection, msg *types.Email) error {
 	cmd := exec.Command("/usr/sbin/sendmail", "-t", "-i")
 
 	buf := new(bytes.Buffer)

@@ -16,17 +16,17 @@ import (
 
 var errNilRequest = errors.New("mailing: mail request is nil")
 
-// Config parametriza o envio com retry/timeout via tools.Retry.
-type Config = load.MailConfig
+// MailConfig parametriza o envio com retry/timeout via tools.Retry.
+type MailConfig = load.MailConfig
 
 // Mailer expõe a API única usada pelo backend.
 type Mailer struct {
-	*Config `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
-	Sender  types.MailProvider `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
+	*MailConfig `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	Sender      types.MailProvider `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
 }
 
 // NewMailer cria um Mailer com defaults para retry/timeout se não informados.
-func NewMailer(cfg *Config) *Mailer {
+func NewMailer(cfg *MailConfig) *Mailer {
 	for _, conn := range cfg.Connections {
 		if conn.RetryCount <= 0 {
 			conn.RetryCount = 3
@@ -38,7 +38,7 @@ func NewMailer(cfg *Config) *Mailer {
 			conn.Timeout = 5 * time.Second
 		}
 	}
-	return &Mailer{Config: cfg}
+	return &Mailer{MailConfig: cfg}
 }
 
 // Send dispara um e-mail convertendo MailRequest -> types.Email e delegando para tools/mail.
@@ -66,18 +66,21 @@ func (m *Mailer) Send(ctx context.Context, req *MailRequest) error {
 }
 
 func (m *Mailer) GetSMTPConnection() *types.MailConnection {
-	for _, conn := range m.Config.Connections {
+	if m == nil || m.Connections == nil {
+		conn := types.NewMailConnection()
+		conn.Protocol = "smtp"
+		conn.RetryCount = 3
+		conn.RetryInterval = 2 * time.Second
+		conn.Timeout = 5 * time.Second
+		gl.Warn("mailing: no SMTP connection found in config, using default parameters")
+		return conn
+	}
+	for _, conn := range m.Connections {
 		if conn.Protocol == "smtp" || conn.Protocol == "" {
 			return conn
 		}
 	}
-	conn := types.NewMailConnection()
-	conn.Protocol = "smtp"
-	conn.RetryCount = 3
-	conn.RetryInterval = 2 * time.Second
-	conn.Timeout = 5 * time.Second
-	gl.Warn("mailing: no SMTP connection found in config, using default parameters")
-	return conn
+	return nil
 }
 
 // SendTemplate aplica o template loader + render e envia.

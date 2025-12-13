@@ -101,6 +101,6 @@ func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKey
 }
 
 func LoadConfig[T any](path string) (*T, error) { return load.LoadConfig[T](path) }
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email](cfgPath string, genFile bool) (*T, error) {
 	return load.LoadConfigOrDefault[T](cfgPath, genFile)
 }
