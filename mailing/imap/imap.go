@@ -42,7 +42,8 @@ func FetchUnread(ctx context.Context, cfg *Config) ([]*Message, error) {
 		return nil, err
 	}
 
-	if _, err = c.Select(mailbox, false); err != nil {
+	// readonly=true para evitar side-effects (flags) ao ler
+	if _, err = c.Select(mailbox, true); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +62,8 @@ func FetchUnread(ctx context.Context, cfg *Config) ([]*Message, error) {
 	seqset := new(imap.SeqSet)
 	seqset.AddNum(uids...)
 
-	section := &imap.BodySectionName{}
+	// Peek evita marcar como \Seen
+	section := &imap.BodySectionName{Peek: true}
 	items := []imap.FetchItem{imap.FetchEnvelope, imap.FetchUid, section.FetchItem()}
 	messages := make(chan *imap.Message, len(uids))
 
