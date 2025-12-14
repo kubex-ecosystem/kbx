@@ -74,3 +74,10 @@ func FileExt(filePath string) string {
 	}
 	return ext
 }
+
+func ValueOrIf[T any](exp bool, v T, d T) T {
+	if exp {
+		return v
+	}
+	return d
+}

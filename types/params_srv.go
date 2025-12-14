@@ -8,6 +8,14 @@ import (
 
 type SrvBasicParams struct {
 	// Basic options
+	CompanyName  string `yaml:"company_name,omitempty" json:"company_name,omitempty" mapstructure:"company_name,omitempty"`
+	FriendlyName string `yaml:"friendly_name,omitempty" json:"friendly_name,omitempty" mapstructure:"friendly_name,omitempty"`
+	AppName      string `yaml:"app_name,omitempty" json:"app_name,omitempty" mapstructure:"app_name,omitempty"`
+	AppVersion   string `yaml:"app_version,omitempty" json:"app_version,omitempty" mapstructure:"app_version,omitempty"`
+	Environment  string `yaml:"environment,omitempty" json:"environment,omitempty" mapstructure:"environment,omitempty"`
+	ContactEmail string `yaml:"contact_email,omitempty" json:"contact_email,omitempty" mapstructure:"contact_email,omitempty"`
+	SupportEmail string `yaml:"support_email,omitempty" json:"support_email,omitempty" mapstructure:"support_email,omitempty"`
+
 	Debug          bool     `yaml:"debug" json:"debug" mapstructure:"debug"`
 	ReleaseMode    bool     `yaml:"release_mode" json:"release_mode" mapstructure:"release_mode"`
 	IsConfidential bool     `yaml:"is_confidential" json:"is_confidential" mapstructure:"is_confidential"`
@@ -18,12 +26,15 @@ type SrvBasicParams struct {
 type SrvFilesParams struct {
 	// Paths and files
 
-	Cwd             string `yaml:"cwd,omitempty" json:"cwd,omitempty" mapstructure:"cwd,omitempty"`
-	LogFile         string `yaml:"log_file,omitempty" json:"log_file,omitempty" mapstructure:"log_file,omitempty"`
-	EnvFile         string `yaml:"env_file,omitempty" json:"env_file,omitempty" mapstructure:"env_file,omitempty"`
-	ConfigFile      string `yaml:"config_file,omitempty" json:"config_file,omitempty" mapstructure:"config_file,omitempty"`
-	DBConfigFile    string `yaml:"db_config_file,omitempty" json:"db_config_file,omitempty" mapstructure:"db_config_file,omitempty"`
-	ProvidersConfig string `yaml:"providers_config,omitempty" json:"providers_config,omitempty" mapstructure:"providers_config,omitempty"`
+	Cwd              string `yaml:"cwd,omitempty" json:"cwd,omitempty" mapstructure:"cwd,omitempty"`
+	LogFile          string `yaml:"log_file,omitempty" json:"log_file,omitempty" mapstructure:"log_file,omitempty"`
+	EnvFile          string `yaml:"env_file,omitempty" json:"env_file,omitempty" mapstructure:"env_file,omitempty"`
+	ConfigFile       string `yaml:"config_file,omitempty" json:"config_file,omitempty" mapstructure:"config_file,omitempty"`
+	MainDBName       string `yaml:"main_db_name,omitempty" json:"main_db_name,omitempty" mapstructure:"main_db_name,omitempty"`
+	DBConfigFile     string `yaml:"db_config_file,omitempty" json:"db_config_file,omitempty" mapstructure:"db_config_file,omitempty"`
+	TemplatesDir     string `yaml:"templates_dir,omitempty" json:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
+	MailerConfigFile string `yaml:"mailer_config_file,omitempty" json:"mailer_config_file,omitempty" mapstructure:"mailer_config_file,omitempty"`
+	ProvidersConfig  string `yaml:"providers_config,omitempty" json:"providers_config,omitempty" mapstructure:"providers_config,omitempty"`
 }
 
 type SrvRuntimeParams struct {
@@ -69,8 +80,17 @@ type SrvPerformanceParams struct {
 	Hash      string `yaml:"hash,omitempty" json:"hash,omitempty" mapstructure:"hash,omitempty"`
 }
 
+// InviteConfig controla opções de envio e branding.
+type InviteConfig struct {
+	BaseURL     string        `json:"base_url,omitempty" yaml:"base_url,omitempty" toml:"base_url,omitempty" mapstructure:"base_url,omitempty"`
+	SenderName  string        `json:"sender_name,omitempty" yaml:"sender_name,omitempty" toml:"sender_name,omitempty" mapstructure:"sender_name,omitempty"`
+	SenderEmail string        `json:"sender_email,omitempty" yaml:"sender_email,omitempty" toml:"sender_email,omitempty" mapstructure:"sender_email,omitempty"`
+	CompanyName string        `json:"company_name,omitempty" yaml:"company_name,omitempty" toml:"company_name,omitempty" mapstructure:"company_name,omitempty"`
+	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
+}
+
 type SrvConfig struct {
-	ID                    uuid.UUID
+	*GlobalRef            `json:",inline" yaml:",inline" mapstructure:",squash"`
 	*SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
 	*SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
 	*SrvRuntimeParams     `json:",inline" yaml:",inline" mapstructure:",squash"`
@@ -81,7 +101,7 @@ type SrvConfig struct {
 
 func NewSrvConfig() *SrvConfig {
 	return &SrvConfig{
-		ID:                   uuid.New(),
+		GlobalRef:            &GlobalRef{ID: uuid.New()},
 		SrvBasicParams:       &SrvBasicParams{},
 		SrvFilesParams:       &SrvFilesParams{},
 		SrvRuntimeParams:     &SrvRuntimeParams{},

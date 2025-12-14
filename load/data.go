@@ -2,6 +2,7 @@
 package load
 
 import (
+	"os"
 	"reflect"
 	"time"
 
@@ -72,6 +73,62 @@ func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKey
 	return SrvArgs
 }
 
+func NewSrvDefaultConfig(defaults map[string]any) *SrvConfig {
+	baseURL := get.ValueOrIf((get.EnvOr("CANALIZE_ENV", "development") == "production"),
+		"https://api.canalize.app",
+		"http://localhost:4000",
+	)
+	defaultTTL := get.EnvOrType("INVITE_EXPIRATION", 7*24*time.Hour)
+	configPath := os.ExpandEnv(get.EnvOr("CANALIZE_BE_CONFIG_PATH", "/ALL/CANALIZE/projects/BACKEND/canalize_be/configs/config.json"))
+	pubKeyPath := os.ExpandEnv(get.EnvOrType[string]("CANALIZE_BE_PUBLIC_KEY_PATH", defaults["default_canalyze_be_cert_path"].(string)))
+	privKeyPath := os.ExpandEnv(get.EnvOrType[string]("CANALIZE_BE_PRIVATE_KEY_PATH", defaults["default_canalyze_be_key_path"].(string)))
+
+	Cfg := types.NewSrvConfig()
+	Cfg.ConfigFile = os.ExpandEnv(configPath)
+	Cfg.DBConfigFile = os.ExpandEnv(get.EnvOr("CANALIZE_DS_CONFIG_PATH", "/ALL/CANALIZE/projects/DATABASE/canalize_ds/configs/config.json"))
+	Cfg.EnvFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_ENV_PATH", "/ALL/CANALIZE/projects/BACKEND/canalize_be/.env"))
+	Cfg.LogFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_LOG_FILE_PATH", "/ALL/CANALIZE/logs/canalize_be.log"))
+	Cfg.GlobalRef = types.NewGlobalRef(get.EnvOr("CANALIZE_BE_PROCESS_NAME", "canalize_be")).GetGlobalRef()
+	Cfg.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
+	Cfg.ReleaseMode = get.EnvOrType("CANALIZE_BE_RELEASE_MODE", false)
+	Cfg.IsConfidential = get.EnvOrType("CANALIZE_BE_CONFIDENCIAL_MODE", false)
+	Cfg.Port = get.EnvOrType("CANALIZE_BE_PORT", "4000")
+	Cfg.Host = baseURL
+	Cfg.PrivKeyPath = privKeyPath
+	Cfg.PubKeyPath = pubKeyPath
+	Cfg.PubCertKeyPath = pubKeyPath
+	Cfg.CORSEnabled = get.EnvOrType("CANALIZE_BE_ENABLE_CORS", true)
+	Cfg.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
+	Cfg.ProvidersConfig = os.ExpandEnv(get.EnvOr("CANALIZE_BE_PROVIDERS_CONFIG_PATH",
+		"/ALL/CANALIZE/projects/BACKEND/canalize_be/configs/providers.yaml"))
+	Cfg.RefreshTokenTTL = defaultTTL
+
+	return Cfg
+}
+
+func NewSrvConfigFromParams(params *SrvConfig) *SrvConfig {
+	Cfg := types.NewSrvConfig()
+
+	Cfg.ConfigFile = get.ValOrType(params.ConfigFile, Cfg.ConfigFile)
+	Cfg.DBConfigFile = get.ValOrType(params.DBConfigFile, Cfg.DBConfigFile)
+	Cfg.EnvFile = get.ValOrType(params.EnvFile, Cfg.EnvFile)
+	Cfg.LogFile = get.ValOrType(params.LogFile, Cfg.LogFile)
+	Cfg.GlobalRef = get.ValOrType(params.GlobalRef, Cfg.GlobalRef)
+	Cfg.Debug = get.ValOrType(params.Debug, Cfg.Debug)
+	Cfg.ReleaseMode = get.ValOrType(params.ReleaseMode, Cfg.ReleaseMode)
+	Cfg.IsConfidential = get.ValOrType(params.IsConfidential, Cfg.IsConfidential)
+	Cfg.Port = get.ValOrType(params.Port, Cfg.Port)
+	Cfg.Host = get.ValOrType(params.Host, Cfg.Host)
+	Cfg.PrivKeyPath = get.ValOrType(params.PrivKeyPath, Cfg.PrivKeyPath)
+	Cfg.PubKeyPath = get.ValOrType(params.PubKeyPath, Cfg.PubKeyPath)
+	Cfg.PubCertKeyPath = get.ValOrType(params.PubCertKeyPath, Cfg.PubCertKeyPath)
+	Cfg.CORSEnabled = params.CORSEnabled
+	Cfg.ProvidersConfig = get.ValOrType(params.ProvidersConfig, Cfg.ProvidersConfig)
+	Cfg.RefreshTokenTTL = get.ValOrType(params.RefreshTokenTTL, Cfg.RefreshTokenTTL)
+
+	return Cfg
+}
+
 type GlobalRef = types.GlobalRef
 
 func NewGlobalRef(name string) *GlobalRef { return types.NewGlobalRef(name) }
@@ -90,15 +147,16 @@ func NewManifest() Manifest {
 }
 
 func EnsureGlobalManifest(n, c *ManifestImpl) {
+	if n == nil && c == nil {
+		gl.Fatal("No manifest available")
+	}
 	if c == nil {
 		c = n
 	} else if n != nil && n.GetVersion() != c.GetVersion() {
 		// Merge new manifest into existing one
 		*c = *n
 	}
-	if c == nil {
-		gl.Fatal("No manifest available")
-	}
+	types.KubexManifest = c
 }
 
 // ------------------------------- KBX Config Registry -----------------------------//

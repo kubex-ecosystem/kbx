@@ -39,7 +39,6 @@ type ManifestImpl struct {
 	*types.ManifestImpl
 }
 
-
 // lazy cache
 var (
 	cachedManifest Manifest
@@ -50,10 +49,12 @@ var (
 // GetManifest valida bytes do manifesto com o schema e retorna a interface Manifest.
 // O conteúdo do manifesto deve ser fornecido via []byte (não há embed do manifesto neste pacote).
 func GetManifest(manifest []byte, path string) (Manifest, error) {
-	if kbxInfoInstance != nil {
+	if kbxInfoInstance != nil && kbxInfoInstance.ManifestImpl != nil {
 		gl.Debug("Using cached manifest")
 		return kbxInfoInstance, nil
 	}
+
+	var loaded *ManifestImpl
 
 	if len(manifest) == 0 && len(path) == 0 {
 		return nil, gl.Errorf("manifest.json: no data provided")
@@ -66,28 +67,31 @@ func GetManifest(manifest []byte, path string) (Manifest, error) {
 		if data == nil {
 			return nil, gl.Errorf("manifest.json: no data loaded from %s", path)
 		}
-		return data, nil
+		loaded = data
+	} else {
+		// validar com JSON Schema completo
+		comp := jsonschema.NewCompiler()
+		if err := comp.AddResource("manifest.schema.json", bytes.NewReader(manifestSchemaData)); err != nil {
+			return nil, gl.Errorf("manifest.schema: %v", err)
+		}
+		sch, err := comp.Compile("manifest.schema.json")
+		if err != nil {
+			return nil, gl.Errorf("manifest.schema compile: %v", err)
+		}
+		if err := sch.Validate(bytes.NewReader(manifest)); err != nil {
+			return nil, gl.Errorf("manifest.json: validation error: %v", err)
+		}
+
+		var m ManifestImpl
+		if err := json.Unmarshal(manifest, &m); err != nil {
+			return nil, gl.Errorf("manifest.json: %v", err)
+		}
+		loaded = &m
 	}
 
-	// validar com JSON Schema completo
-	comp := jsonschema.NewCompiler()
-	if err := comp.AddResource("manifest.schema.json", bytes.NewReader(manifestSchemaData)); err != nil {
-		return nil, gl.Errorf("manifest.schema: %v", err)
-	}
-	sch, err := comp.Compile("manifest.schema.json")
-	if err != nil {
-		return nil, gl.Errorf("manifest.schema compile: %v", err)
-	}
-	if err := sch.Validate(bytes.NewReader(manifest)); err != nil {
-		return nil, gl.Errorf("manifest.json: validation error: %v", err)
-	}
-
-	var m ManifestImpl
-	if err := json.Unmarshal(manifest, &m); err != nil {
-		return nil, gl.Errorf("manifest.json: %v", err)
-	}
-	kbxInfoInstance = &m
-	return &m, nil
+	kbxInfoInstance = loaded
+	types.KubexManifest = loaded.ManifestImpl
+	return loaded, nil
 }
 
 // FS secOrder quiser permitir override por FS externo:
