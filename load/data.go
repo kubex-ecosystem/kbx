@@ -59,73 +59,71 @@ func ParseLogzArgs(level string, minLevel string, maxLevel string, output string
 
 type SrvConfig = types.SrvConfig
 
-func NewSrvArgs() *SrvConfig { return &SrvConfig{} }
+func NewSrvArgs() SrvConfig { return types.NewSrvConfig() }
 
-func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) *SrvConfig {
+func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) SrvConfig {
 	SrvArgs := NewSrvArgs()
-	SrvArgs.Bind = get.ValOrType(bind, ":8080")
-	SrvArgs.PubCertKeyPath = get.ValOrType(pubCertKeyPath, "")
-	SrvArgs.PubKeyPath = get.ValOrType(pubKeyPath, "")
-	SrvArgs.PrivKeyPath = get.ValOrType(privKeyPath, "")
-	SrvArgs.AccessTokenTTL = time.Duration(get.ValOrType(accessTokenTTL, 15)) * time.Minute
-	SrvArgs.RefreshTokenTTL = time.Duration(get.ValOrType(refreshTokenTTL, 60)) * time.Minute
-	SrvArgs.Issuer = get.ValOrType(issuer, "kubex-ecosystem")
+	SrvArgs.Runtime.Bind = get.ValOrType(bind, ":8080")
+	SrvArgs.Runtime.PubCertKeyPath = get.ValOrType(pubCertKeyPath, "")
+	SrvArgs.Runtime.PubKeyPath = get.ValOrType(pubKeyPath, "")
+	SrvArgs.Runtime.PrivKeyPath = get.ValOrType(privKeyPath, "")
+	SrvArgs.Runtime.AccessTokenTTL = time.Duration(get.ValOrType(accessTokenTTL, 15)) * time.Minute
+	SrvArgs.Runtime.RefreshTokenTTL = time.Duration(get.ValOrType(refreshTokenTTL, 60)) * time.Minute
+	SrvArgs.Runtime.Issuer = get.ValOrType(issuer, "kubex-ecosystem")
 	return SrvArgs
 }
 
-func NewSrvDefaultConfig(defaults map[string]any) *SrvConfig {
+func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
 	baseURL := get.ValueOrIf((get.EnvOr("CANALIZE_ENV", "development") == "production"),
 		"https://api.canalize.app",
 		"http://localhost:4000",
 	)
 	defaultTTL := get.EnvOrType("INVITE_EXPIRATION", 7*24*time.Hour)
 	configPath := os.ExpandEnv(get.EnvOr("CANALIZE_BE_CONFIG_PATH", "/ALL/CANALIZE/projects/BACKEND/canalize_be/configs/config.json"))
-	pubKeyPath := os.ExpandEnv(get.EnvOrType[string]("CANALIZE_BE_PUBLIC_KEY_PATH", defaults["default_canalyze_be_cert_path"].(string)))
-	privKeyPath := os.ExpandEnv(get.EnvOrType[string]("CANALIZE_BE_PRIVATE_KEY_PATH", defaults["default_canalyze_be_key_path"].(string)))
+	pubKeyPath := os.ExpandEnv(get.EnvOrType("CANALIZE_BE_PUBLIC_KEY_PATH", defaults["default_canalyze_be_cert_path"].(string)))
+	privKeyPath := os.ExpandEnv(get.EnvOrType("CANALIZE_BE_PRIVATE_KEY_PATH", defaults["default_canalyze_be_key_path"].(string)))
 
 	Cfg := types.NewSrvConfig()
-	Cfg.ConfigFile = os.ExpandEnv(configPath)
-	Cfg.DBConfigFile = os.ExpandEnv(get.EnvOr("CANALIZE_DS_CONFIG_PATH", "/ALL/CANALIZE/projects/DATABASE/canalize_ds/configs/config.json"))
-	Cfg.EnvFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_ENV_PATH", "/ALL/CANALIZE/projects/BACKEND/canalize_be/.env"))
-	Cfg.LogFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_LOG_FILE_PATH", "/ALL/CANALIZE/logs/canalize_be.log"))
+	Cfg.Files.ConfigFile = os.ExpandEnv(configPath)
+	Cfg.Files.DBConfigFile = os.ExpandEnv(get.EnvOr("CANALIZE_DS_CONFIG_PATH", "/ALL/CANALIZE/projects/DATABASE/canalize_ds/configs/config.json"))
+	Cfg.Files.EnvFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_ENV_PATH", "/ALL/CANALIZE/projects/BACKEND/canalize_be/.env"))
+	Cfg.Files.LogFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_LOG_FILE_PATH", "/ALL/CANALIZE/logs/canalize_be.log"))
 	Cfg.GlobalRef = types.NewGlobalRef(get.EnvOr("CANALIZE_BE_PROCESS_NAME", "canalize_be")).GetGlobalRef()
-	Cfg.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
-	Cfg.ReleaseMode = get.EnvOrType("CANALIZE_BE_RELEASE_MODE", false)
-	Cfg.IsConfidential = get.EnvOrType("CANALIZE_BE_CONFIDENCIAL_MODE", false)
-	Cfg.Port = get.EnvOrType("CANALIZE_BE_PORT", "4000")
-	Cfg.Host = baseURL
-	Cfg.PrivKeyPath = privKeyPath
-	Cfg.PubKeyPath = pubKeyPath
-	Cfg.PubCertKeyPath = pubKeyPath
-	Cfg.CORSEnabled = get.EnvOrType("CANALIZE_BE_ENABLE_CORS", true)
-	Cfg.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
-	Cfg.ProvidersConfig = os.ExpandEnv(get.EnvOr("CANALIZE_BE_PROVIDERS_CONFIG_PATH",
+	Cfg.Basic.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
+	Cfg.Basic.ReleaseMode = get.EnvOrType("CANALIZE_BE_RELEASE_MODE", false)
+	Cfg.Basic.IsConfidential = get.EnvOrType("CANALIZE_BE_CONFIDENCIAL_MODE", false)
+	Cfg.Runtime.Port = get.EnvOrType("CANALIZE_BE_PORT", "4000")
+	Cfg.Runtime.Host = baseURL
+	Cfg.Runtime.PrivKeyPath = privKeyPath
+	Cfg.Runtime.PubKeyPath = pubKeyPath
+	Cfg.Runtime.PubCertKeyPath = pubKeyPath
+	Cfg.Basic.CORSEnabled = get.EnvOrType("CANALIZE_BE_ENABLE_CORS", true)
+	Cfg.Basic.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
+	Cfg.Files.ProvidersConfig = os.ExpandEnv(get.EnvOr("CANALIZE_BE_PROVIDERS_CONFIG_PATH",
 		"/ALL/CANALIZE/projects/BACKEND/canalize_be/configs/providers.yaml"))
-	Cfg.RefreshTokenTTL = defaultTTL
+	Cfg.Runtime.RefreshTokenTTL = defaultTTL
 
 	return Cfg
 }
 
-func NewSrvConfigFromParams(params *SrvConfig) *SrvConfig {
+func NewSrvConfigFromParams(params *SrvConfig) SrvConfig {
 	Cfg := types.NewSrvConfig()
-
-	Cfg.ConfigFile = get.ValOrType(params.ConfigFile, Cfg.ConfigFile)
-	Cfg.DBConfigFile = get.ValOrType(params.DBConfigFile, Cfg.DBConfigFile)
-	Cfg.EnvFile = get.ValOrType(params.EnvFile, Cfg.EnvFile)
-	Cfg.LogFile = get.ValOrType(params.LogFile, Cfg.LogFile)
+	Cfg.Files.ConfigFile = get.ValOrType(params.Files.ConfigFile, Cfg.Files.ConfigFile)
+	Cfg.Files.DBConfigFile = get.ValOrType(params.Files.DBConfigFile, Cfg.Files.DBConfigFile)
+	Cfg.Files.EnvFile = get.ValOrType(params.Files.EnvFile, Cfg.Files.EnvFile)
+	Cfg.Files.LogFile = get.ValOrType(params.Files.LogFile, Cfg.Files.LogFile)
 	Cfg.GlobalRef = get.ValOrType(params.GlobalRef, Cfg.GlobalRef)
-	Cfg.Debug = get.ValOrType(params.Debug, Cfg.Debug)
-	Cfg.ReleaseMode = get.ValOrType(params.ReleaseMode, Cfg.ReleaseMode)
-	Cfg.IsConfidential = get.ValOrType(params.IsConfidential, Cfg.IsConfidential)
-	Cfg.Port = get.ValOrType(params.Port, Cfg.Port)
-	Cfg.Host = get.ValOrType(params.Host, Cfg.Host)
-	Cfg.PrivKeyPath = get.ValOrType(params.PrivKeyPath, Cfg.PrivKeyPath)
-	Cfg.PubKeyPath = get.ValOrType(params.PubKeyPath, Cfg.PubKeyPath)
-	Cfg.PubCertKeyPath = get.ValOrType(params.PubCertKeyPath, Cfg.PubCertKeyPath)
-	Cfg.CORSEnabled = params.CORSEnabled
-	Cfg.ProvidersConfig = get.ValOrType(params.ProvidersConfig, Cfg.ProvidersConfig)
-	Cfg.RefreshTokenTTL = get.ValOrType(params.RefreshTokenTTL, Cfg.RefreshTokenTTL)
-
+	Cfg.Basic.Debug = get.ValOrType(params.Basic.Debug, Cfg.Basic.Debug)
+	Cfg.Basic.ReleaseMode = get.ValOrType(params.Basic.ReleaseMode, Cfg.Basic.ReleaseMode)
+	Cfg.Basic.IsConfidential = get.ValOrType(params.Basic.IsConfidential, Cfg.Basic.IsConfidential)
+	Cfg.Runtime.Port = get.ValOrType(params.Runtime.Port, Cfg.Runtime.Port)
+	Cfg.Runtime.Host = get.ValOrType(params.Runtime.Host, Cfg.Runtime.Host)
+	Cfg.Runtime.PrivKeyPath = get.ValOrType(params.Runtime.PrivKeyPath, Cfg.Runtime.PrivKeyPath)
+	Cfg.Runtime.PubKeyPath = get.ValOrType(params.Runtime.PubKeyPath, Cfg.Runtime.PubKeyPath)
+	Cfg.Runtime.PubCertKeyPath = get.ValOrType(params.Runtime.PubCertKeyPath, Cfg.Runtime.PubCertKeyPath)
+	Cfg.Basic.CORSEnabled = params.Basic.CORSEnabled
+	Cfg.Files.ProvidersConfig = get.ValOrType(params.Files.ProvidersConfig, Cfg.Files.ProvidersConfig)
+	Cfg.Runtime.RefreshTokenTTL = get.ValOrType(params.Runtime.RefreshTokenTTL, Cfg.Runtime.RefreshTokenTTL)
 	return Cfg
 }
 
@@ -136,17 +134,53 @@ func NewGlobalRef(name string) *GlobalRef { return types.NewGlobalRef(name) }
 // ------------------------------- New Manifest Functions -----------------------------//
 
 type Manifest = types.Manifest
-type ManifestImpl = types.ManifestImpl
+type MManifest = types.MManifest
 
-func NewManifestType() *ManifestImpl {
-	return &ManifestImpl{}
+func NewManifestType() *MManifest {
+	bin, _ := os.Executable()
+
+	return &MManifest{
+		Version:      "1.0.0",
+		Name:         "kubex-manifest",
+		Description:  "Kubex Ecosystem Manifest File",
+		GoVersion:    "1.25.5",
+		Private:      true,
+		Author:       "Rafael Mori",
+		License:      "MIT",
+		Published:    false,
+		Aliases:      []string{"kbx-manifest"},
+		Homepage:     "https://kubex.world",
+		Repository:   "github.com/kubex-ecosystem/kbx",
+		Keywords:     []string{"kubex", "kbx", "manifest", "configuration", "ecosystem"},
+		Bin:          bin,
+		Organization: "Kubex Ecosystem",
+		Application:  "kbx",
+		Main:         "cmd",
+		Platforms: []string{
+			"linux/amd64",
+			"linux/arm64",
+			"darwin/amd64",
+			"darwin/arm64",
+			"windows/amd64",
+		},
+		Dependencies: []string{
+			"tar",
+			"gzip",
+			"curl",
+			"git",
+			"zip",
+			"unzip",
+			"jq",
+			"upx",
+		},
+	}
 }
 
 func NewManifest() Manifest {
 	return NewManifestType()
 }
 
-func EnsureGlobalManifest(n, c *ManifestImpl) {
+func EnsureGlobalManifest(n, c *MManifest) {
 	if n == nil && c == nil {
 		gl.Fatal("No manifest available")
 	}
@@ -167,7 +201,7 @@ var configRegistry = map[reflect.Type]bool{
 	reflect.TypeFor[LogzConfig]():    true,
 	reflect.TypeFor[SrvConfig]():     true,
 	reflect.TypeFor[GlobalRef]():     true,
-	reflect.TypeFor[ManifestImpl]():  true,
+	reflect.TypeFor[MManifest]():     true,
 }
 
 var defaultFactories = map[reflect.Type]func() any{
@@ -176,38 +210,50 @@ var defaultFactories = map[reflect.Type]func() any{
 	reflect.TypeFor[LogzConfig]():    func() any { return NewLogzParams() },
 	reflect.TypeFor[SrvConfig]():     func() any { return NewSrvArgs() },
 	reflect.TypeFor[GlobalRef]():     func() any { return NewGlobalRef("default") },
-	reflect.TypeFor[ManifestImpl]():  func() any { return NewManifestType() },
+	reflect.TypeFor[MManifest]():     func() any { return NewManifestType() },
 }
 
 // LoadConfig loads a configuration of type T from the specified file path.
 
-func LoadConfig[T any](cfgPath string) (*T, error) {
+func LoadConfig[T any](cfgPath string) (T, error) {
+	var zero T
+	var okob bool
 	if configRegistry[reflect.TypeFor[T]()] {
 		cfgLoader := get.Loader[T](cfgPath)
 		obj, err := cfgLoader.DeserializeFromFile(get.FileExt(cfgPath))
 		if err != nil {
-			return nil, err
+			return zero, err
 		}
-		if reflect.TypeFor[T]() == reflect.TypeFor[ManifestImpl]() {
-			EnsureGlobalManifest(any(obj).(*ManifestImpl), types.KubexManifest)
+		if reflect.TypeFor[T]() == reflect.TypeFor[MManifest]() {
+			var b *MManifest
+			o := *obj
+			b, okob = any(o).(*MManifest)
+			if !okob {
+				return zero, gl.Errorf("loaded object is not of type MManifest")
+			}
+			EnsureGlobalManifest(b, types.KubexManifest)
 		}
-		return obj, nil
+		return *obj, nil
 	}
-	return nil, gl.Errorf("configuration type not registered")
+	return zero, gl.Errorf("configuration type not registered")
 }
 
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | ManifestImpl](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest](cfgPath string, genFile bool) (T, error) {
 	// Só entra aqui se o tipo for algum já registrado, então não me preocupo em checar o erro, só logo retorno o default
 	cfgMapper := tools.NewEmptyMapperType[T](cfgPath)
 	cfg, err := cfgMapper.DeserializeFromFile(get.FileExt(cfgPath))
 	if err == nil {
-		return cfg, nil
+		return *cfg, nil
 	}
 	gl.Warnf("failed to load config from '%s', using default: %v", cfgPath, err)
-	defaultCfg := defaultFactories[reflect.TypeFor[T]()]().(*T)
+	defaultCfg := defaultFactories[reflect.TypeFor[T]()]()
+	d, ok := any(defaultCfg).(T)
+	if !ok {
+		return d, gl.Errorf("failed to assert default config type")
+	}
 	if genFile {
-		cfgMapper.SetValue(defaultCfg)
+		cfgMapper.SetValue(&d)
 		cfgMapper.SerializeToFile(get.FileExt(cfgPath))
 	}
-	return defaultCfg, nil
+	return d, nil
 }

@@ -28,7 +28,6 @@ const (
 )
 
 var (
-
 	kubexEcosystemCwd string
 	once              sync.Once
 )
@@ -78,7 +77,8 @@ type MailConfig = load.MailConfig
 type MailConnection = types.MailConnection
 type MailAttachment = types.Attachment
 type Email = types.Email
-type ManifestImpl = types.ManifestImpl
+type MManifest = types.MManifest
+type Manifest = load.Manifest
 
 type LogzConfig = types.LogzConfig
 type SrvConfig = types.SrvConfig
@@ -89,22 +89,23 @@ func NewMailConfig(cfgPath string) *MailConfig       { return load.NewMailConfig
 func NewMailConnection() *MailConnection             { return types.NewMailConnection() }
 func NewMailAttachment() *MailAttachment             { return &MailAttachment{} }
 func NewEmail() *Email                               { return &Email{} }
-func NewManifest() *ManifestImpl                     { return load.NewManifestType() }
+func NewManifestType() *MManifest                    { return load.NewManifestType() }
+func NewManifest() Manifest                          { return load.NewManifest() }
 
 // func NewMailSender(params *MailSrvParams) MailSender { return nil }
 
 func NewLogzParams() *types.LogzConfig    { return load.NewLogzParams() }
-func NewSrvArgs() *types.SrvConfig        { return load.NewSrvArgs() }
+func NewSrvArgs() types.SrvConfig         { return load.NewSrvArgs() }
 func NewGlobalRef(name string) *GlobalRef { return load.NewGlobalRef(name) }
 
 func ParseLogzArgs(level string, minLevel string, maxLevel string, output string) *types.LogzConfig {
 	return load.ParseLogzArgs(level, minLevel, maxLevel, output)
 }
-func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) *types.SrvConfig {
+func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) types.SrvConfig {
 	return load.ParseSrvArgs(bind, pubCertKeyPath, pubKeyPath, privKeyPath, accessTokenTTL, refreshTokenTTL, issuer)
 }
 
-func LoadConfig[T any](path string) (*T, error) { return load.LoadConfig[T](path) }
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | ManifestImpl](cfgPath string, genFile bool) (*T, error) {
+func LoadConfig[T any](path string) (T, error) { return load.LoadConfig[T](path) }
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest](cfgPath string, genFile bool) (T, error) {
 	return load.LoadConfigOrDefault[T](cfgPath, genFile)
 }

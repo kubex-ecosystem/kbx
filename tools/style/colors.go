@@ -49,7 +49,7 @@ func hasModuleCommands(cmds []*cobra.Command) bool {
 	return false
 }
 
-func setUsageDefinition(cmd *cobra.Command) {
+func setUsageDefinition(cmd *cobra.Command) *cobra.Command {
 	cobra.AddTemplateFunc("colorYellow", colorYellow)
 	cobra.AddTemplateFunc("colorGreen", colorGreen)
 	cobra.AddTemplateFunc("colorRed", colorRed)
@@ -60,6 +60,8 @@ func setUsageDefinition(cmd *cobra.Command) {
 
 	// Altera o template de uso do cobra
 	cmd.SetUsageTemplate(cliUsageTemplate)
+
+	return cmd
 }
 
 var cliUsageTemplate = `{{- if index .Annotations "banner" }}{{colorBlue (index .Annotations "banner")}}{{end}}{{- if (index .Annotations "description") }}

@@ -23,9 +23,27 @@ type SrvBasicParams struct {
 	TrustedProxies []string `yaml:"trusted_proxies" json:"trusted_proxies" mapstructure:"trusted_proxies"`
 }
 
+func NewSrvBasic() SrvBasicParams { return SrvBasicParams{} }
+
+func NewSrvBasicDefault() SrvBasicParams {
+	return SrvBasicParams{
+		CompanyName:    "Canalize",
+		FriendlyName:   "CanalizeBE",
+		AppName:        "canalize",
+		AppVersion:     "v0.1.0",
+		Environment:    "development",
+		ContactEmail:   "contato@canalize.app",
+		SupportEmail:   "ti@canalize.app",
+		Debug:          false,
+		ReleaseMode:    false,
+		IsConfidential: true,
+		CORSEnabled:    true,
+		TrustedProxies: []string{},
+	}
+}
+
 type SrvFilesParams struct {
 	// Paths and files
-
 	Cwd              string `yaml:"cwd,omitempty" json:"cwd,omitempty" mapstructure:"cwd,omitempty"`
 	LogFile          string `yaml:"log_file,omitempty" json:"log_file,omitempty" mapstructure:"log_file,omitempty"`
 	EnvFile          string `yaml:"env_file,omitempty" json:"env_file,omitempty" mapstructure:"env_file,omitempty"`
@@ -35,6 +53,22 @@ type SrvFilesParams struct {
 	TemplatesDir     string `yaml:"templates_dir,omitempty" json:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
 	MailerConfigFile string `yaml:"mailer_config_file,omitempty" json:"mailer_config_file,omitempty" mapstructure:"mailer_config_file,omitempty"`
 	ProvidersConfig  string `yaml:"providers_config,omitempty" json:"providers_config,omitempty" mapstructure:"providers_config,omitempty"`
+}
+
+func NewSrvFiles() SrvFilesParams { return SrvFilesParams{} }
+
+func NewSrvFilesDefault() SrvFilesParams {
+	return SrvFilesParams{
+		Cwd:              "",
+		LogFile:          "",
+		EnvFile:          "",
+		ConfigFile:       "",
+		MainDBName:       "canalize_db",
+		DBConfigFile:     "",
+		TemplatesDir:     "",
+		MailerConfigFile: "",
+		ProvidersConfig:  "",
+	}
 }
 
 type SrvRuntimeParams struct {
@@ -51,6 +85,22 @@ type SrvRuntimeParams struct {
 	Issuer          string        `yaml:"issuer,omitempty" json:"issuer,omitempty" mapstructure:"issuer,omitempty"`
 }
 
+func NewSrvRuntime() SrvRuntimeParams { return SrvRuntimeParams{} }
+
+func NewSrvRuntimeDefault() SrvRuntimeParams {
+	return SrvRuntimeParams{
+		Host:            "localhost",
+		Port:            "4000",
+		Bind:            ":8080",
+		PubCertKeyPath:  "",
+		PubKeyPath:      "",
+		PrivKeyPath:     "",
+		AccessTokenTTL:  15 * time.Minute,
+		RefreshTokenTTL: 60 * time.Minute,
+		Issuer:          "kubex-ecosystem",
+	}
+}
+
 type SrvAdvancedParams struct {
 	// Advanced options
 
@@ -59,6 +109,18 @@ type SrvAdvancedParams struct {
 	Subcommand string            `yaml:"subcommand,omitempty" json:"subcommand,omitempty" mapstructure:"subcommand,omitempty"`
 	Args       string            `yaml:"args,omitempty" json:"args,omitempty" mapstructure:"args,omitempty"`
 	EnvVars    map[string]string `yaml:"env_vars,omitempty" json:"env_vars,omitempty" mapstructure:"env_vars,omitempty"`
+}
+
+func NewSrvAdvanced() SrvAdvancedParams { return SrvAdvancedParams{} }
+
+func NewSrvAdvancedDefault() SrvAdvancedParams {
+	return SrvAdvancedParams{
+		Context:    "",
+		Command:    "",
+		Subcommand: "",
+		Args:       "",
+		EnvVars:    make(map[string]string),
+	}
 }
 
 type SrvFlagsParams struct {
@@ -72,12 +134,35 @@ type SrvFlagsParams struct {
 	RootMode  bool `yaml:"root_mode,omitempty" json:"root_mode,omitempty" mapstructure:"root_mode,omitempty"`
 }
 
+func NewSrvFlags() SrvFlagsParams { return SrvFlagsParams{} }
+
+func NewSrvFlagsDefault() SrvFlagsParams {
+	return SrvFlagsParams{
+		FailFast:  false,
+		Verbose:   false,
+		BatchMode: false,
+		NoColor:   false,
+		TraceMode: false,
+		RootMode:  false,
+	}
+}
+
 type SrvPerformanceParams struct {
 	// Performance options
 
 	MaxProcs  int    `yaml:"max_procs,omitempty" json:"max_procs,omitempty" mapstructure:"max_procs,omitempty"`
 	TimeoutMS int    `yaml:"timeout_ms,omitempty" json:"timeout_ms,omitempty" mapstructure:"timeout_ms,omitempty"`
 	Hash      string `yaml:"hash,omitempty" json:"hash,omitempty" mapstructure:"hash,omitempty"`
+}
+
+func NewSrvPerformance() SrvPerformanceParams { return SrvPerformanceParams{} }
+
+func NewSrvPerformanceDefault() SrvPerformanceParams {
+	return SrvPerformanceParams{
+		MaxProcs:  0,
+		TimeoutMS: 5000,
+		Hash:      "",
+	}
 }
 
 // InviteConfig controla opções de envio e branding.
@@ -90,23 +175,23 @@ type InviteConfig struct {
 }
 
 type SrvConfig struct {
-	*GlobalRef            `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvRuntimeParams     `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
+	*GlobalRef  `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Basic       SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Files       SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Runtime     SrvRuntimeParams     `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Advanced    SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Flags       SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
 }
 
-func NewSrvConfig() *SrvConfig {
-	return &SrvConfig{
-		GlobalRef:            &GlobalRef{ID: uuid.New()},
-		SrvBasicParams:       &SrvBasicParams{},
-		SrvFilesParams:       &SrvFilesParams{},
-		SrvRuntimeParams:     &SrvRuntimeParams{},
-		SrvAdvancedParams:    &SrvAdvancedParams{},
-		SrvFlagsParams:       &SrvFlagsParams{},
-		SrvPerformanceParams: &SrvPerformanceParams{},
+func NewSrvConfig() SrvConfig {
+	return SrvConfig{
+		GlobalRef:   &GlobalRef{ID: uuid.New()},
+		Basic:       NewSrvBasic(),
+		Files:       NewSrvFiles(),
+		Runtime:     NewSrvRuntime(),
+		Advanced:    NewSrvAdvanced(),
+		Flags:       NewSrvFlags(),
+		Performance: NewSrvPerformance(),
 	}
 }

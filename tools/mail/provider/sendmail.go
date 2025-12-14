@@ -26,9 +26,6 @@ func NewProvider[T SendmailProvider](cfgFilePath string) (SendmailProvider, erro
 	empty := SendmailProviderImpl{
 		cfgMap: make(map[reflect.Type]*load.MailConnection),
 	}
-	if mailConfig == nil {
-		return empty, nil
-	}
 	for _, conn := range mailConfig.Connections {
 		if conn == nil {
 			continue

@@ -17,9 +17,6 @@ func BasicSMTP(from string) (*SMTP, error) {
 	if err != nil {
 		return nil, err
 	}
-	if mailerConfig == nil {
-		return nil, gl.Errorf("mailer configuration is nil")
-	}
 	for _, smtp := range mailerConfig.Connections {
 		if smtp.Protocol == "smtp" || smtp.Protocol == "" {
 			return smtp, nil
