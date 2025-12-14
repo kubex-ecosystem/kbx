@@ -94,9 +94,9 @@ func NewManifest() Manifest                          { return load.NewManifest()
 
 // func NewMailSender(params *MailSrvParams) MailSender { return nil }
 
-func NewLogzParams() *types.LogzConfig    { return load.NewLogzParams() }
-func NewSrvArgs() types.SrvConfig         { return load.NewSrvArgs() }
-func NewGlobalRef(name string) *GlobalRef { return load.NewGlobalRef(name) }
+func NewLogzParams() *types.LogzConfig   { return load.NewLogzParams() }
+func NewSrvArgs() types.SrvConfig        { return load.NewSrvArgs() }
+func NewGlobalRef(name string) GlobalRef { return load.NewGlobalRef(name) }
 
 func ParseLogzArgs(level string, minLevel string, maxLevel string, output string) *types.LogzConfig {
 	return load.ParseLogzArgs(level, minLevel, maxLevel, output)
@@ -106,6 +106,6 @@ func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKey
 }
 
 func LoadConfig[T any](path string) (T, error) { return load.LoadConfig[T](path) }
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest](cfgPath string, genFile bool) (T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest](cfgPath string, genFile bool) (*T, error) {
 	return load.LoadConfigOrDefault[T](cfgPath, genFile)
 }

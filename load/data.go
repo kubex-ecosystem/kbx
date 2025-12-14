@@ -88,7 +88,7 @@ func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
 	Cfg.Files.DBConfigFile = os.ExpandEnv(get.EnvOr("CANALIZE_DS_CONFIG_PATH", "/ALL/CANALIZE/projects/DATABASE/canalize_ds/configs/config.json"))
 	Cfg.Files.EnvFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_ENV_PATH", "/ALL/CANALIZE/projects/BACKEND/canalize_be/.env"))
 	Cfg.Files.LogFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_LOG_FILE_PATH", "/ALL/CANALIZE/logs/canalize_be.log"))
-	Cfg.GlobalRef = types.NewGlobalRef(get.EnvOr("CANALIZE_BE_PROCESS_NAME", "canalize_be")).GetGlobalRef()
+	Cfg.GlobalRef = types.NewGlobalRef(get.EnvOr("CANALIZE_BE_PROCESS_NAME", "canalize_be"))
 	Cfg.Basic.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
 	Cfg.Basic.ReleaseMode = get.EnvOrType("CANALIZE_BE_RELEASE_MODE", false)
 	Cfg.Basic.IsConfidential = get.EnvOrType("CANALIZE_BE_CONFIDENCIAL_MODE", false)
@@ -129,7 +129,7 @@ func NewSrvConfigFromParams(params *SrvConfig) SrvConfig {
 
 type GlobalRef = types.GlobalRef
 
-func NewGlobalRef(name string) *GlobalRef { return types.NewGlobalRef(name) }
+func NewGlobalRef(name string) GlobalRef { return types.NewGlobalRef(name) }
 
 // ------------------------------- New Manifest Functions -----------------------------//
 
@@ -238,21 +238,25 @@ func LoadConfig[T any](cfgPath string) (T, error) {
 	return zero, gl.Errorf("configuration type not registered")
 }
 
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest](cfgPath string, genFile bool) (T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest](cfgPath string, genFile bool) (*T, error) {
+	if cfgPath == "" {
+		gl.Fatalf("config path is empty")
+	}
+
 	// Só entra aqui se o tipo for algum já registrado, então não me preocupo em checar o erro, só logo retorno o default
 	cfgMapper := tools.NewEmptyMapperType[T](cfgPath)
 	cfg, err := cfgMapper.DeserializeFromFile(get.FileExt(cfgPath))
 	if err == nil {
-		return *cfg, nil
+		return cfg, nil
 	}
 	gl.Warnf("failed to load config from '%s', using default: %v", cfgPath, err)
-	defaultCfg := defaultFactories[reflect.TypeFor[T]()]()
-	d, ok := any(defaultCfg).(T)
+	defaultCfg := defaultFactories[reflect.TypeFor[T]()]().(T)
+	d, ok := any(defaultCfg).(*T)
 	if !ok {
-		return d, gl.Errorf("failed to assert default config type")
+		return nil, gl.Errorf("failed to assert default config type")
 	}
 	if genFile {
-		cfgMapper.SetValue(&d)
+		cfgMapper.SetValue(d)
 		cfgMapper.SerializeToFile(get.FileExt(cfgPath))
 	}
 	return d, nil

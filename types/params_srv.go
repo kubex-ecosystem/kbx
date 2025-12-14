@@ -174,24 +174,35 @@ type InviteConfig struct {
 	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
 }
 
+type AuthConfig struct {
+	JWTSecret           string        `json:"jwt_secret,omitempty" yaml:"jwt_secret,omitempty" toml:"jwt_secret,omitempty" mapstructure:"jwt_secret,omitempty"`
+	AccessTokenTTL      time.Duration `json:"access_token_ttl,omitempty" yaml:"access_token_ttl,omitempty" toml:"access_token_ttl,omitempty" mapstructure:"access_token_ttl,omitempty"`
+	RefreshTokenTTL     time.Duration `json:"refresh_token_ttl,omitempty" yaml:"refresh_token_ttl,omitempty" toml:"refresh_token_ttl,omitempty" mapstructure:"refresh_token_ttl,omitempty"`
+	PasswordSaltRounds  int           `json:"password_salt_rounds,omitempty" yaml:"password_salt_rounds,omitempty" toml:"password_salt_rounds,omitempty" mapstructure:"password_salt_rounds,omitempty"`
+	EnableEmailVerified bool          `json:"enable_email_verified,omitempty" yaml:"enable_email_verified,omitempty" toml:"enable_email_verified,omitempty" mapstructure:"enable_email_verified,omitempty"`
+	Invite              InviteConfig  `json:"invite,omitempty" yaml:"invite,omitempty" toml:"invite,omitempty" mapstructure:"invite,omitempty"`
+}
+
 type SrvConfig struct {
-	*GlobalRef  `json:",inline" yaml:",inline" mapstructure:",squash"`
+	GlobalRef   `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Basic       SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Files       SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Runtime     SrvRuntimeParams     `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Advanced    SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Flags       SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Auth        AuthConfig           `json:"auth,omitempty" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
 }
 
 func NewSrvConfig() SrvConfig {
 	return SrvConfig{
-		GlobalRef:   &GlobalRef{ID: uuid.New()},
+		GlobalRef:   GlobalRef{ID: uuid.New()},
 		Basic:       NewSrvBasic(),
 		Files:       NewSrvFiles(),
 		Runtime:     NewSrvRuntime(),
 		Advanced:    NewSrvAdvanced(),
 		Flags:       NewSrvFlags(),
 		Performance: NewSrvPerformance(),
+		Auth:        AuthConfig{},
 	}
 }

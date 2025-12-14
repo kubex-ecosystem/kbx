@@ -29,8 +29,8 @@ var (
 // FileKeyringService is a drop-in replacement for KeyringService,
 // maintaining the same contract and method signatures.
 type FileKeyringService struct {
-	keyringService *kbx.GlobalRef
-	keyringName    *kbx.GlobalRef
+	keyringService kbx.GlobalRef
+	keyringName    kbx.GlobalRef
 	masterKey      []byte
 	baseDir        string
 }
@@ -56,8 +56,8 @@ func newFileKeyringService(service, name string) *FileKeyringService {
 	_ = os.MkdirAll(dir, 0o700)
 
 	return &FileKeyringService{
-		keyringService: kbx.NewGlobalRef(service).GetGlobalRef(),
-		keyringName:    kbx.NewGlobalRef(name).GetGlobalRef(),
+		keyringService: kbx.NewGlobalRef(service),
+		keyringName:    kbx.NewGlobalRef(name),
 		masterKey:      raw,
 		baseDir:        dir,
 	}

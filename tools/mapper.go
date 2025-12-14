@@ -33,7 +33,10 @@ type Mapper[T any] struct {
 
 func NewEmptyMapperType[T any](filePath string) *Mapper[T] {
 	var obj T
-	return &Mapper[T]{filePath: filePath, ptr: &obj}
+	return &Mapper[T]{
+		filePath: filePath,
+		ptr: &obj,
+	}
 }
 
 // -------------------- Helpers --------------------
