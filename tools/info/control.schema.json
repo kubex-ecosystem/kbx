@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "control": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "type": "integer" },
+        "module": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "application": { "type": "string" },
+            "module_id": { "type": "string", "pattern": "^0x[0-9a-fA-F]+$" }
+          },
+          "required": ["name", "application", "module_id"]
+        },
+        "ipc": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string" },
+            "socket": { "type": "string" },
+            "mode": { "type": "string", "pattern": "^[0-7]{4}$" }
+          },
+          "required": ["type", "socket", "mode"]
+        },
+        "bitreg": {
+          "type": "object",
+          "properties": {
+            "brf_path": { "type": "string" },
+            "ns_bits": { "type": "integer" },
+            "policy": { "type": "string" },
+            "cap_mask": { "type": "string", "pattern": "^0x[0-9a-fA-F]+$" },
+            "state_hex": { "type": "string", "pattern": "^0x[0-9a-fA-F]+$" }
+          },
+          "required": ["brf_path", "ns_bits", "policy", "cap_mask", "state_hex"]
+        },
+        "kv": {
+          "type": "object",
+          "properties": {
+            "declare_hashes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key_hash": { "type": "string", "pattern": "^0x[0-9a-fA-F]+$" }
+                },
+                "required": ["key_hash"]
+              }
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key_hash": { "type": "string", "pattern": "^0x[0-9a-fA-F]+$" },
+                  "u64_hex": { "type": "string", "pattern": "^0x[0-9a-fA-F]+$" }
+                },
+                "required": ["key_hash", "u64_hex"]
+              }
+            },
+            "encoding": { "type": "string" }
+          },
+          "required": ["declare_hashes", "values", "encoding"]
+        },
+        "seq": { "type": "integer" },
+        "epoch_ns": { "type": "integer" }
+      },
+      "required": [
+        "schema_version",
+        "module",
+        "ipc",
+        "bitreg",
+        "kv",
+        "seq",
+        "epoch_ns"
+      ]
+    }
+  },
+  "required": ["control"]
+}

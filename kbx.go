@@ -87,6 +87,7 @@ func NewMailConfig(cfgPath string) *MailConfig       { return load.NewMailConfig
 func NewMailConnection() *MailConnection             { return types.NewMailConnection() }
 func NewMailAttachment() *MailAttachment             { return &MailAttachment{} }
 func NewEmail() *Email                               { return &Email{} }
+
 // func NewMailSender(params *MailSrvParams) MailSender { return nil }
 
 func NewLogzParams() *types.LogzConfig    { return load.NewLogzParams() }

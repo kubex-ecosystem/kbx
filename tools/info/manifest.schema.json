@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "application": { "type": "string" },
+    "version": { "type": "string" },
+    "private": { "type": "boolean" },
+    "published": { "type": "boolean" },
+    "aliases": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "repository": { "type": "string", "format": "uri" },
+    "homepage": { "type": "string", "format": "uri" },
+    "description": { "type": "string" },
+    "go_version": { "type": "string" },
+    "main": { "type": "string" },
+    "bin": { "type": "string" },
+    "author": { "type": "string" },
+    "organization": { "type": "string" },
+    "license": { "type": "string" },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "platforms": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "healthcheck_type": { "type": "string" },
+    "healthcheck_url": { "type": "string", "format": "uri" },
+    "healthcheck_cmd": { "type": "string" }
+  },
+  "required": [
+    "name",
+    "application",
+    "version",
+    "private",
+    "published",
+    "aliases",
+    "repository",
+    "homepage",
+    "description",
+    "go_version",
+    "main",
+    "bin",
+    "author",
+    "organization",
+    "license",
+    "keywords",
+    "platforms",
+    "dependencies",
+    "healthcheck_type",
+    "healthcheck_url",
+    "healthcheck_cmd"
+  ]
+}
