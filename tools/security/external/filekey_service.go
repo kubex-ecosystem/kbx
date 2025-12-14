@@ -17,13 +17,13 @@ import (
 	"github.com/kubex-ecosystem/kbx"
 
 	kbxGet "github.com/kubex-ecosystem/kbx/get"
-	manifest "github.com/kubex-ecosystem/kbx/tools/info"
 	sci "github.com/kubex-ecosystem/kbx/tools/security/interfaces"
+	"github.com/kubex-ecosystem/kbx/types"
 	gl "github.com/kubex-ecosystem/logz"
 )
 
 var (
-	info, errManifest = manifest.GetManifest(nil) // TODO: pass app info here
+	_ sci.IKeyringService = (*FileKeyringService)(nil)
 )
 
 // FileKeyringService is a drop-in replacement for KeyringService,
@@ -41,7 +41,7 @@ func NewFileKeyringService(service, name string) sci.IKeyringService {
 }
 
 func newFileKeyringService(service, name string) *FileKeyringService {
-	mk := kbxGet.EnvOr(strings.Join([]string{strings.ToUpper(info.GetName()), "_MASTER_KEY"}, ""), "")
+	mk := kbxGet.EnvOr(strings.Join([]string{strings.ToUpper(types.KubexManifest.GetName()), "_MASTER_KEY"}, ""), "")
 	if mk == "" {
 		gl.Log("warn", "APP_MASTER_KEY not set; using ephemeral random key (not persistent!)")
 		tmp := make([]byte, 32)

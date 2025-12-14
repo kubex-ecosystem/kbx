@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/kubex-ecosystem/kbx/get"
 	"github.com/kubex-ecosystem/kbx/tools"
 	"github.com/kubex-ecosystem/kbx/types"
@@ -73,25 +72,33 @@ func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKey
 	return SrvArgs
 }
 
-type GlobalRef struct {
-	ID   uuid.UUID `json:"id,omitempty"`
-	Name string    `json:"name,omitempty"`
+type GlobalRef = types.GlobalRef
+
+func NewGlobalRef(name string) *GlobalRef { return types.NewGlobalRef(name) }
+
+// ------------------------------- New Manifest Functions -----------------------------//
+
+type Manifest = types.Manifest
+type ManifestImpl = types.ManifestImpl
+
+func NewManifestType() *ManifestImpl {
+	return &ManifestImpl{}
 }
 
-func NewGlobalRef(name string) *GlobalRef {
-	return &GlobalRef{
-		ID:   uuid.New(),
-		Name: name,
+func NewManifest() Manifest {
+	return NewManifestType()
+}
+
+func EnsureGlobalManifest(n, c *ManifestImpl) {
+	if c == nil {
+		c = n
+	} else if n != nil && n.GetVersion() != c.GetVersion() {
+		// Merge new manifest into existing one
+		*c = *n
 	}
-}
-
-func (gr *GlobalRef) GetGlobalRef() *GlobalRef { return gr }
-func (gr *GlobalRef) GetName() string          { return gr.Name }
-func (gr *GlobalRef) GetID() uuid.UUID         { return gr.ID }
-func (gr *GlobalRef) SetName(name string)      { gr.Name = name }
-func (gr *GlobalRef) SetID(id uuid.UUID)       { gr.ID = id }
-func (gr *GlobalRef) String() string {
-	return gr.Name + "-" + gr.ID.String()
+	if c == nil {
+		gl.Fatal("No manifest available")
+	}
 }
 
 // ------------------------------- KBX Config Registry -----------------------------//
@@ -102,6 +109,7 @@ var configRegistry = map[reflect.Type]bool{
 	reflect.TypeFor[LogzConfig]():    true,
 	reflect.TypeFor[SrvConfig]():     true,
 	reflect.TypeFor[GlobalRef]():     true,
+	reflect.TypeFor[ManifestImpl]():  true,
 }
 
 var defaultFactories = map[reflect.Type]func() any{
@@ -110,6 +118,7 @@ var defaultFactories = map[reflect.Type]func() any{
 	reflect.TypeFor[LogzConfig]():    func() any { return NewLogzParams() },
 	reflect.TypeFor[SrvConfig]():     func() any { return NewSrvArgs() },
 	reflect.TypeFor[GlobalRef]():     func() any { return NewGlobalRef("default") },
+	reflect.TypeFor[ManifestImpl]():  func() any { return NewManifestType() },
 }
 
 // LoadConfig loads a configuration of type T from the specified file path.
@@ -117,12 +126,19 @@ var defaultFactories = map[reflect.Type]func() any{
 func LoadConfig[T any](cfgPath string) (*T, error) {
 	if configRegistry[reflect.TypeFor[T]()] {
 		cfgLoader := get.Loader[T](cfgPath)
-		return cfgLoader.DeserializeFromFile(get.FileExt(cfgPath))
+		obj, err := cfgLoader.DeserializeFromFile(get.FileExt(cfgPath))
+		if err != nil {
+			return nil, err
+		}
+		if reflect.TypeFor[T]() == reflect.TypeFor[ManifestImpl]() {
+			EnsureGlobalManifest(any(obj).(*ManifestImpl), types.KubexManifest)
+		}
+		return obj, nil
 	}
 	return nil, gl.Errorf("configuration type not registered")
 }
 
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | ManifestImpl](cfgPath string, genFile bool) (*T, error) {
 	// Só entra aqui se o tipo for algum já registrado, então não me preocupo em checar o erro, só logo retorno o default
 	cfgMapper := tools.NewEmptyMapperType[T](cfgPath)
 	cfg, err := cfgMapper.DeserializeFromFile(get.FileExt(cfgPath))

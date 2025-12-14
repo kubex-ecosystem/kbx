@@ -28,6 +28,7 @@ const (
 )
 
 var (
+
 	kubexEcosystemCwd string
 	once              sync.Once
 )
@@ -77,6 +78,7 @@ type MailConfig = load.MailConfig
 type MailConnection = types.MailConnection
 type MailAttachment = types.Attachment
 type Email = types.Email
+type ManifestImpl = types.ManifestImpl
 
 type LogzConfig = types.LogzConfig
 type SrvConfig = types.SrvConfig
@@ -87,6 +89,7 @@ func NewMailConfig(cfgPath string) *MailConfig       { return load.NewMailConfig
 func NewMailConnection() *MailConnection             { return types.NewMailConnection() }
 func NewMailAttachment() *MailAttachment             { return &MailAttachment{} }
 func NewEmail() *Email                               { return &Email{} }
+func NewManifest() *ManifestImpl                     { return load.NewManifestType() }
 
 // func NewMailSender(params *MailSrvParams) MailSender { return nil }
 
@@ -102,6 +105,6 @@ func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKey
 }
 
 func LoadConfig[T any](path string) (*T, error) { return load.LoadConfig[T](path) }
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | ManifestImpl](cfgPath string, genFile bool) (*T, error) {
 	return load.LoadConfigOrDefault[T](cfgPath, genFile)
 }
