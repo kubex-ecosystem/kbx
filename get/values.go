@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/kubex-ecosystem/kbx/is"
+	gl "github.com/kubex-ecosystem/logz"
 )
 
 func ValueOr[T any](value T, d T) (T, reflect.Type) {
@@ -19,10 +20,12 @@ func ValErrOr[T any](fn func() (T, error), d T) T {
 	if is.Safe(fn, false) {
 		value, err := fn()
 		if err != nil || !is.Valid(value) {
+			gl.Errorf("ValErrOr[%s] failed: %v", reflect.TypeFor[T]().String(), err)
 			return d
 		}
 		return value
 	}
+	gl.Errorf("We could not safely get the value (%s)", reflect.TypeFor[T]().String())
 	return d
 }
 
