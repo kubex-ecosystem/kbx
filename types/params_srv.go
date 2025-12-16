@@ -174,13 +174,20 @@ type InviteConfig struct {
 	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
 }
 
+type GoogleAuthConfig struct {
+	ClientID     string `json:"client_id" env:"GOOGLE_CLIENT_ID"`
+	ClientSecret string `json:"client_secret" env:"GOOGLE_CLIENT_SECRET"` // Cuidado com esse log!
+	RedirectURL  string `json:"redirect_url" env:"GOOGLE_REDIRECT_URL"`
+}
+
 type AuthConfig struct {
-	JWTSecret           string        `json:"jwt_secret,omitempty" yaml:"jwt_secret,omitempty" toml:"jwt_secret,omitempty" mapstructure:"jwt_secret,omitempty"`
-	AccessTokenTTL      time.Duration `json:"access_token_ttl,omitempty" yaml:"access_token_ttl,omitempty" toml:"access_token_ttl,omitempty" mapstructure:"access_token_ttl,omitempty"`
-	RefreshTokenTTL     time.Duration `json:"refresh_token_ttl,omitempty" yaml:"refresh_token_ttl,omitempty" toml:"refresh_token_ttl,omitempty" mapstructure:"refresh_token_ttl,omitempty"`
-	PasswordSaltRounds  int           `json:"password_salt_rounds,omitempty" yaml:"password_salt_rounds,omitempty" toml:"password_salt_rounds,omitempty" mapstructure:"password_salt_rounds,omitempty"`
-	EnableEmailVerified bool          `json:"enable_email_verified,omitempty" yaml:"enable_email_verified,omitempty" toml:"enable_email_verified,omitempty" mapstructure:"enable_email_verified,omitempty"`
-	Invite              InviteConfig  `json:"invite,omitempty" yaml:"invite,omitempty" toml:"invite,omitempty" mapstructure:"invite,omitempty"`
+	JWTSecret           string           `json:"jwt_secret,omitempty" yaml:"jwt_secret,omitempty" toml:"jwt_secret,omitempty" mapstructure:"jwt_secret,omitempty"`
+	AccessTokenTTL      time.Duration    `json:"access_token_ttl,omitempty" yaml:"access_token_ttl,omitempty" toml:"access_token_ttl,omitempty" mapstructure:"access_token_ttl,omitempty"`
+	RefreshTokenTTL     time.Duration    `json:"refresh_token_ttl,omitempty" yaml:"refresh_token_ttl,omitempty" toml:"refresh_token_ttl,omitempty" mapstructure:"refresh_token_ttl,omitempty"`
+	PasswordSaltRounds  int              `json:"password_salt_rounds,omitempty" yaml:"password_salt_rounds,omitempty" toml:"password_salt_rounds,omitempty" mapstructure:"password_salt_rounds,omitempty"`
+	EnableEmailVerified bool             `json:"enable_email_verified,omitempty" yaml:"enable_email_verified,omitempty" toml:"enable_email_verified,omitempty" mapstructure:"enable_email_verified,omitempty"`
+	Invite              InviteConfig     `json:"invite,omitempty" yaml:"invite,omitempty" toml:"invite,omitempty" mapstructure:"invite,omitempty"`
+	Google              GoogleAuthConfig `json:"google" mapstructure:"google"`
 }
 
 type SrvConfig struct {
