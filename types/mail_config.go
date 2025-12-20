@@ -29,10 +29,11 @@ type MailAuthConfig struct {
 	TestRecipient string    `json:"test_recipient,omitempty" yaml:"test_recipient" xml:"test_recipient" toml:"test_recipient" mapstructure:"test_recipient"`
 }
 type MailProtocolConfig struct {
-	Protocol string        `json:"protocol,omitempty" yaml:"protocol,omitempty" xml:"protocol,omitempty" toml:"protocol,omitempty" mapstructure:"protocol,omitempty"` // "smtp" (default) ou "imap"
-	SSL      bool          `json:"use_ssl,omitempty" yaml:"ssl" xml:"ssl" toml:"ssl" mapstructure:"ssl"`
-	TLS      bool          `json:"use_tls,omitempty" yaml:"tls" xml:"tls" toml:"tls" mapstructure:"tls"`
-	Timeout  time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty" xml:"timeout,omitempty" toml:"timeout,omitempty" mapstructure:"timeout,omitempty"`
+	Protocol  string        `json:"protocol,omitempty" yaml:"protocol,omitempty" xml:"protocol,omitempty" toml:"protocol,omitempty" mapstructure:"protocol,omitempty"` // "smtp" (default) ou "imap"
+	IsDefault bool          `json:"is_default,omitempty" yaml:"is_default,omitempty" xml:"is_default,omitempty" toml:"is_default,omitempty" mapstructure:"is_default,omitempty"`
+	SSL       bool          `json:"use_ssl,omitempty" yaml:"ssl" xml:"ssl" toml:"ssl" mapstructure:"ssl"`
+	TLS       bool          `json:"use_tls,omitempty" yaml:"tls" xml:"tls" toml:"tls" mapstructure:"tls"`
+	Timeout   time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty" xml:"timeout,omitempty" toml:"timeout,omitempty" mapstructure:"timeout,omitempty"`
 }
 type MailConnection struct {
 	*MailGeneralConfig  `json:",inline,omitempty" yaml:",inline,omitempty" xml:"general,omitempty" toml:",inline,omitempty" mapstructure:"squash,omitempty"`
