@@ -91,7 +91,7 @@ func NewSrvRuntimeDefault() SrvRuntimeParams {
 	return SrvRuntimeParams{
 		Host:            "localhost",
 		Port:            "4000",
-		Bind:            ":8080",
+		Bind:            "0.0.0.0",
 		PubCertKeyPath:  "",
 		PubKeyPath:      "",
 		PrivKeyPath:     "",
