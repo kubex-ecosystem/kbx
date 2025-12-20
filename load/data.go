@@ -21,14 +21,15 @@ type Email = types.Email
 
 type MailSrvParams struct {
 	ConfigPath         string `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
-	*types.Attachment  `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
-	*types.Email       `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
-	*types.MailConfig  `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	types.Attachment   `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	types.Email        `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	types.MailConfig   `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
 	types.MailProvider `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
 }
 
 func NewMailSrvParams(configPath string) *MailSrvParams {
-	return &MailSrvParams{ConfigPath: configPath, MailConfig: types.NewMailConfig(configPath), Attachment: &types.Attachment{}, Email: &types.Email{}}
+	mailCfg := types.NewMailConfig(configPath)
+	return &MailSrvParams{ConfigPath: configPath, MailConfig: mailCfg, Attachment: types.Attachment{}, Email: types.Email{}}
 }
 
 // ------------------------------- New Mail Params Functions -----------------------------//
@@ -37,7 +38,7 @@ func NewMailConfig(configPath string) *MailConfig {
 	return &MailConfig{
 		ConfigPath:  configPath,
 		Provider:    "",
-		Connections: make([]*MailConnection, 0),
+		Connections: make([]MailConnection, 0),
 	}
 }
 
@@ -63,7 +64,7 @@ func NewSrvArgs() SrvConfig { return types.NewSrvConfig() }
 
 func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) SrvConfig {
 	SrvArgs := NewSrvArgs()
-	SrvArgs.Runtime.Bind = get.ValOrType(bind, ":8080")
+	SrvArgs.Runtime.Bind = get.ValOrType(bind, ":4000")
 	SrvArgs.Runtime.PubCertKeyPath = get.ValOrType(pubCertKeyPath, "")
 	SrvArgs.Runtime.PubKeyPath = get.ValOrType(pubKeyPath, "")
 	SrvArgs.Runtime.PrivKeyPath = get.ValOrType(privKeyPath, "")
@@ -99,8 +100,7 @@ func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
 	Cfg.Runtime.PubCertKeyPath = pubKeyPath
 	Cfg.Basic.CORSEnabled = get.EnvOrType("CANALIZE_BE_ENABLE_CORS", true)
 	Cfg.Basic.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
-	Cfg.Files.ProvidersConfig = os.ExpandEnv(get.EnvOr("CANALIZE_BE_PROVIDERS_CONFIG_PATH",
-		"/ALL/CANALIZE/projects/BACKEND/canalize_be/configs/providers.yaml"))
+	Cfg.Files.ProvidersConfig = os.ExpandEnv(get.EnvOr("CANALIZE_BE_PROVIDERS_CONFIG_PATH", ""))
 	Cfg.Runtime.RefreshTokenTTL = defaultTTL
 
 	return Cfg
@@ -130,6 +130,25 @@ func NewSrvConfigFromParams(params *SrvConfig) SrvConfig {
 type GlobalRef = types.GlobalRef
 
 func NewGlobalRef(name string) GlobalRef { return types.NewGlobalRef(name) }
+
+// ------------------------------- Google Auth Config Functions -----------------------------//
+
+type GoogleAuthConfig struct {
+	types.GoogleAuthConfig
+	ConfigPath string `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
+}
+
+func NewGoogleAuthConfig(cfgPath string) GoogleAuthConfig {
+	return GoogleAuthConfig{
+		GoogleAuthConfig: types.GoogleAuthConfig{
+			ClientID:     "",
+			ClientSecret: "",
+			RedirectURL:  "",
+			Scopes:       []string{"openid", "email", "profile"},
+		},
+		ConfigPath: cfgPath,
+	}
+}
 
 // ------------------------------- New Manifest Functions -----------------------------//
 
@@ -221,8 +240,11 @@ func LoadConfig[T any](cfgPath string) (T, error) {
 	if configRegistry[reflect.TypeFor[T]()] {
 		cfgLoader := get.Loader[T](cfgPath)
 		obj, err := cfgLoader.DeserializeFromFile(get.FileExt(cfgPath))
-		if err != nil {
+		if err != nil && !os.IsNotExist(err) {
 			return zero, err
+		} else if os.IsNotExist(err) {
+			gl.Warnf("configuration file '%s' does not exist", cfgPath)
+			return zero, nil
 		}
 		if reflect.TypeFor[T]() == reflect.TypeFor[MManifest]() {
 			var b *MManifest
@@ -238,7 +260,7 @@ func LoadConfig[T any](cfgPath string) (T, error) {
 	return zero, gl.Errorf("configuration type not registered")
 }
 
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | GoogleAuthConfig](cfgPath string, genFile bool) (*T, error) {
 	if cfgPath == "" {
 		gl.Fatalf("config path is empty")
 	}

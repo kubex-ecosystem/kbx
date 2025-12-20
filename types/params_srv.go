@@ -175,9 +175,10 @@ type InviteConfig struct {
 }
 
 type GoogleAuthConfig struct {
-	ClientID     string `json:"client_id" env:"GOOGLE_CLIENT_ID"`
-	ClientSecret string `json:"client_secret" env:"GOOGLE_CLIENT_SECRET"` // Cuidado com esse log!
-	RedirectURL  string `json:"redirect_url" env:"GOOGLE_REDIRECT_URL"`
+	ClientID     string   `json:"client_id" env:"GOOGLE_CLIENT_ID"`
+	ClientSecret string   `json:"client_secret" env:"GOOGLE_CLIENT_SECRET"` // Cuidado com esse log!
+	RedirectURL  string   `json:"redirect_url" env:"GOOGLE_REDIRECT_URL"`
+	Scopes       []string `json:"scopes,omitempty" env:"GOOGLE_SCOPES"`
 }
 
 type AuthConfig struct {

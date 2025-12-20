@@ -77,7 +77,7 @@ func (m *Mailer) GetSMTPConnection() *types.MailConnection {
 	}
 	for _, conn := range m.Connections {
 		if conn.Protocol == "smtp" || conn.Protocol == "" {
-			return conn
+			return &conn
 		}
 	}
 	return nil

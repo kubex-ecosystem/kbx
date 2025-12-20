@@ -49,7 +49,7 @@ func EnvOrType[T any](key string, d T) T {
 	if err := json.Unmarshal([]byte(value), &result); err != nil {
 		return d
 	}
-	if is.Valid(result) {
+	if is.Safe(result, false) {
 		return result
 	}
 	return result

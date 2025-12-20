@@ -63,7 +63,9 @@ func ensureParentDir(path string) error {
 	if dir == "." || dir == "" {
 		return nil
 	}
-	return os.MkdirAll(dir, 0o755)
+	err := os.MkdirAll(dir, 0o755)
+	gl.Debugf("Created parent dir %s for %s: %v", dir, path, err)
+	return gl.Errorf("error creating parent dir %s for %s: %v", dir, path, err)
 }
 
 // -------------------- Serialize --------------------

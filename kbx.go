@@ -22,8 +22,8 @@ const (
 
 	// ------------------------------- Default Paths -----------------------------------//
 
-	defaultSMTPConfigPath = "mainling/config/smtp.json"
-	defaultTemplatePath   = "mainling/email_templates"
+	defaultSMTPConfigPath = "mailing/config/smtp.json"
+	defaultTemplatePath   = "mailing/email_templates"
 	defaultEnvFilePath    = ".env"
 )
 
@@ -82,6 +82,7 @@ type Manifest = load.Manifest
 
 type LogzConfig = types.LogzConfig
 type SrvConfig = types.SrvConfig
+type GoogleAuthConfig = load.GoogleAuthConfig
 type GlobalRef = load.GlobalRef
 
 func NewMailSrvParams(cfgPath string) *MailSrvParams { return load.NewMailSrvParams(cfgPath) }
@@ -106,6 +107,6 @@ func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKey
 }
 
 func LoadConfig[T any](path string) (T, error) { return load.LoadConfig[T](path) }
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | GoogleAuthConfig](cfgPath string, genFile bool) (*T, error) {
 	return load.LoadConfigOrDefault[T](cfgPath, genFile)
 }

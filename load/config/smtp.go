@@ -19,7 +19,7 @@ func BasicSMTP(from string) (*SMTP, error) {
 	}
 	for _, smtp := range mailerConfig.Connections {
 		if smtp.Protocol == "smtp" || smtp.Protocol == "" {
-			return smtp, nil
+			return &smtp, nil
 		}
 	}
 	return nil, gl.Errorf("no SMTP configuration found in %s", filepath.Base(from))

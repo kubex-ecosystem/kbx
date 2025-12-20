@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os/exec"
 	"reflect"
+	"strings"
 
 	"github.com/kubex-ecosystem/kbx/load"
 	"github.com/kubex-ecosystem/kbx/types"
@@ -27,11 +28,15 @@ func NewProvider[T SendmailProvider](cfgFilePath string) (SendmailProvider, erro
 		cfgMap: make(map[reflect.Type]*load.MailConnection),
 	}
 	for _, conn := range mailConfig.Connections {
-		if conn == nil {
+		if len(conn.Provider) == 0 ||
+			len(conn.Host) == 0 ||
+			len(conn.User) == 0 ||
+			len(conn.Pass) == 0 ||
+			!strings.EqualFold(conn.Provider, "imap") {
 			continue
 		}
 		if conn.Protocol == "smtp" || conn.Protocol == "" {
-			empty.cfgMap[reflect.TypeOf(*conn)] = conn
+			empty.cfgMap[reflect.TypeOf(conn)] = &conn
 			return empty, nil
 		}
 	}
