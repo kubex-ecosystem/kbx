@@ -228,7 +228,7 @@ func validateControlBasic(b []byte) error {
 	return nil
 }
 
-func CLIBannerStyle(banners, descriptionArg []string, _ bool) map[string]string {
+func CLIBannerStyle(banners, descriptionArg []string, hideBanner bool) map[string]string {
 	var description, banner string
 
 	if descriptionArg != nil {
