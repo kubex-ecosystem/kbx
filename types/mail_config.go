@@ -36,9 +36,9 @@ type MailProtocolConfig struct {
 	Timeout   time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty" xml:"timeout,omitempty" toml:"timeout,omitempty" mapstructure:"timeout,omitempty"`
 }
 type MailConnection struct {
-	*MailGeneralConfig  `json:",inline,omitempty" yaml:",inline,omitempty" xml:"general,omitempty" toml:",inline,omitempty" mapstructure:"squash,omitempty"`
-	*MailAuthConfig     `json:",inline" yaml:",inline" xml:"auth" toml:",inline" mapstructure:"squash"`
-	*MailProtocolConfig `json:",inline" yaml:",inline" xml:"protocol" toml:",inline" mapstructure:"squash"`
+	MailGeneralConfig  `json:",inline,omitempty" yaml:",inline,omitempty" xml:"general,omitempty" toml:",inline,omitempty" mapstructure:"squash,omitempty"`
+	MailAuthConfig     `json:",inline" yaml:",inline" xml:"auth" toml:",inline" mapstructure:"squash"`
+	MailProtocolConfig `json:",inline" yaml:",inline" xml:"protocol" toml:",inline" mapstructure:"squash"`
 }
 type MailConfig struct {
 	ConfigPath  string           `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
@@ -55,9 +55,9 @@ func NewMailConfig(provider string) MailConfig {
 
 func NewMailConnection() *MailConnection {
 	return &MailConnection{
-		MailGeneralConfig:  &MailGeneralConfig{},
-		MailAuthConfig:     &MailAuthConfig{},
-		MailProtocolConfig: &MailProtocolConfig{},
+		MailGeneralConfig:  MailGeneralConfig{},
+		MailAuthConfig:     MailAuthConfig{},
+		MailProtocolConfig: MailProtocolConfig{},
 	}
 }
 

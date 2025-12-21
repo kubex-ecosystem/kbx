@@ -102,8 +102,8 @@ func NewGlobalRef(name string) GlobalRef { return load.NewGlobalRef(name) }
 func ParseLogzArgs(level string, minLevel string, maxLevel string, output string) *types.LogzConfig {
 	return load.ParseLogzArgs(level, minLevel, maxLevel, output)
 }
-func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) types.SrvConfig {
-	return load.ParseSrvArgs(bind, pubCertKeyPath, pubKeyPath, privKeyPath, accessTokenTTL, refreshTokenTTL, issuer)
+func ParseSrvArgs(bind, port, pubCertKeyPath, pubKeyPath, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) types.SrvConfig {
+	return load.ParseSrvArgs(bind, port, pubCertKeyPath, pubKeyPath, privKeyPath, accessTokenTTL, refreshTokenTTL, issuer)
 }
 
 func LoadConfig[T any](path string) (T, error) { return load.LoadConfig[T](path) }

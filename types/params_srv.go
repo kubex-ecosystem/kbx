@@ -174,11 +174,64 @@ type InviteConfig struct {
 	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
 }
 
+type AuthClientOptions map[string]any
+
+type AuthSession struct {
+	GlobalRef `json:",inline" yaml:",inline" mapstructure:",squash"`
+
+	// Identification
+	Provider    string `json:"-" yaml:"-" mapstructure:"-"`
+	Issuer      string `json:"-" yaml:"-" mapstructure:"-"`
+	AccessType  string `json:"-" yaml:"-" mapstructure:"-"`
+	AuthURL     string `json:"-" yaml:"-" mapstructure:"-"`
+	TokenURL    string `json:"-" yaml:"-" mapstructure:"-"`
+	RedirectURL string `json:"-" yaml:"-" mapstructure:"-"`
+	Locale      string `json:"-" yaml:"-" mapstructure:"-"`
+	Subject     string `json:"-" yaml:"-" mapstructure:"-"`
+
+	// Tokens
+	AccessToken   string         `json:"-" yaml:"-" mapstructure:"-"`
+	RefreshToken  string         `json:"-" yaml:"-" mapstructure:"-"`
+	IDToken       string         `json:"-" yaml:"-" mapstructure:"-"`
+	RawIDToken    string         `json:"-" yaml:"-" mapstructure:"-"`
+	Nonce         string         `json:"-" yaml:"-" mapstructure:"-"`
+	AuthCode      string         `json:"-" yaml:"-" mapstructure:"-"`
+	IDTokenClaims map[string]any `json:"-" yaml:"-" mapstructure:"-"`
+
+	// Metadata
+	ExpiresIn int64     `json:"-" yaml:"-" mapstructure:"-"`
+	Expiry    time.Time `json:"-" yaml:"-" mapstructure:"-"`
+	CreatedAt time.Time `json:"-" yaml:"-" mapstructure:"-"`
+	UpdatedAt time.Time `json:"-" yaml:"-" mapstructure:"-"`
+
+	Extra map[string]any `json:"-" yaml:"-" mapstructure:"-"`
+}
+
+type AuthClientConfig struct {
+	AuthProvider string            `json:"auth_provider,omitempty" env:"AUTH_PROVIDER"`
+	ClientID     string            `json:"client_id" env:"AUTH_CLIENT_ID"`
+	ClientSecret string            `json:"client_secret" env:"AUTH_CLIENT_SECRET"` // Cuidado com esse log!
+	CallbackURL  string            `json:"callback_url" env:"AUTH_CALLBACK_URL"`
+	Scopes       []string          `json:"scopes,omitempty" env:"AUTH_SCOPES"`
+	Options      AuthClientOptions `json:"options,omitempty" env:"AUTH_OPTIONS"`
+}
+
+type AuthProvidersConfig struct {
+	Google   AuthClientConfig `json:"google,omitempty" env:"GOOGLE_AUTH_CONFIG"`
+	Facebook AuthClientConfig `json:"facebook,omitempty" env:"FACEBOOK_AUTH_CONFIG"`
+	Github   AuthClientConfig `json:"github,omitempty" env:"GITHUB_AUTH_CONFIG"`
+}
+
 type GoogleAuthConfig struct {
-	ClientID     string   `json:"client_id" env:"GOOGLE_CLIENT_ID"`
-	ClientSecret string   `json:"client_secret" env:"GOOGLE_CLIENT_SECRET"` // Cuidado com esse log!
-	RedirectURL  string   `json:"redirect_url" env:"GOOGLE_REDIRECT_URL"`
-	Scopes       []string `json:"scopes,omitempty" env:"GOOGLE_SCOPES"`
+	ClientID          string         `json:"client_id" env:"GOOGLE_CLIENT_ID"`
+	ClientSecret      string         `json:"client_secret" env:"GOOGLE_CLIENT_SECRET"` // Cuidado com esse log!
+	RedirectURL       string         `json:"redirect_url" env:"GOOGLE_REDIRECT_URL"`
+	RedirectURIs      []string       `json:"redirect_uris,omitempty" env:"GOOGLE_REDIRECT_URIS"`
+	JavaScriptOrigins []string       `json:"javascript_origins,omitempty" env:"GOOGLE_JAVASCRIPT_ORIGINS"`
+	Scopes            []string       `json:"scopes,omitempty" env:"GOOGLE_SCOPES"`
+	MapUserInfo       bool           `json:"map_user_info,omitempty" env:"GOOGLE_MAP_USER_INFO"`
+	MetadataOnly      bool           `json:"metadata_only,omitempty" env:"GOOGLE_METADATA_ONLY"`
+	Metadata          map[string]any `json:"metadata,omitempty" env:"GOOGLE_METADATA"`
 }
 
 type AuthConfig struct {

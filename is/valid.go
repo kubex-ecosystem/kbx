@@ -50,6 +50,20 @@ func Valid(obj any) bool {
 	return true
 }
 
+func PtrOf[T any](obj any) bool {
+	v := reflect.ValueOf(obj)
+	if v.Kind() != reflect.Pointer {
+		return false
+	}
+	if v.IsNil() {
+		return false
+	}
+	if v.Elem().Type() != reflect.TypeFor[T]() {
+		return false
+	}
+	return true
+}
+
 func Safe(obj any, strict bool) bool {
 	v := reflect.ValueOf(obj)
 
@@ -200,6 +214,15 @@ func NilPtr(obj any) bool {
 	v := reflect.ValueOf(obj)
 	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
 		if v.IsNil() {
+			return true
+		}
+	}
+	return false
+}
+
+func ArrayObj[T any](o T, a []T) bool {
+	for _, v := range a {
+		if reflect.DeepEqual(o, v) {
 			return true
 		}
 	}

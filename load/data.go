@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/kubex-ecosystem/kbx/get"
+	"github.com/kubex-ecosystem/kbx/is"
 	"github.com/kubex-ecosystem/kbx/tools"
 	"github.com/kubex-ecosystem/kbx/types"
 
@@ -62,9 +63,10 @@ type SrvConfig = types.SrvConfig
 
 func NewSrvArgs() SrvConfig { return types.NewSrvConfig() }
 
-func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) SrvConfig {
+func ParseSrvArgs(bind string, port string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) SrvConfig {
 	SrvArgs := NewSrvArgs()
-	SrvArgs.Runtime.Bind = get.ValOrType(bind, ":4000")
+	SrvArgs.Runtime.Bind = get.ValOrType(bind, "0.0.0.0")
+	SrvArgs.Runtime.Port = get.ValOrType(port, "4000")
 	SrvArgs.Runtime.PubCertKeyPath = get.ValOrType(pubCertKeyPath, "")
 	SrvArgs.Runtime.PubKeyPath = get.ValOrType(pubKeyPath, "")
 	SrvArgs.Runtime.PrivKeyPath = get.ValOrType(privKeyPath, "")
@@ -80,15 +82,15 @@ func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
 		"http://localhost:4000",
 	)
 	defaultTTL := get.EnvOrType("INVITE_EXPIRATION", 7*24*time.Hour)
-	configPath := os.ExpandEnv(get.EnvOr("CANALIZE_BE_CONFIG_PATH", "/ALL/CANALIZE/projects/BACKEND/canalize_be/configs/config.json"))
+	configPath := os.ExpandEnv(get.EnvOr("CANALIZE_BE_CONFIG_PATH", "$HOME/mvp/canalize_be_latest/.be.config.json"))
 	pubKeyPath := os.ExpandEnv(get.EnvOrType("CANALIZE_BE_PUBLIC_KEY_PATH", defaults["default_canalyze_be_cert_path"].(string)))
 	privKeyPath := os.ExpandEnv(get.EnvOrType("CANALIZE_BE_PRIVATE_KEY_PATH", defaults["default_canalyze_be_key_path"].(string)))
 
 	Cfg := types.NewSrvConfig()
 	Cfg.Files.ConfigFile = os.ExpandEnv(configPath)
-	Cfg.Files.DBConfigFile = os.ExpandEnv(get.EnvOr("CANALIZE_DS_CONFIG_PATH", "/ALL/CANALIZE/projects/DATABASE/canalize_ds/configs/config.json"))
-	Cfg.Files.EnvFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_ENV_PATH", "/ALL/CANALIZE/projects/BACKEND/canalize_be/.env"))
-	Cfg.Files.LogFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_LOG_FILE_PATH", "/ALL/CANALIZE/logs/canalize_be.log"))
+	Cfg.Files.DBConfigFile = os.ExpandEnv(get.EnvOr("CANALIZE_DS_CONFIG_PATH", "$HOME/.canalize/canalize_ds/config/config.json"))
+	Cfg.Files.EnvFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_ENV_PATH", "$HOME/mvp/canalize_be_latest/.be.env"))
+	Cfg.Files.LogFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_LOG_FILE_PATH", "$HOME/mvp/canalize_be_latest/canalize_be.log"))
 	Cfg.GlobalRef = types.NewGlobalRef(get.EnvOr("CANALIZE_BE_PROCESS_NAME", "canalize_be"))
 	Cfg.Basic.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
 	Cfg.Basic.ReleaseMode = get.EnvOrType("CANALIZE_BE_RELEASE_MODE", false)
@@ -273,13 +275,18 @@ func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig 
 	}
 	gl.Warnf("failed to load config from '%s', using default: %v", cfgPath, err)
 	defaultCfg := defaultFactories[reflect.TypeFor[T]()]().(T)
-	d, ok := any(defaultCfg).(*T)
-	if !ok {
-		return nil, gl.Errorf("failed to assert default config type")
+	if !is.PtrOf[T](defaultCfg) {
+		if genFile {
+			cfgMapper.SetValue(&defaultCfg)
+			cfgMapper.SerializeToFile(get.FileExt(cfgPath))
+		}
+		return &defaultCfg, nil
+	} else {
+		d := any(defaultCfg).(*T)
+		if genFile {
+			cfgMapper.SetValue(d)
+			cfgMapper.SerializeToFile(get.FileExt(cfgPath))
+		}
+		return d, nil
 	}
-	if genFile {
-		cfgMapper.SetValue(d)
-		cfgMapper.SerializeToFile(get.FileExt(cfgPath))
-	}
-	return d, nil
 }

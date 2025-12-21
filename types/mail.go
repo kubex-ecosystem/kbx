@@ -4,7 +4,7 @@ package types
 import "github.com/google/uuid"
 
 type Attachment struct {
-	UID      uint32 `json:"id,omitempty" yaml:"id" xml:"id" toml:"id" mapstructure:"id"`
+	UID      uint32 `json:"attach_id,omitempty" yaml:"attach_id" xml:"attach_id" toml:"attach_id" mapstructure:"attach_id"`
 	Filename string `json:"filename,omitempty" yaml:"filename" xml:"filename" toml:"filename" mapstructure:"filename"`
 	Data     []byte `json:"data,omitempty" yaml:"data" xml:"data" toml:"data" mapstructure:"data"`
 	Size     int    `json:"size,omitempty" yaml:"size" xml:"size" toml:"size" mapstructure:"size"`
