@@ -82,7 +82,7 @@ type Manifest = load.Manifest
 
 type LogzConfig = types.LogzConfig
 type SrvConfig = types.SrvConfig
-type GoogleAuthConfig = load.GoogleAuthConfig
+type VendorAuthConfig = load.VendorAuthConfig
 type GlobalRef = load.GlobalRef
 
 func NewMailSrvParams(cfgPath string) *MailSrvParams { return load.NewMailSrvParams(cfgPath) }
@@ -107,6 +107,6 @@ func ParseSrvArgs(bind, port, pubCertKeyPath, pubKeyPath, privKeyPath string, ac
 }
 
 func LoadConfig[T any](path string) (T, error) { return load.LoadConfig[T](path) }
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | GoogleAuthConfig](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | VendorAuthConfig](cfgPath string, genFile bool) (*T, error) {
 	return load.LoadConfigOrDefault[T](cfgPath, genFile)
 }

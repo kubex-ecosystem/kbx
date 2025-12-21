@@ -135,18 +135,32 @@ func NewGlobalRef(name string) GlobalRef { return types.NewGlobalRef(name) }
 
 // ------------------------------- Google Auth Config Functions -----------------------------//
 
-type GoogleAuthConfig struct {
-	types.GoogleAuthConfig
+type VendorAuthConfig struct {
+	AuthProvider string `json:"auth_provider,omitempty" yaml:"auth_provider,omitempty" xml:"auth_provider,omitempty" toml:"auth_provider,omitempty" mapstructure:"auth_provider,omitempty"`
+	types.AuthClientConfig
 	ConfigPath string `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
 }
 
-func NewGoogleAuthConfig(cfgPath string) GoogleAuthConfig {
-	return GoogleAuthConfig{
-		GoogleAuthConfig: types.GoogleAuthConfig{
-			ClientID:     "",
-			ClientSecret: "",
-			RedirectURL:  "",
-			Scopes:       []string{"openid", "email", "profile"},
+func NewVendorAuthConfig(cfgPath string) VendorAuthConfig {
+	return VendorAuthConfig{
+		AuthClientConfig: types.AuthClientConfig{
+			AuthProvider: "google",
+			// Web default config
+			Web: types.AuthOAuthClientConfig{
+				ClientID:                "",
+				ClientSecret:            "",
+				RedirectURL:             "",
+				AuthURI:                 "",
+				TokenURI:                "",
+				AuthProviderX509CertURL: "",
+				Scopes:                  []string{"openid", "email", "profile"},
+				RedirectURIs:            make([]string, 0),
+				JavaScriptOrigins:       make([]string, 0),
+				MapUserInfo:             false,
+				MetadataOnly:            false,
+				Metadata:                make(map[string]any),
+			},
+			Options: make(map[string]any),
 		},
 		ConfigPath: cfgPath,
 	}
@@ -217,21 +231,25 @@ func EnsureGlobalManifest(n, c *MManifest) {
 // ------------------------------- KBX Config Registry -----------------------------//
 
 var configRegistry = map[reflect.Type]bool{
-	reflect.TypeFor[MailSrvParams](): true,
-	reflect.TypeFor[MailConfig]():    true,
-	reflect.TypeFor[LogzConfig]():    true,
-	reflect.TypeFor[SrvConfig]():     true,
-	reflect.TypeFor[GlobalRef]():     true,
-	reflect.TypeFor[MManifest]():     true,
+	reflect.TypeFor[MailSrvParams]():    true,
+	reflect.TypeFor[MailConfig]():       true,
+	reflect.TypeFor[LogzConfig]():       true,
+	reflect.TypeFor[SrvConfig]():        true,
+	reflect.TypeFor[MManifest]():        true,
+	reflect.TypeFor[VendorAuthConfig](): true,
+	reflect.TypeFor[Email]():            true,
+	reflect.TypeFor[MailConnection]():   true,
 }
 
 var defaultFactories = map[reflect.Type]func() any{
-	reflect.TypeFor[MailSrvParams](): func() any { return NewMailSrvParams("") },
-	reflect.TypeFor[MailConfig]():    func() any { return NewMailConfig("") },
-	reflect.TypeFor[LogzConfig]():    func() any { return NewLogzParams() },
-	reflect.TypeFor[SrvConfig]():     func() any { return NewSrvArgs() },
-	reflect.TypeFor[GlobalRef]():     func() any { return NewGlobalRef("default") },
-	reflect.TypeFor[MManifest]():     func() any { return NewManifestType() },
+	reflect.TypeFor[MailSrvParams]():    func() any { return NewMailSrvParams("") },
+	reflect.TypeFor[MailConfig]():       func() any { return NewMailConfig("") },
+	reflect.TypeFor[LogzConfig]():       func() any { return NewLogzParams() },
+	reflect.TypeFor[SrvConfig]():        func() any { return NewSrvArgs() },
+	reflect.TypeFor[MManifest]():        func() any { return NewManifestType() },
+	reflect.TypeFor[VendorAuthConfig](): func() any { return NewVendorAuthConfig("") },
+	reflect.TypeFor[Email]():            func() any { return types.NewEmail() },
+	reflect.TypeFor[MailConnection]():   func() any { return types.NewMailConnection() },
 }
 
 // LoadConfig loads a configuration of type T from the specified file path.
@@ -262,7 +280,7 @@ func LoadConfig[T any](cfgPath string) (T, error) {
 	return zero, gl.Errorf("configuration type not registered")
 }
 
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | GoogleAuthConfig](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | VendorAuthConfig](cfgPath string, genFile bool) (*T, error) {
 	if cfgPath == "" {
 		gl.Fatalf("config path is empty")
 	}

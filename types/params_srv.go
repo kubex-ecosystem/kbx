@@ -174,74 +174,14 @@ type InviteConfig struct {
 	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
 }
 
-type AuthClientOptions map[string]any
-
-type AuthSession struct {
-	GlobalRef `json:",inline" yaml:",inline" mapstructure:",squash"`
-
-	// Identification
-	Provider    string `json:"-" yaml:"-" mapstructure:"-"`
-	Issuer      string `json:"-" yaml:"-" mapstructure:"-"`
-	AccessType  string `json:"-" yaml:"-" mapstructure:"-"`
-	AuthURL     string `json:"-" yaml:"-" mapstructure:"-"`
-	TokenURL    string `json:"-" yaml:"-" mapstructure:"-"`
-	RedirectURL string `json:"-" yaml:"-" mapstructure:"-"`
-	Locale      string `json:"-" yaml:"-" mapstructure:"-"`
-	Subject     string `json:"-" yaml:"-" mapstructure:"-"`
-
-	// Tokens
-	AccessToken   string         `json:"-" yaml:"-" mapstructure:"-"`
-	RefreshToken  string         `json:"-" yaml:"-" mapstructure:"-"`
-	IDToken       string         `json:"-" yaml:"-" mapstructure:"-"`
-	RawIDToken    string         `json:"-" yaml:"-" mapstructure:"-"`
-	Nonce         string         `json:"-" yaml:"-" mapstructure:"-"`
-	AuthCode      string         `json:"-" yaml:"-" mapstructure:"-"`
-	IDTokenClaims map[string]any `json:"-" yaml:"-" mapstructure:"-"`
-
-	// Metadata
-	ExpiresIn int64     `json:"-" yaml:"-" mapstructure:"-"`
-	Expiry    time.Time `json:"-" yaml:"-" mapstructure:"-"`
-	CreatedAt time.Time `json:"-" yaml:"-" mapstructure:"-"`
-	UpdatedAt time.Time `json:"-" yaml:"-" mapstructure:"-"`
-
-	Extra map[string]any `json:"-" yaml:"-" mapstructure:"-"`
-}
-
-type AuthClientConfig struct {
-	AuthProvider string            `json:"auth_provider,omitempty" env:"AUTH_PROVIDER"`
-	ClientID     string            `json:"client_id" env:"AUTH_CLIENT_ID"`
-	ClientSecret string            `json:"client_secret" env:"AUTH_CLIENT_SECRET"` // Cuidado com esse log!
-	CallbackURL  string            `json:"callback_url" env:"AUTH_CALLBACK_URL"`
-	Scopes       []string          `json:"scopes,omitempty" env:"AUTH_SCOPES"`
-	Options      AuthClientOptions `json:"options,omitempty" env:"AUTH_OPTIONS"`
-}
-
-type AuthProvidersConfig struct {
-	Google   AuthClientConfig `json:"google,omitempty" env:"GOOGLE_AUTH_CONFIG"`
-	Facebook AuthClientConfig `json:"facebook,omitempty" env:"FACEBOOK_AUTH_CONFIG"`
-	Github   AuthClientConfig `json:"github,omitempty" env:"GITHUB_AUTH_CONFIG"`
-}
-
-type GoogleAuthConfig struct {
-	ClientID          string         `json:"client_id" env:"GOOGLE_CLIENT_ID"`
-	ClientSecret      string         `json:"client_secret" env:"GOOGLE_CLIENT_SECRET"` // Cuidado com esse log!
-	RedirectURL       string         `json:"redirect_url" env:"GOOGLE_REDIRECT_URL"`
-	RedirectURIs      []string       `json:"redirect_uris,omitempty" env:"GOOGLE_REDIRECT_URIS"`
-	JavaScriptOrigins []string       `json:"javascript_origins,omitempty" env:"GOOGLE_JAVASCRIPT_ORIGINS"`
-	Scopes            []string       `json:"scopes,omitempty" env:"GOOGLE_SCOPES"`
-	MapUserInfo       bool           `json:"map_user_info,omitempty" env:"GOOGLE_MAP_USER_INFO"`
-	MetadataOnly      bool           `json:"metadata_only,omitempty" env:"GOOGLE_METADATA_ONLY"`
-	Metadata          map[string]any `json:"metadata,omitempty" env:"GOOGLE_METADATA"`
-}
-
 type AuthConfig struct {
-	JWTSecret           string           `json:"jwt_secret,omitempty" yaml:"jwt_secret,omitempty" toml:"jwt_secret,omitempty" mapstructure:"jwt_secret,omitempty"`
-	AccessTokenTTL      time.Duration    `json:"access_token_ttl,omitempty" yaml:"access_token_ttl,omitempty" toml:"access_token_ttl,omitempty" mapstructure:"access_token_ttl,omitempty"`
-	RefreshTokenTTL     time.Duration    `json:"refresh_token_ttl,omitempty" yaml:"refresh_token_ttl,omitempty" toml:"refresh_token_ttl,omitempty" mapstructure:"refresh_token_ttl,omitempty"`
-	PasswordSaltRounds  int              `json:"password_salt_rounds,omitempty" yaml:"password_salt_rounds,omitempty" toml:"password_salt_rounds,omitempty" mapstructure:"password_salt_rounds,omitempty"`
-	EnableEmailVerified bool             `json:"enable_email_verified,omitempty" yaml:"enable_email_verified,omitempty" toml:"enable_email_verified,omitempty" mapstructure:"enable_email_verified,omitempty"`
-	Invite              InviteConfig     `json:"invite,omitempty" yaml:"invite,omitempty" toml:"invite,omitempty" mapstructure:"invite,omitempty"`
-	Google              GoogleAuthConfig `json:"google" mapstructure:"google"`
+	JWTSecret           string              `json:"jwt_secret,omitempty" yaml:"jwt_secret,omitempty" toml:"jwt_secret,omitempty" mapstructure:"jwt_secret,omitempty"`
+	AccessTokenTTL      time.Duration       `json:"access_token_ttl,omitempty" yaml:"access_token_ttl,omitempty" toml:"access_token_ttl,omitempty" mapstructure:"access_token_ttl,omitempty"`
+	RefreshTokenTTL     time.Duration       `json:"refresh_token_ttl,omitempty" yaml:"refresh_token_ttl,omitempty" toml:"refresh_token_ttl,omitempty" mapstructure:"refresh_token_ttl,omitempty"`
+	PasswordSaltRounds  int                 `json:"password_salt_rounds,omitempty" yaml:"password_salt_rounds,omitempty" toml:"password_salt_rounds,omitempty" mapstructure:"password_salt_rounds,omitempty"`
+	EnableEmailVerified bool                `json:"enable_email_verified,omitempty" yaml:"enable_email_verified,omitempty" toml:"enable_email_verified,omitempty" mapstructure:"enable_email_verified,omitempty"`
+	Invite              InviteConfig        `json:"invite" yaml:"invite,omitempty" toml:"invite,omitempty" mapstructure:"invite,omitempty"`
+	AuthProvidersConfig AuthProvidersConfig `json:"auth_providers_config" yaml:"auth_providers_config,omitempty" toml:"auth_providers_config,omitempty" mapstructure:"auth_providers_config,omitempty"`
 }
 
 type SrvConfig struct {
@@ -252,7 +192,7 @@ type SrvConfig struct {
 	Advanced    SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Flags       SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Auth        AuthConfig           `json:"auth,omitempty" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
+	Auth        AuthConfig           `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
 }
 
 func NewSrvConfig() SrvConfig {
