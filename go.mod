@@ -49,5 +49,6 @@ require (
 	github.com/hashicorp/vault/api v1.22.0
 	github.com/redis/go-redis/v9 v9.17.2
 	golang.org/x/crypto v0.46.0
+	golang.org/x/oauth2 v0.34.0
 	golang.org/x/text v0.32.0 // indirect
 )

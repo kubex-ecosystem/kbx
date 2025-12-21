@@ -10,6 +10,7 @@ import (
 	"github.com/kubex-ecosystem/kbx/is"
 	"github.com/kubex-ecosystem/kbx/tools"
 	"github.com/kubex-ecosystem/kbx/types"
+	"golang.org/x/oauth2"
 
 	gl "github.com/kubex-ecosystem/logz"
 )
@@ -157,7 +158,9 @@ func NewVendorAuthConfig(cfgPath string) VendorAuthConfig {
 				JavaScriptOrigins:       make([]string, 0),
 				MapUserInfo:             false,
 				MetadataOnly:            false,
+				ProjectID:               "",
 				Metadata:                make(map[string]any),
+				Config:                  &oauth2.Config{},
 			},
 			Options: make(map[string]any),
 		},
@@ -230,25 +233,27 @@ func EnsureGlobalManifest(n, c *MManifest) {
 // ------------------------------- KBX Config Registry -----------------------------//
 
 var configRegistry = map[reflect.Type]bool{
-	reflect.TypeFor[MailSrvParams]():    true,
-	reflect.TypeFor[MailConfig]():       true,
-	reflect.TypeFor[LogzConfig]():       true,
-	reflect.TypeFor[SrvConfig]():        true,
-	reflect.TypeFor[MManifest]():        true,
-	reflect.TypeFor[VendorAuthConfig](): true,
-	reflect.TypeFor[Email]():            true,
-	reflect.TypeFor[MailConnection]():   true,
+	reflect.TypeFor[MailSrvParams]():         true,
+	reflect.TypeFor[MailConfig]():            true,
+	reflect.TypeFor[LogzConfig]():            true,
+	reflect.TypeFor[SrvConfig]():             true,
+	reflect.TypeFor[MManifest]():             true,
+	reflect.TypeFor[VendorAuthConfig]():      true,
+	reflect.TypeFor[AuthOAuthClientConfig](): true,
+	reflect.TypeFor[Email]():                 true,
+	reflect.TypeFor[MailConnection]():        true,
 }
 
 var defaultFactories = map[reflect.Type]func() any{
-	reflect.TypeFor[MailSrvParams]():    func() any { return NewMailSrvParams("") },
-	reflect.TypeFor[MailConfig]():       func() any { return NewMailConfig("") },
-	reflect.TypeFor[LogzConfig]():       func() any { return NewLogzParams() },
-	reflect.TypeFor[SrvConfig]():        func() any { return NewSrvArgs() },
-	reflect.TypeFor[MManifest]():        func() any { return NewManifestType() },
-	reflect.TypeFor[VendorAuthConfig](): func() any { return NewVendorAuthConfig("") },
-	reflect.TypeFor[Email]():            func() any { return types.NewEmail() },
-	reflect.TypeFor[MailConnection]():   func() any { return types.NewMailConnection() },
+	reflect.TypeFor[MailSrvParams]():         func() any { return NewMailSrvParams("") },
+	reflect.TypeFor[MailConfig]():            func() any { return NewMailConfig("") },
+	reflect.TypeFor[LogzConfig]():            func() any { return NewLogzParams() },
+	reflect.TypeFor[SrvConfig]():             func() any { return NewSrvArgs() },
+	reflect.TypeFor[MManifest]():             func() any { return NewManifestType() },
+	reflect.TypeFor[VendorAuthConfig]():      func() any { return NewVendorAuthConfig("") },
+	reflect.TypeFor[AuthOAuthClientConfig](): func() any { return NewVendorAuthConfig("").Web },
+	reflect.TypeFor[Email]():                 func() any { return types.NewEmail() },
+	reflect.TypeFor[MailConnection]():        func() any { return types.NewMailConnection() },
 }
 
 // LoadConfig loads a configuration of type T from the specified file path.
@@ -279,9 +284,9 @@ func LoadConfig[T any](cfgPath string) (T, error) {
 	return zero, gl.Errorf("configuration type not registered")
 }
 
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | VendorAuthConfig](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | VendorAuthConfig | AuthOAuthClientConfig](cfgPath string, genFile bool) (*T, error) {
 	if cfgPath == "" {
-		gl.Fatalf("config path is empty")
+		return nil, gl.Errorf("configuration path cannot be empty")
 	}
 
 	// Só entra aqui se o tipo for algum já registrado, então não me preocupo em checar o erro, só logo retorno o default

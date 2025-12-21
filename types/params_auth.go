@@ -1,10 +1,15 @@
 package types
 
-import "time"
+import (
+	"time"
+
+	"golang.org/x/oauth2"
+)
 
 type AuthClientOptions map[string]any
 
 type AuthOAuthClientConfig struct {
+	*oauth2.Config          `json:",inline" yaml:",inline" toml:",inline" mapstructure:",squash"`
 	ProjectID               string         `json:"project_id,omitempty" env:"GOOGLE_PROJECT_ID"`
 	ClientID                string         `json:"client_id,omitempty" env:"GOOGLE_CLIENT_ID"`
 	ClientSecret            string         `json:"client_secret,omitempty" env:"GOOGLE_CLIENT_SECRET"` // Cuidado com esse log!
@@ -22,14 +27,21 @@ type AuthOAuthClientConfig struct {
 
 type AuthClientConfig struct {
 	Web          AuthOAuthClientConfig `json:"web" yaml:"web,omitempty" toml:"web,omitempty" mapstructure:"web,omitempty"`
+	Mobile       AuthOAuthClientConfig `json:"mobile" yaml:"mobile,omitempty" toml:"mobile,omitempty" mapstructure:"mobile,omitempty"`
+	API          AuthOAuthClientConfig `json:"api" yaml:"api,omitempty" toml:"api,omitempty" mapstructure:"api,omitempty"`
+	Internal     AuthOAuthClientConfig `json:"internal" yaml:"internal,omitempty" toml:"internal,omitempty" mapstructure:"internal,omitempty"`
 	AuthProvider string                `json:"auth_provider,omitempty" env:"AUTH_PROVIDER"`
 	Options      AuthClientOptions     `json:"options,omitempty" env:"AUTH_OPTIONS"`
 }
 
 type AuthProvidersConfig struct {
-	Google   AuthClientConfig `json:"google,omitempty" env:"GOOGLE_AUTH_CONFIG"`
-	Facebook AuthClientConfig `json:"facebook,omitempty" env:"FACEBOOK_AUTH_CONFIG"`
-	Github   AuthClientConfig `json:"github,omitempty" env:"GITHUB_AUTH_CONFIG"`
+	Google    AuthClientConfig   `json:"google,omitempty" env:"GOOGLE_AUTH_CONFIG"`
+	Microsoft AuthClientConfig   `json:"microsoft,omitempty" env:"MICROSOFT_AUTH_CONFIG"`
+	Facebook  AuthClientConfig   `json:"facebook,omitempty" env:"FACEBOOK_AUTH_CONFIG"`
+	LinkedIn  AuthClientConfig   `json:"linkedin,omitempty" env:"LINKEDIN_AUTH_CONFIG"`
+	Twitter   AuthClientConfig   `json:"twitter,omitempty" env:"TWITTER_AUTH_CONFIG"`
+	Github    AuthClientConfig   `json:"github,omitempty" env:"GITHUB_AUTH_CONFIG"`
+	Custom    []VendorAuthConfig `json:"custom,omitempty" env:"CUSTOM_AUTH_CONFIG"`
 }
 
 type AuthConfig struct {
