@@ -174,15 +174,7 @@ type InviteConfig struct {
 	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
 }
 
-type AuthConfig struct {
-	JWTSecret           string              `json:"jwt_secret,omitempty" yaml:"jwt_secret,omitempty" toml:"jwt_secret,omitempty" mapstructure:"jwt_secret,omitempty"`
-	AccessTokenTTL      time.Duration       `json:"access_token_ttl,omitempty" yaml:"access_token_ttl,omitempty" toml:"access_token_ttl,omitempty" mapstructure:"access_token_ttl,omitempty"`
-	RefreshTokenTTL     time.Duration       `json:"refresh_token_ttl,omitempty" yaml:"refresh_token_ttl,omitempty" toml:"refresh_token_ttl,omitempty" mapstructure:"refresh_token_ttl,omitempty"`
-	PasswordSaltRounds  int                 `json:"password_salt_rounds,omitempty" yaml:"password_salt_rounds,omitempty" toml:"password_salt_rounds,omitempty" mapstructure:"password_salt_rounds,omitempty"`
-	EnableEmailVerified bool                `json:"enable_email_verified,omitempty" yaml:"enable_email_verified,omitempty" toml:"enable_email_verified,omitempty" mapstructure:"enable_email_verified,omitempty"`
-	Invite              InviteConfig        `json:"invite" yaml:"invite,omitempty" toml:"invite,omitempty" mapstructure:"invite,omitempty"`
-	AuthProvidersConfig AuthProvidersConfig `json:"auth_providers_config" yaml:"auth_providers_config,omitempty" toml:"auth_providers_config,omitempty" mapstructure:"auth_providers_config,omitempty"`
-}
+
 
 type SrvConfig struct {
 	GlobalRef   `json:",inline" yaml:",inline" mapstructure:",squash"`

@@ -83,6 +83,9 @@ type Manifest = load.Manifest
 type LogzConfig = types.LogzConfig
 type SrvConfig = types.SrvConfig
 type VendorAuthConfig = load.VendorAuthConfig
+type AuthOAuthClientConfig = load.AuthOAuthClientConfig
+type AuthClientConfig = load.AuthClientConfig
+type AuthProvidersConfig = load.AuthProvidersConfig
 type GlobalRef = load.GlobalRef
 
 func NewMailSrvParams(cfgPath string) *MailSrvParams { return load.NewMailSrvParams(cfgPath) }

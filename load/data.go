@@ -135,18 +135,17 @@ func NewGlobalRef(name string) GlobalRef { return types.NewGlobalRef(name) }
 
 // ------------------------------- Google Auth Config Functions -----------------------------//
 
-type VendorAuthConfig struct {
-	AuthProvider string `json:"auth_provider,omitempty" yaml:"auth_provider,omitempty" xml:"auth_provider,omitempty" toml:"auth_provider,omitempty" mapstructure:"auth_provider,omitempty"`
-	types.AuthClientConfig
-	ConfigPath string `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
-}
+type AuthOAuthClientConfig = types.AuthOAuthClientConfig
+type AuthClientConfig = types.AuthClientConfig
+type AuthProvidersConfig = types.AuthProvidersConfig
+type VendorAuthConfig = types.VendorAuthConfig
 
 func NewVendorAuthConfig(cfgPath string) VendorAuthConfig {
 	return VendorAuthConfig{
-		AuthClientConfig: types.AuthClientConfig{
+		AuthClientConfig: AuthClientConfig{
 			AuthProvider: "google",
 			// Web default config
-			Web: types.AuthOAuthClientConfig{
+			Web: AuthOAuthClientConfig{
 				ClientID:                "",
 				ClientSecret:            "",
 				RedirectURL:             "",
