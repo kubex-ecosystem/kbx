@@ -113,6 +113,7 @@ func CLIBannerStyle(banners, descriptionArg []string, _ bool) map[string]string 
 		return map[string]string{"banner": "", "description": ""}
 	}
 
+func CLIBannerStyle(banners, descriptionArg []string, hideBanner bool) map[string]string {
 	var description, banner string
 
 	if descriptionArg != nil {

@@ -1,0 +1,45 @@
+{
+  "name": "Kubex Tools - Kbx",
+  "application": "kbx",
+  "version": "1.0.2",
+  "private": false,
+  "published": true,
+  "aliases": [ "kbx" ],
+  "slug": "kubex-kbx",
+  "repository": "https://github.com/kubex-ecosystem/kbx",
+  "homepage": "https://github.com/kubex-ecosystem/kbx",
+  "documentation_url": "https://kbx.kubex.world/docs",
+  "support_url": "https://kbx.kubex.world/support",
+  "description": "Kubex Tools - Kbx is a powerful command-line utility designed to streamline and enhance your development workflow. With Kbx, you can effortlessly manage your projects, automate tasks, and boost productivity through a suite of intuitive commands and features.",
+  "platform": "go",
+  "type": "executable+library",
+  "main": "cmd/main.go",
+  "go_version": "1.25.5",
+  "go_toolchain": {
+    "min": "1.23",
+    "max": "1.25"
+  },
+  "bin": "kbx",
+  "author": "Rafael Mori <faelmori@live.com>",
+  "organization": "kubex-ecosystem",
+  "license": "MIT",
+  "tags": [ "tools", "development", "automation", "kubex module" ],
+  "keywords": [ "kbx", "kubex", "tool", "golang", "devops", "automation", "management", "command-line" ],
+  "platforms": [ "linux/amd64", "linux/arm64", "darwin/amd64", "darwin/arm64", "windows/amd64", "windows/386" ],
+  "dependencies": [ "tar", "gzip", "curl", "git", "zip", "unzip", "jq" ],
+  "scripts": {
+    "install": "make install",
+    "build": "make build",
+    "build:dev": "make build-dev",
+    "test": "make test",
+    "lint": "make lint",
+    "clean": "make clean",
+    "docs:build": "make build-docs",
+    "docs:serve": "make serve-docs"
+  },
+  "examples": [
+    { "description": "Install Kubex Tools - Kbx", "code": "kubex module install kbx" },
+    { "description": "View logs from all applications", "code": "kbx view --all" },
+    { "description": "Search logs for a specific keyword", "code": "kbx search --keyword 'error'" }
+  ]
+}
