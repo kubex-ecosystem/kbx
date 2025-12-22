@@ -1,7 +1,7 @@
 {
   "name": "Kubex Tools - Kbx",
   "application": "kbx",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": false,
   "published": true,
   "aliases": [ "kbx" ],

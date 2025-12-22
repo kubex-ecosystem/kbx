@@ -2,7 +2,7 @@ module github.com/kubex-ecosystem/kbx
 
 go 1.25.5
 
-require github.com/kubex-ecosystem/logz v1.6.0
+require github.com/kubex-ecosystem/logz v1.6.8
 
 require (
 	github.com/pelletier/go-toml/v2 v2.2.4
@@ -14,7 +14,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/google/uuid v1.6.0
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 )
 
 require (
