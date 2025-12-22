@@ -8,6 +8,14 @@ import (
 
 type SrvBasicParams struct {
 	// Basic options
+	CompanyName  string `yaml:"company_name,omitempty" json:"company_name,omitempty" mapstructure:"company_name,omitempty"`
+	FriendlyName string `yaml:"friendly_name,omitempty" json:"friendly_name,omitempty" mapstructure:"friendly_name,omitempty"`
+	AppName      string `yaml:"app_name,omitempty" json:"app_name,omitempty" mapstructure:"app_name,omitempty"`
+	AppVersion   string `yaml:"app_version,omitempty" json:"app_version,omitempty" mapstructure:"app_version,omitempty"`
+	Environment  string `yaml:"environment,omitempty" json:"environment,omitempty" mapstructure:"environment,omitempty"`
+	ContactEmail string `yaml:"contact_email,omitempty" json:"contact_email,omitempty" mapstructure:"contact_email,omitempty"`
+	SupportEmail string `yaml:"support_email,omitempty" json:"support_email,omitempty" mapstructure:"support_email,omitempty"`
+
 	Debug          bool     `yaml:"debug" json:"debug" mapstructure:"debug"`
 	ReleaseMode    bool     `yaml:"release_mode" json:"release_mode" mapstructure:"release_mode"`
 	IsConfidential bool     `yaml:"is_confidential" json:"is_confidential" mapstructure:"is_confidential"`
@@ -15,15 +23,52 @@ type SrvBasicParams struct {
 	TrustedProxies []string `yaml:"trusted_proxies" json:"trusted_proxies" mapstructure:"trusted_proxies"`
 }
 
+func NewSrvBasic() SrvBasicParams { return SrvBasicParams{} }
+
+func NewSrvBasicDefault() SrvBasicParams {
+	return SrvBasicParams{
+		CompanyName:    "Canalize",
+		FriendlyName:   "CanalizeBE",
+		AppName:        "canalize",
+		AppVersion:     "v0.1.0",
+		Environment:    "development",
+		ContactEmail:   "contato@canalize.app",
+		SupportEmail:   "ti@canalize.app",
+		Debug:          false,
+		ReleaseMode:    false,
+		IsConfidential: true,
+		CORSEnabled:    true,
+		TrustedProxies: []string{},
+	}
+}
+
 type SrvFilesParams struct {
 	// Paths and files
+	Cwd              string `yaml:"cwd,omitempty" json:"cwd,omitempty" mapstructure:"cwd,omitempty"`
+	LogFile          string `yaml:"log_file,omitempty" json:"log_file,omitempty" mapstructure:"log_file,omitempty"`
+	EnvFile          string `yaml:"env_file,omitempty" json:"env_file,omitempty" mapstructure:"env_file,omitempty"`
+	ConfigFile       string `yaml:"config_file,omitempty" json:"config_file,omitempty" mapstructure:"config_file,omitempty"`
+	MainDBName       string `yaml:"main_db_name,omitempty" json:"main_db_name,omitempty" mapstructure:"main_db_name,omitempty"`
+	DBConfigFile     string `yaml:"db_config_file,omitempty" json:"db_config_file,omitempty" mapstructure:"db_config_file,omitempty"`
+	TemplatesDir     string `yaml:"templates_dir,omitempty" json:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
+	MailerConfigFile string `yaml:"mailer_config_file,omitempty" json:"mailer_config_file,omitempty" mapstructure:"mailer_config_file,omitempty"`
+	ProvidersConfig  string `yaml:"providers_config,omitempty" json:"providers_config,omitempty" mapstructure:"providers_config,omitempty"`
+}
 
-	Cwd             string `yaml:"cwd,omitempty" json:"cwd,omitempty" mapstructure:"cwd,omitempty"`
-	LogFile         string `yaml:"log_file,omitempty" json:"log_file,omitempty" mapstructure:"log_file,omitempty"`
-	EnvFile         string `yaml:"env_file,omitempty" json:"env_file,omitempty" mapstructure:"env_file,omitempty"`
-	ConfigFile      string `yaml:"config_file,omitempty" json:"config_file,omitempty" mapstructure:"config_file,omitempty"`
-	DBConfigFile    string `yaml:"db_config_file,omitempty" json:"db_config_file,omitempty" mapstructure:"db_config_file,omitempty"`
-	ProvidersConfig string `yaml:"providers_config,omitempty" json:"providers_config,omitempty" mapstructure:"providers_config,omitempty"`
+func NewSrvFiles() SrvFilesParams { return SrvFilesParams{} }
+
+func NewSrvFilesDefault() SrvFilesParams {
+	return SrvFilesParams{
+		Cwd:              "",
+		LogFile:          "",
+		EnvFile:          "",
+		ConfigFile:       "",
+		MainDBName:       "canalize_db",
+		DBConfigFile:     "",
+		TemplatesDir:     "",
+		MailerConfigFile: "",
+		ProvidersConfig:  "",
+	}
 }
 
 type SrvRuntimeParams struct {
@@ -40,6 +85,22 @@ type SrvRuntimeParams struct {
 	Issuer          string        `yaml:"issuer,omitempty" json:"issuer,omitempty" mapstructure:"issuer,omitempty"`
 }
 
+func NewSrvRuntime() SrvRuntimeParams { return SrvRuntimeParams{} }
+
+func NewSrvRuntimeDefault() SrvRuntimeParams {
+	return SrvRuntimeParams{
+		Host:            "localhost",
+		Port:            "4000",
+		Bind:            "0.0.0.0",
+		PubCertKeyPath:  "",
+		PubKeyPath:      "",
+		PrivKeyPath:     "",
+		AccessTokenTTL:  15 * time.Minute,
+		RefreshTokenTTL: 60 * time.Minute,
+		Issuer:          "kubex-ecosystem",
+	}
+}
+
 type SrvAdvancedParams struct {
 	// Advanced options
 
@@ -48,6 +109,18 @@ type SrvAdvancedParams struct {
 	Subcommand string            `yaml:"subcommand,omitempty" json:"subcommand,omitempty" mapstructure:"subcommand,omitempty"`
 	Args       string            `yaml:"args,omitempty" json:"args,omitempty" mapstructure:"args,omitempty"`
 	EnvVars    map[string]string `yaml:"env_vars,omitempty" json:"env_vars,omitempty" mapstructure:"env_vars,omitempty"`
+}
+
+func NewSrvAdvanced() SrvAdvancedParams { return SrvAdvancedParams{} }
+
+func NewSrvAdvancedDefault() SrvAdvancedParams {
+	return SrvAdvancedParams{
+		Context:    "",
+		Command:    "",
+		Subcommand: "",
+		Args:       "",
+		EnvVars:    make(map[string]string),
+	}
 }
 
 type SrvFlagsParams struct {
@@ -61,6 +134,19 @@ type SrvFlagsParams struct {
 	RootMode  bool `yaml:"root_mode,omitempty" json:"root_mode,omitempty" mapstructure:"root_mode,omitempty"`
 }
 
+func NewSrvFlags() SrvFlagsParams { return SrvFlagsParams{} }
+
+func NewSrvFlagsDefault() SrvFlagsParams {
+	return SrvFlagsParams{
+		FailFast:  false,
+		Verbose:   false,
+		BatchMode: false,
+		NoColor:   false,
+		TraceMode: false,
+		RootMode:  false,
+	}
+}
+
 type SrvPerformanceParams struct {
 	// Performance options
 
@@ -69,24 +155,47 @@ type SrvPerformanceParams struct {
 	Hash      string `yaml:"hash,omitempty" json:"hash,omitempty" mapstructure:"hash,omitempty"`
 }
 
-type SrvConfig struct {
-	ID                    uuid.UUID
-	*SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvRuntimeParams     `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	*SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
+func NewSrvPerformance() SrvPerformanceParams { return SrvPerformanceParams{} }
+
+func NewSrvPerformanceDefault() SrvPerformanceParams {
+	return SrvPerformanceParams{
+		MaxProcs:  0,
+		TimeoutMS: 5000,
+		Hash:      "",
+	}
 }
 
-func NewSrvConfig() *SrvConfig {
-	return &SrvConfig{
-		ID:                   uuid.New(),
-		SrvBasicParams:       &SrvBasicParams{},
-		SrvFilesParams:       &SrvFilesParams{},
-		SrvRuntimeParams:     &SrvRuntimeParams{},
-		SrvAdvancedParams:    &SrvAdvancedParams{},
-		SrvFlagsParams:       &SrvFlagsParams{},
-		SrvPerformanceParams: &SrvPerformanceParams{},
+// InviteConfig controla opções de envio e branding.
+type InviteConfig struct {
+	BaseURL     string        `json:"base_url,omitempty" yaml:"base_url,omitempty" toml:"base_url,omitempty" mapstructure:"base_url,omitempty"`
+	SenderName  string        `json:"sender_name,omitempty" yaml:"sender_name,omitempty" toml:"sender_name,omitempty" mapstructure:"sender_name,omitempty"`
+	SenderEmail string        `json:"sender_email,omitempty" yaml:"sender_email,omitempty" toml:"sender_email,omitempty" mapstructure:"sender_email,omitempty"`
+	CompanyName string        `json:"company_name,omitempty" yaml:"company_name,omitempty" toml:"company_name,omitempty" mapstructure:"company_name,omitempty"`
+	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
+}
+
+
+
+type SrvConfig struct {
+	GlobalRef   `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Basic       SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Files       SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Runtime     SrvRuntimeParams     `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Advanced    SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Flags       SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Auth        AuthConfig           `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
+}
+
+func NewSrvConfig() SrvConfig {
+	return SrvConfig{
+		GlobalRef:   GlobalRef{ID: uuid.New()},
+		Basic:       NewSrvBasic(),
+		Files:       NewSrvFiles(),
+		Runtime:     NewSrvRuntime(),
+		Advanced:    NewSrvAdvanced(),
+		Flags:       NewSrvFlags(),
+		Performance: NewSrvPerformance(),
+		Auth:        AuthConfig{},
 	}
 }

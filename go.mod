@@ -13,18 +13,16 @@ require (
 	github.com/emersion/go-imap v1.2.1
 	github.com/fatih/color v1.18.0
 	github.com/google/uuid v1.6.0
+	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/spf13/cobra v1.10.1
 )
 
 require (
-	al.essio.dev/pkg/shellescape v1.5.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/danieljoos/wincred v1.2.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.1 // indirect
-	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -50,7 +48,7 @@ require (
 	github.com/emersion/go-message v0.18.2
 	github.com/hashicorp/vault/api v1.22.0
 	github.com/redis/go-redis/v9 v9.17.2
-	github.com/zalando/go-keyring v0.2.6
 	golang.org/x/crypto v0.46.0
+	golang.org/x/oauth2 v0.34.0
 	golang.org/x/text v0.32.0 // indirect
 )

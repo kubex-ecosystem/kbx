@@ -29,47 +29,48 @@ type MailAuthConfig struct {
 	TestRecipient string    `json:"test_recipient,omitempty" yaml:"test_recipient" xml:"test_recipient" toml:"test_recipient" mapstructure:"test_recipient"`
 }
 type MailProtocolConfig struct {
-	Protocol string        `json:"protocol,omitempty" yaml:"protocol,omitempty" xml:"protocol,omitempty" toml:"protocol,omitempty" mapstructure:"protocol,omitempty"` // "smtp" (default) ou "imap"
-	SSL      bool          `json:"use_ssl,omitempty" yaml:"ssl" xml:"ssl" toml:"ssl" mapstructure:"ssl"`
-	TLS      bool          `json:"use_tls,omitempty" yaml:"tls" xml:"tls" toml:"tls" mapstructure:"tls"`
-	Timeout  time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty" xml:"timeout,omitempty" toml:"timeout,omitempty" mapstructure:"timeout,omitempty"`
+	Protocol  string        `json:"protocol,omitempty" yaml:"protocol,omitempty" xml:"protocol,omitempty" toml:"protocol,omitempty" mapstructure:"protocol,omitempty"` // "smtp" (default) ou "imap"
+	IsDefault bool          `json:"is_default,omitempty" yaml:"is_default,omitempty" xml:"is_default,omitempty" toml:"is_default,omitempty" mapstructure:"is_default,omitempty"`
+	SSL       bool          `json:"use_ssl,omitempty" yaml:"ssl" xml:"ssl" toml:"ssl" mapstructure:"ssl"`
+	TLS       bool          `json:"use_tls,omitempty" yaml:"tls" xml:"tls" toml:"tls" mapstructure:"tls"`
+	Timeout   time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty" xml:"timeout,omitempty" toml:"timeout,omitempty" mapstructure:"timeout,omitempty"`
 }
 type MailConnection struct {
-	*MailGeneralConfig  `json:",inline,omitempty" yaml:",inline,omitempty" xml:"general,omitempty" toml:",inline,omitempty" mapstructure:"squash,omitempty"`
-	*MailAuthConfig     `json:",inline" yaml:",inline" xml:"auth" toml:",inline" mapstructure:"squash"`
-	*MailProtocolConfig `json:",inline" yaml:",inline" xml:"protocol" toml:",inline" mapstructure:"squash"`
+	MailGeneralConfig  `json:",inline,omitempty" yaml:",inline,omitempty" xml:"general,omitempty" toml:",inline,omitempty" mapstructure:"squash,omitempty"`
+	MailAuthConfig     `json:",inline" yaml:",inline" xml:"auth" toml:",inline" mapstructure:"squash"`
+	MailProtocolConfig `json:",inline" yaml:",inline" xml:"protocol" toml:",inline" mapstructure:"squash"`
 }
 type MailConfig struct {
-	ConfigPath  string            `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
-	Provider    string            `json:"provider,omitempty" yaml:"provider" xml:"provider" toml:"provider" mapstructure:"provider"`
-	Connections []*MailConnection `json:"connections,omitempty" yaml:"connections" xml:"connections" toml:"connections" mapstructure:"connections"`
+	ConfigPath  string           `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
+	Provider    string           `json:"provider,omitempty" yaml:"provider" xml:"provider" toml:"provider" mapstructure:"provider"`
+	Connections []MailConnection `json:"connections,omitempty" yaml:"connections" xml:"connections" toml:"connections" mapstructure:"connections"`
 }
 
-func NewMailConfig(provider string) *MailConfig {
-	return &MailConfig{
+func NewMailConfig(provider string) MailConfig {
+	return MailConfig{
 		Provider:    provider,
-		Connections: make([]*MailConnection, 0),
+		Connections: make([]MailConnection, 0),
 	}
 }
 
 func NewMailConnection() *MailConnection {
 	return &MailConnection{
-		MailGeneralConfig:  &MailGeneralConfig{},
-		MailAuthConfig:     &MailAuthConfig{},
-		MailProtocolConfig: &MailProtocolConfig{},
+		MailGeneralConfig:  MailGeneralConfig{},
+		MailAuthConfig:     MailAuthConfig{},
+		MailProtocolConfig: MailProtocolConfig{},
 	}
 }
 
 type MailSrvParams struct {
-	ConfigPath  string `json:"config_path,omitempty" yaml:"config_path" xml:"config_path" toml:"config_path" mapstructure:"config_path"`
-	*MailConfig `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
-	*Email      `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	ConfigPath string `json:"config_path,omitempty" yaml:"config_path" xml:"config_path" toml:"config_path" mapstructure:"config_path"`
+	MailConfig `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
+	Email      `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
 }
 
-func NewMailSrvParams(configPath string) *MailSrvParams {
-	return &MailSrvParams{
+func NewMailSrvParams(configPath string) MailSrvParams {
+	return MailSrvParams{
 		ConfigPath: configPath,
 		MailConfig: NewMailConfig(""),
-		Email:      &Email{},
+		Email:      Email{},
 	}
 }

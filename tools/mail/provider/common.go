@@ -56,6 +56,7 @@ func writeRFC822(w io.Writer, msg *types.Email) {
 	if msg.Text != "" {
 		fmt.Fprintf(w, "--%s\r\n", boundary)
 		fmt.Fprintf(w, "Content-Type: text/plain; charset=\"utf-8\"\r\n")
+		fmt.Fprintf(w, "Content-Transfer-Encoding: quoted-printable\r\n\r\n")
 		qp := quotedprintable.NewWriter(w)
 		qp.Write([]byte(msg.Text))
 		qp.Close()
@@ -66,6 +67,7 @@ func writeRFC822(w io.Writer, msg *types.Email) {
 	if msg.HTML != "" {
 		fmt.Fprintf(w, "--%s\r\n", boundary)
 		fmt.Fprintf(w, "Content-Type: text/html; charset=\"utf-8\"\r\n")
+		fmt.Fprintf(w, "Content-Transfer-Encoding: quoted-printable\r\n\r\n")
 		qp := quotedprintable.NewWriter(w)
 		qp.Write([]byte(msg.HTML))
 		qp.Close()

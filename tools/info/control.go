@@ -7,22 +7,23 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/kubex-ecosystem/kbx/types"
 	gl "github.com/kubex-ecosystem/logz"
 )
 
 // Control representa a configuração de controle de um módulo.
 type Control struct {
-	Reference     Reference `json:"-"` // Usado internamente para nome do arquivo, nunca exportado
-	SchemaVersion int       `json:"schema_version"`
-	IPC           IPC       `json:"ipc"`
-	Bitreg        Bitreg    `json:"bitreg"`
-	KV            KV        `json:"kv"`
-	Seq           int       `json:"seq"`
-	EpochNS       int64     `json:"epoch_ns"`
+	*types.GlobalRef `json:"-"` // Usado internamente para nome do arquivo, nunca exportado
+	SchemaVersion    int        `json:"schema_version"`
+	IPC              IPC        `json:"ipc"`
+	Bitreg           Bitreg     `json:"bitreg"`
+	KV               KV         `json:"kv"`
+	Seq              int        `json:"seq"`
+	EpochNS          int64      `json:"epoch_ns"`
 }
 
-func (c *Control) GetName() string    { return c.Reference.Name }
-func (c *Control) GetVersion() string { return c.Reference.Version }
+func (c *Control) GetName() string    { return c.GlobalRef.Name }
+// func (c *Control) GetVersion() string { return c.GlobalRef.Version }
 
 // LoadControlByModule carrega o controle de um arquivo específico do módulo.
 func LoadControlByModule(dir string, moduleName string) (*Control, error) {
@@ -37,16 +38,16 @@ func LoadControlByModule(dir string, moduleName string) (*Control, error) {
 	if err := dec.Decode(&c); err != nil {
 		return nil, gl.Errorf("erro ao decodificar %s: %v", file, err)
 	}
-	c.Reference = Reference{Name: moduleName}
+	c.GlobalRef = &types.GlobalRef{Name: moduleName}
 	return &c, nil
 }
 
 // SaveControl salva o controle do módulo em arquivo separado.
 func (c *Control) SaveControl(dir string) error {
-	if c.Reference.Name == "" {
-		return gl.Errorf("Reference.Name não pode ser vazio para salvar o controle")
+	if c.GlobalRef.Name == "" {
+		return gl.Errorf("GlobalRef.Name não pode ser vazio para salvar o controle")
 	}
-	file := filepath.Join(dir, fmt.Sprintf("control_%s.json", c.Reference.Name))
+	file := filepath.Join(dir, fmt.Sprintf("control_%s.json", c.GlobalRef.Name))
 	f, err := os.Create(file)
 	if err != nil {
 		return gl.Errorf("erro ao criar %s: %v", file, err)

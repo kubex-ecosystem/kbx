@@ -22,8 +22,8 @@ const (
 
 	// ------------------------------- Default Paths -----------------------------------//
 
-	defaultSMTPConfigPath = "mainling/config/smtp.json"
-	defaultTemplatePath   = "mainling/email_templates"
+	defaultSMTPConfigPath = "mailing/config/smtp.json"
+	defaultTemplatePath   = "mailing/email_templates"
 	defaultEnvFilePath    = ".env"
 )
 
@@ -77,9 +77,15 @@ type MailConfig = load.MailConfig
 type MailConnection = types.MailConnection
 type MailAttachment = types.Attachment
 type Email = types.Email
+type MManifest = types.MManifest
+type Manifest = load.Manifest
 
 type LogzConfig = types.LogzConfig
 type SrvConfig = types.SrvConfig
+type VendorAuthConfig = load.VendorAuthConfig
+type AuthOAuthClientConfig = load.AuthOAuthClientConfig
+type AuthClientConfig = load.AuthClientConfig
+type AuthProvidersConfig = load.AuthProvidersConfig
 type GlobalRef = load.GlobalRef
 
 func NewMailSrvParams(cfgPath string) *MailSrvParams { return load.NewMailSrvParams(cfgPath) }
@@ -87,21 +93,23 @@ func NewMailConfig(cfgPath string) *MailConfig       { return load.NewMailConfig
 func NewMailConnection() *MailConnection             { return types.NewMailConnection() }
 func NewMailAttachment() *MailAttachment             { return &MailAttachment{} }
 func NewEmail() *Email                               { return &Email{} }
+func NewManifestType() *MManifest                    { return load.NewManifestType() }
+func NewManifest() Manifest                          { return load.NewManifest() }
 
 // func NewMailSender(params *MailSrvParams) MailSender { return nil }
 
-func NewLogzParams() *types.LogzConfig    { return load.NewLogzParams() }
-func NewSrvArgs() *types.SrvConfig        { return load.NewSrvArgs() }
-func NewGlobalRef(name string) *GlobalRef { return load.NewGlobalRef(name) }
+func NewLogzParams() *types.LogzConfig   { return load.NewLogzParams() }
+func NewSrvArgs() types.SrvConfig        { return load.NewSrvArgs() }
+func NewGlobalRef(name string) GlobalRef { return load.NewGlobalRef(name) }
 
 func ParseLogzArgs(level string, minLevel string, maxLevel string, output string) *types.LogzConfig {
 	return load.ParseLogzArgs(level, minLevel, maxLevel, output)
 }
-func ParseSrvArgs(bind string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) *types.SrvConfig {
-	return load.ParseSrvArgs(bind, pubCertKeyPath, pubKeyPath, privKeyPath, accessTokenTTL, refreshTokenTTL, issuer)
+func ParseSrvArgs(bind, port, pubCertKeyPath, pubKeyPath, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) types.SrvConfig {
+	return load.ParseSrvArgs(bind, port, pubCertKeyPath, pubKeyPath, privKeyPath, accessTokenTTL, refreshTokenTTL, issuer)
 }
 
-func LoadConfig[T any](path string) (*T, error) { return load.LoadConfig[T](path) }
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email](cfgPath string, genFile bool) (*T, error) {
+func LoadConfig[T any](path string) (T, error) { return load.LoadConfig[T](path) }
+func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | VendorAuthConfig | AuthOAuthClientConfig](cfgPath string, genFile bool) (*T, error) {
 	return load.LoadConfigOrDefault[T](cfgPath, genFile)
 }
