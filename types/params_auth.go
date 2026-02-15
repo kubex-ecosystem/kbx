@@ -66,3 +66,16 @@ type VendorAuthConfig struct {
 // 	Icon   string `json:"icon,omitempty" env:"AUTH_PLATFORM_ICON"`
 // 	APIURL string `json:"api_url,omitempty" env:"AUTH_PLATFORM_API_URL"`
 // }
+
+var aaa = VendorAuthConfig{
+	AuthClientConfig: AuthClientConfig{},
+	AuthProvider:     "custom_provider",
+	ConfigPath:       "/path/to/config.json",
+}
+
+func main() {
+
+	aaa.AuthProvider = "updated_provider"
+	aaa.AuthClientConfig.AuthProvider = "updated_provider_in_client_config"
+
+}

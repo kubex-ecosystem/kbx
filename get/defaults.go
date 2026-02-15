@@ -10,7 +10,6 @@ import (
 
 // EnvOr retrieves the value of the environment variable named by the key.
 // If the variable is empty or not set, it returns the provided default value d.
-
 func EnvOr(key, d string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -34,6 +33,7 @@ func StrPtr(s string) *string    { return Ptr(s) }
 
 // Generic Ptr function - Returns a pointer to the given value
 
+// Ptr returns a pointer to the given value v of any type T.
 func Ptr[T any](v T) *T { return &v }
 
 // Type functions - Retrieve the reflect.Type and type name of a given value
@@ -47,7 +47,12 @@ func TypeName(obj any) string {
 	}
 }
 
-
+// SeedFromEnvMap hydrates a map of string keys to values of type T
+// by checking for environment variables with a specified prefix.
+// For each key in defMap, it looks for an environment variable named
+// prefix_key and sets the corresponding value in keyMap.
+// If the environment variable is not set, it uses the default value from defMap.
+// If ctlChan is provided, it will be used to signal completion or errors asynchronously.
 func SeedFromEnvMap[T any](prefix string, keyMap map[string]T, defMap map[string]T, ctlChan chan any) map[string]T {
 	defer func(hCtl chan any) {
 		if r := recover(); r != nil {

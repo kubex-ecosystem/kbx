@@ -32,8 +32,8 @@ func NewSrvBasicDefault() SrvBasicParams {
 		AppName:        "canalize",
 		AppVersion:     "v0.1.0",
 		Environment:    "development",
-		ContactEmail:   "contato@canalize.app",
-		SupportEmail:   "ti@canalize.app",
+		ContactEmail:   "contato@kubex.world",
+		SupportEmail:   "ti@kubex.world",
 		Debug:          false,
 		ReleaseMode:    false,
 		IsConfidential: true,
@@ -173,8 +173,6 @@ type InviteConfig struct {
 	CompanyName string        `json:"company_name,omitempty" yaml:"company_name,omitempty" toml:"company_name,omitempty" mapstructure:"company_name,omitempty"`
 	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
 }
-
-
 
 type SrvConfig struct {
 	GlobalRef   `json:",inline" yaml:",inline" mapstructure:",squash"`

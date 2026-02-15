@@ -4,7 +4,7 @@ site_author: Rafa Mori
 site_url: https://lookatni.canalize.world
 
 repo_name: canalize-ecosystem/lookatni-file-markers
-repo_url: https://github.com/canalize-ecosystem/lookatni-file-markers
+repo_url: https://github.com/kubex-ecosystem/lookatni-file-markers
 edit_uri: edit/main/docs-site/docs/
 
 docs_dir: ../../docs
@@ -69,7 +69,7 @@ extra:
     provider: mike
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/canalize-ecosystem
+      link: https://github.com/kubex-ecosystem
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/faelOmori
     - icon: fontawesome/brands/linkedin

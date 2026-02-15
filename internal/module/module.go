@@ -30,16 +30,16 @@ func (m *Kbx) LongDescription() string {
 	return `CanalizeDS: Is a tool to manage GKBX database and Docker services. It provides many DB flavors like MySQL, PostgreSQL, MongoDB, Redis, etc. It also provides Docker services like Docker Swarm, Docker Compose, etc. It is a command line tool that can be used to manage GKBX database and Docker services.`
 }
 func (m *Kbx) Usage() string {
-	return "canalizeds [command] [args]"
+	return "domus [command] [args]"
 }
 func (m *Kbx) Examples() []string {
-	return []string{"canalizeds [command] [args]", "canalizeds database user auth'", "canalizeds db roles list"}
+	return []string{"domus [command] [args]", "domus database user auth'", "domus db roles list"}
 }
 func (m *Kbx) Active() bool {
 	return true
 }
 func (m *Kbx) Module() string {
-	return "canalizeds"
+	return "domus"
 }
 func (m *Kbx) Execute() error {
 	dbChanData := make(chan interface{})

@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	// i18nwatcher "github.com/canalize-prm/canalize_be/internal/services/watcherz/i18n"
+	// i18nwatcher "github.com/kubex-ecosystem/kbx_be/internal/services/watcherz/i18n"
 	gl "github.com/kubex-ecosystem/logz"
 )
 

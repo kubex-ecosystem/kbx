@@ -81,3 +81,4 @@ tasks/
 .venv-hooks
 cmd/*_bin*
 .venv-hooks
+.venv-hooks

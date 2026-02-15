@@ -2,18 +2,24 @@ package tools
 
 import "sync"
 
-type GoGroup struct {
-	wg sync.WaitGroup
-}
+// GoGroup is a simple wrapper around sync.WaitGroup to manage goroutines.
+type GoGroup struct{ wg sync.WaitGroup }
 
-func (g *GoGroup) Go(fn func()) {
-	g.wg.Add(1)
-	go func() {
-		defer g.wg.Done()
-		fn()
-	}()
-}
+type GoFunc[T any] func() T
 
+// Go starts a new goroutine and tracks it in the WaitGroup.
+func (g *GoGroup) Go(fn GoFunc[any]) {
+	if g != nil {
+		g.wg.Go(func() {
+			fn()
+		})
+		g.Wait()
+	}
+}
 func (g *GoGroup) Wait() {
-	g.wg.Wait()
+	if g != nil {
+		g.wg.Wait()
+	} else {
+		return
+	}
 }

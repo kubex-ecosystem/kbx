@@ -17,7 +17,7 @@ const (
 
 const (
 	DefaultVolumesDir     = "$HOME/.canalize/volumes"
-	DefaultRedisVolume    = "$HOME/.canalize/volumes/redis"
+	DefaultRedisVolume    = "$HOME/.kubex/volumes/redis"
 	DefaultPostgresVolume = "$HOME/.canalize/volumes/postgresql"
 	DefaultMongoDBVolume  = "$HOME/.canalize/volumes/mongodb"
 	DefaultMongoVolume    = "$HOME/.canalize/volumes/mongo"

@@ -4,6 +4,7 @@ package load
 import (
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/kubex-ecosystem/kbx/get"
@@ -79,7 +80,7 @@ func ParseSrvArgs(bind string, port string, pubCertKeyPath string, pubKeyPath st
 
 func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
 	baseURL := get.ValueOrIf((get.EnvOr("CANALIZE_ENV", "development") == "production"),
-		"https://api.canalize.app",
+		"https://api.kubex.world",
 		"http://localhost:4000",
 	)
 	defaultTTL := get.EnvOrType("INVITE_EXPIRATION", 7*24*time.Hour)
@@ -98,9 +99,9 @@ func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
 	Cfg.Basic.IsConfidential = get.EnvOrType("CANALIZE_BE_CONFIDENCIAL_MODE", false)
 	Cfg.Runtime.Port = get.EnvOrType("CANALIZE_BE_PORT", "4000")
 	Cfg.Runtime.Host = baseURL
-	Cfg.Runtime.PrivKeyPath = privKeyPath
-	Cfg.Runtime.PubKeyPath = pubKeyPath
-	Cfg.Runtime.PubCertKeyPath = pubKeyPath
+	Cfg.Runtime.PrivKeyPath = privKeyPath   // pragma: allowlist secret
+	Cfg.Runtime.PubKeyPath = pubKeyPath     // pragma: allowlist secret
+	Cfg.Runtime.PubCertKeyPath = pubKeyPath // pragma: allowlist secret
 	Cfg.Basic.CORSEnabled = get.EnvOrType("CANALIZE_BE_ENABLE_CORS", true)
 	Cfg.Basic.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
 	Cfg.Files.ProvidersConfig = os.ExpandEnv(get.EnvOr("CANALIZE_BE_PROVIDERS_CONFIG_PATH", ""))
@@ -285,6 +286,7 @@ func LoadConfig[T any](cfgPath string) (T, error) {
 }
 
 func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | VendorAuthConfig | AuthOAuthClientConfig](cfgPath string, genFile bool) (*T, error) {
+	cfgPath = os.ExpandEnv(strings.TrimSpace(strings.ToValidUTF8(cfgPath, "")))
 	if cfgPath == "" {
 		return nil, gl.Errorf("configuration path cannot be empty")
 	}

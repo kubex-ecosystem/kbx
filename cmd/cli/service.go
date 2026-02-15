@@ -9,7 +9,7 @@ import (
 	// "runtime"
 	// "strings"
 
-	// "github.com/canalize-prm/canalize_be/internal/module/kbx"
+	// "github.com/kubex-ecosystem/kbx_be/internal/module/kbx"
 	"github.com/spf13/cobra"
 )
 

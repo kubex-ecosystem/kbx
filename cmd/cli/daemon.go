@@ -7,7 +7,7 @@ import (
 	"syscall"
 	"time"
 
-	// "github.com/canalize-prm/canalize_be/internal/app/daemon"
+	// "github.com/kubex-ecosystem/kbx_be/internal/app/daemon"
 	gl "github.com/kubex-ecosystem/logz"
 	"github.com/spf13/cobra"
 )

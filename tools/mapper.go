@@ -35,7 +35,7 @@ func NewEmptyMapperType[T any](filePath string) *Mapper[T] {
 	var obj T
 	return &Mapper[T]{
 		filePath: filePath,
-		ptr: &obj,
+		ptr:      &obj,
 	}
 }
 
@@ -64,6 +64,9 @@ func ensureParentDir(path string) error {
 		return nil
 	}
 	err := os.MkdirAll(dir, 0o755)
+	if err == nil {
+		return nil
+	}
 	gl.Debugf("Created parent dir %s for %s: %v", dir, path, err)
 	return gl.Errorf("error creating parent dir %s for %s: %v", dir, path, err)
 }
@@ -108,23 +111,23 @@ func (m *Mapper[T]) Serialize(format string) ([]byte, error) {
 	}
 }
 
-func (m *Mapper[T]) SerializeToFile(format string) {
+func (m *Mapper[T]) SerializeToFile(format string) error {
 	if format == "" {
 		format = detectFormatByExt(m.filePath)
 	}
 	data, err := m.Serialize(format)
 	if err != nil {
 		gl.Log("error", fmt.Sprintf("Error serializing object: %v", err))
-		return
+		return err
 	}
 	if err := ensureParentDir(m.filePath); err != nil {
 		gl.Log("error", fmt.Sprintf("Error creating parent dir: %v", err))
-		return
+		return err
 	}
 	f, err := os.OpenFile(m.filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 	if err != nil {
 		gl.Log("error", fmt.Sprintf("Error opening file: %v", err))
-		return
+		return err
 	}
 	defer func() {
 		if cerr := f.Close(); cerr != nil {
@@ -133,9 +136,10 @@ func (m *Mapper[T]) SerializeToFile(format string) {
 	}()
 	if _, err := f.Write(data); err != nil {
 		gl.Log("error", fmt.Sprintf("Error writing file: %v", err))
-		return
+		return err
 	}
 	gl.Log("debug", fmt.Sprintf("Serialized to %s (%s) [%d bytes]", m.filePath, strings.ToUpper(format), len(data)))
+	return nil
 }
 
 // -------------------- Deserialize (streaming) --------------------

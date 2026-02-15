@@ -1,3 +1,5 @@
+// Package get provides utility functions for retrieving values with default fallbacks and type handling.
+// It includes functions to get values from environment variables, handle errors, and extract file extensions.
 package get
 
 import (
@@ -9,6 +11,8 @@ import (
 	gl "github.com/kubex-ecosystem/logz"
 )
 
+// ValueOr returns the value if it's valid,
+// otherwise returns the default value along with its type.
 func ValueOr[T any](value T, d T) (T, reflect.Type) {
 	if !is.Valid(value) {
 		return d, reflect.TypeFor[T]()
@@ -16,6 +20,8 @@ func ValueOr[T any](value T, d T) (T, reflect.Type) {
 	return value, reflect.TypeFor[T]()
 }
 
+// ValErrOr executes the provided function and returns
+// its result if valid, otherwise returns the default value.
 func ValErrOr[T any](fn func() (T, error), d T) T {
 	if is.Safe(fn, false) {
 		value, err := fn()
@@ -29,6 +35,8 @@ func ValErrOr[T any](fn func() (T, error), d T) T {
 	return d
 }
 
+// ValOrType returns the value if it's valid,
+// otherwise returns the default value.
 func ValOrType[T any](value T, d T) T {
 	if !is.Valid(value) {
 		return d
@@ -36,6 +44,8 @@ func ValOrType[T any](value T, d T) T {
 	return value
 }
 
+// EnvOrType retrieves an environment variable by key and attempts to convert it to the specified type T.
+// If the environment variable is not set or conversion fails, it returns the default value.
 func EnvOrType[T any](key string, d T) T {
 	value := os.Getenv(key)
 	// Sempre vem texto da env
@@ -55,6 +65,7 @@ func EnvOrType[T any](key string, d T) T {
 	return result
 }
 
+// ValOrAny returns the value if it's valid, otherwise returns the default value.
 func ValOrAny[T any](value T, d T) T {
 	if !is.Valid(value) {
 		return d
@@ -62,6 +73,8 @@ func ValOrAny[T any](value T, d T) T {
 	return value
 }
 
+// FileExt extracts the file extension from the given file path.
+// includes query parameters or fragments.
 func FileExt(filePath string) string {
 	ext := ""
 	if len(filePath) > 0 {
@@ -78,9 +91,20 @@ func FileExt(filePath string) string {
 	return ext
 }
 
+// ValueOrIf returns the value v if the expression exp is true,
+// otherwise returns the default value d.
 func ValueOrIf[T any](exp bool, v T, d T) T {
 	if exp {
 		return v
 	}
 	return d
+}
+
+// ValIfOk returns the received pointer to value v if the expression exp is true,
+// otherwise returns nil. If v is nil, it also returns nil.
+func ValIfOk[T any](v *T, exp bool) *T {
+	if exp {
+		return v
+	}
+	return nil
 }
