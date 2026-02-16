@@ -29,7 +29,7 @@ func NewSrvBasicDefault() SrvBasicParams {
 	return SrvBasicParams{
 		CompanyName:    "Canalize",
 		FriendlyName:   "CanalizeBE",
-		AppName:        "canalize",
+		AppName:        "kubex",
 		AppVersion:     "v0.1.0",
 		Environment:    "development",
 		ContactEmail:   "contato@kubex.world",
@@ -63,7 +63,7 @@ func NewSrvFilesDefault() SrvFilesParams {
 		LogFile:          "",
 		EnvFile:          "",
 		ConfigFile:       "",
-		MainDBName:       "canalize_db",
+		MainDBName:       "kubex_db",
 		DBConfigFile:     "",
 		TemplatesDir:     "",
 		MailerConfigFile: "",
@@ -90,7 +90,7 @@ func NewSrvRuntime() SrvRuntimeParams { return SrvRuntimeParams{} }
 func NewSrvRuntimeDefault() SrvRuntimeParams {
 	return SrvRuntimeParams{
 		Host:            "localhost",
-		Port:            "4000",
+		Port:            "5000",
 		Bind:            "0.0.0.0",
 		PubCertKeyPath:  "",
 		PubKeyPath:      "",
@@ -175,25 +175,27 @@ type InviteConfig struct {
 }
 
 type SrvConfig struct {
-	GlobalRef   `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Basic       SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Files       SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Runtime     SrvRuntimeParams     `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Advanced    SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Flags       SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Auth        AuthConfig           `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
+	GlobalRef    `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Basic        SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Files        SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Runtime      SrvRuntimeParams     `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Advanced     SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Flags        SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Performance  SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Auth         AuthConfig           `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
+	TemplatesDir string               `json:"templates_dir,omitempty" yaml:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
 }
 
 func NewSrvConfig() SrvConfig {
 	return SrvConfig{
-		GlobalRef:   GlobalRef{ID: uuid.New()},
-		Basic:       NewSrvBasic(),
-		Files:       NewSrvFiles(),
-		Runtime:     NewSrvRuntime(),
-		Advanced:    NewSrvAdvanced(),
-		Flags:       NewSrvFlags(),
-		Performance: NewSrvPerformance(),
-		Auth:        AuthConfig{},
+		GlobalRef:    GlobalRef{ID: uuid.New()},
+		Basic:        NewSrvBasic(),
+		Files:        NewSrvFiles(),
+		Runtime:      NewSrvRuntime(),
+		Advanced:     NewSrvAdvanced(),
+		Flags:        NewSrvFlags(),
+		Performance:  NewSrvPerformance(),
+		Auth:         AuthConfig{},
+		TemplatesDir: "",
 	}
 }

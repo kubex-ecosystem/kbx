@@ -4,7 +4,7 @@
   "version": "1.0.3",
   "private": false,
   "published": true,
-  "aliases": [ "kbx" ],
+  "aliases": ["kbx"],
   "slug": "kubex-kbx",
   "repository": "https://github.com/kubex-ecosystem/kbx",
   "homepage": "https://github.com/kubex-ecosystem/kbx",
@@ -14,19 +14,35 @@
   "platform": "go",
   "type": "executable+library",
   "main": "cmd/main.go",
-  "go_version": "1.25.5",
+  "go_version": "1.26.0",
   "go_toolchain": {
     "min": "1.23",
-    "max": "1.25"
+    "max": "1.26"
   },
   "bin": "kbx",
   "author": "Rafael Mori <faelmori@live.com>",
   "organization": "kubex-ecosystem",
   "license": "MIT",
-  "tags": [ "tools", "development", "automation", "kubex module" ],
-  "keywords": [ "kbx", "kubex", "tool", "golang", "devops", "automation", "management", "command-line" ],
-  "platforms": [ "linux/amd64", "linux/arm64", "darwin/amd64", "darwin/arm64", "windows/amd64", "windows/386" ],
-  "dependencies": [ "tar", "gzip", "curl", "git", "zip", "unzip", "jq" ],
+  "tags": ["tools", "development", "automation", "kubex module"],
+  "keywords": [
+    "kbx",
+    "kubex",
+    "tool",
+    "golang",
+    "devops",
+    "automation",
+    "management",
+    "command-line"
+  ],
+  "platforms": [
+    "linux/amd64",
+    "linux/arm64",
+    "darwin/amd64",
+    "darwin/arm64",
+    "windows/amd64",
+    "windows/386"
+  ],
+  "dependencies": ["tar", "gzip", "curl", "git", "zip", "unzip", "jq"],
   "scripts": {
     "install": "make install",
     "build": "make build",
@@ -38,8 +54,17 @@
     "docs:serve": "make serve-docs"
   },
   "examples": [
-    { "description": "Install Kubex Tools - Kbx", "code": "kubex module install kbx" },
-    { "description": "View logs from all applications", "code": "kbx view --all" },
-    { "description": "Search logs for a specific keyword", "code": "kbx search --keyword 'error'" }
+    {
+      "description": "Install Kubex Tools - Kbx",
+      "code": "kubex module install kbx"
+    },
+    {
+      "description": "View logs from all applications",
+      "code": "kbx view --all"
+    },
+    {
+      "description": "Search logs for a specific keyword",
+      "code": "kbx search --keyword 'error'"
+    }
   ]
 }

@@ -42,14 +42,14 @@ func NewFileKeyringService(service, name string) sci.IKeyringService {
 
 func newFileKeyringService(service, name string, def any) *FileKeyringService {
 	// m := kbxGet.EnvOr(strings.Join([]string{strings.ToUpper(types.KubexManifest.GetName()), "_MASTER_KEY"}, ""), "")
-	dir := kbxGet.EnvOr("APP_SECRETS_DIR", "")//os.ExpandEnv(DefaultVaultDir))
+	dir := kbxGet.EnvOr("APP_SECRETS_DIR", "") //os.ExpandEnv(DefaultVaultDir))
 	m := kbxGet.EnvOr("APP_MASTER_KEY", "")
 	masterKeyPath := filepath.Join(dir, "master.key")
 
 	// Tenta criar o diretório
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		gl.Log("warn", fmt.Sprintf("Failed to create secrets directory %s: %v, trying fallback", dir, err))
-		dir = "/var/lib/canalize/secrets"
+		dir = "/var/lib/kubex/secrets"
 		if err := os.MkdirAll(dir, 0o700); err != nil {
 			gl.Log("error", fmt.Sprintf("Failed to create fallback secrets directory %s: %v", dir, err))
 		}
@@ -99,7 +99,7 @@ func newFileKeyringService(service, name string, def any) *FileKeyringService {
 		// raw, _ := base64.StdEncoding.DecodeString(mk)
 		dir := kbxGet.EnvOr("APP_SECRETS_DIR", "")
 		if dir == "" {
-			dir = "/var/lib/canalize/secrets"
+			dir = "/var/lib/kubex/secrets"
 		}
 		_ = os.MkdirAll(dir, 0o700)
 	}

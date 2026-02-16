@@ -25,8 +25,8 @@ var (
 func NewDaemonCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "daemon",
-		Short: "Start canalizebe as background daemon with GoBE integration",
-		Long: `Start the canalizebe as a background daemon service that integrates with GoBE backend.
+		Short: "Start kubexGnyx as background daemon with GoBE integration",
+		Long: `Start the kubexGnyx as a background daemon service that integrates with GoBE backend.
 
 The daemon provides:
 • Automatic repository analysis scheduling
@@ -36,9 +36,9 @@ The daemon provides:
 • Meta-recursivity coordination with lookatni/grompt
 
 Examples:
-  canalizebe daemon --gobe-url=http://localhost:3000 --gobe-api-key=abc123
-  canalizebe daemon --auto-schedule --schedule-cron="0 2 * * *"
-  canalizebe daemon --notify-channels=discord,email`,
+  kubexGnyx daemon --gobe-url=http://localhost:3000 --gobe-api-key=abc123
+  kubexGnyx daemon --auto-schedule --schedule-cron="0 2 * * *"
+  kubexGnyx daemon --notify-channels=discord,email`,
 		RunE: runDaemon,
 	}
 

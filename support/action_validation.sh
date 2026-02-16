@@ -115,7 +115,7 @@ parse_vars(){
   )
 
   # Get MARKER's directory and absolute path for current repo based on the version hash and version
-  MARKER_NAME=".canalize_publish_marker_${_ARGS_LIST["version"]}_${_ARGS_LIST["version_hash"]}"
+  MARKER_NAME=".kubex_publish_marker_${_ARGS_LIST["version"]}_${_ARGS_LIST["version_hash"]}"
   MARKER_PATH="${MARKER_DIR}/${MARKER_NAME}"
 
   # Internal function to validate context with shared scope

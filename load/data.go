@@ -2,10 +2,14 @@
 package load
 
 import (
+	"net"
 	"os"
 	"reflect"
 	"strings"
 	"time"
+
+	// "net"
+	"net/url"
 
 	"github.com/kubex-ecosystem/kbx/get"
 	"github.com/kubex-ecosystem/kbx/is"
@@ -65,13 +69,13 @@ type SrvConfig = types.SrvConfig
 
 func NewSrvArgs() SrvConfig { return types.NewSrvConfig() }
 
-func ParseSrvArgs(bind string, port string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string) SrvConfig {
+func ParseSrvArgs(bind string, port string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string, defaults map[string]any) SrvConfig {
 	SrvArgs := NewSrvArgs()
-	SrvArgs.Runtime.Bind = get.ValOrType(bind, "0.0.0.0")
-	SrvArgs.Runtime.Port = get.ValOrType(port, "4000")
-	SrvArgs.Runtime.PubCertKeyPath = get.ValOrType(pubCertKeyPath, "")
-	SrvArgs.Runtime.PubKeyPath = get.ValOrType(pubKeyPath, "")
-	SrvArgs.Runtime.PrivKeyPath = get.ValOrType(privKeyPath, "")
+	SrvArgs.Runtime.Bind = os.ExpandEnv(get.ValOrType(bind, get.EnvOr(defaults["DefaultServerHost"].(string), "0.0.0.0")))
+	SrvArgs.Runtime.Port = get.ValOrType(port, get.EnvOr(defaults["DefaultServerPort"].(string), "5000"))
+	SrvArgs.Runtime.PubCertKeyPath = os.ExpandEnv(get.ValOrType(pubCertKeyPath, get.EnvOr(defaults["DefaultCanalizeBEPubCertKeyPath"].(string), "")))
+	SrvArgs.Runtime.PubKeyPath = os.ExpandEnv(get.ValOrType(pubKeyPath, get.EnvOr(defaults["DefaultCanalizeBEPubKeyPath"].(string), "")))
+	SrvArgs.Runtime.PrivKeyPath = os.ExpandEnv(get.ValOrType(privKeyPath, get.EnvOr(defaults["DefaultCanalizeBEPrivKeyPath"].(string), "")))
 	SrvArgs.Runtime.AccessTokenTTL = time.Duration(get.ValOrType(accessTokenTTL, 15)) * time.Minute
 	SrvArgs.Runtime.RefreshTokenTTL = time.Duration(get.ValOrType(refreshTokenTTL, 60)) * time.Minute
 	SrvArgs.Runtime.Issuer = get.ValOrType(issuer, "kubex-ecosystem")
@@ -79,32 +83,36 @@ func ParseSrvArgs(bind string, port string, pubCertKeyPath string, pubKeyPath st
 }
 
 func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
-	baseURL := get.ValueOrIf((get.EnvOr("CANALIZE_ENV", "development") == "production"),
+	scheme := os.ExpandEnv(get.EnvOr("KUBEX_GNYX_SCHEME", "http"))
+	host := os.ExpandEnv(get.EnvOr("KUBEX_GNYX_HOST", defaults["DefaultServerHost"].(string)))
+	addr := net.JoinHostPort(host, get.EnvOr("KUBEX_GNYX_PORT", defaults["DefaultServerPort"].(string)))
+	url := url.URL{Scheme: scheme, Host: addr}
+	baseURL := get.ValueOrIf(get.EnvOr("KUBEX_ENV", "development") == "production",
 		"https://api.kubex.world",
-		"http://localhost:4000",
+		url.String(),
 	)
 	defaultTTL := get.EnvOrType("INVITE_EXPIRATION", 7*24*time.Hour)
-	configPath := os.ExpandEnv(get.EnvOr("CANALIZE_BE_CONFIG_PATH", "$HOME/mvp/canalize_be_latest/.be.config.json"))
-	pubKeyPath := os.ExpandEnv(get.EnvOrType("CANALIZE_BE_PUBLIC_KEY_PATH", defaults["default_canalyze_be_cert_path"].(string)))
-	privKeyPath := os.ExpandEnv(get.EnvOrType("CANALIZE_BE_PRIVATE_KEY_PATH", defaults["default_canalyze_be_key_path"].(string)))
+	configPath := os.ExpandEnv(get.EnvOr("KUBEX_GNYX_CONFIG_PATH", get.ValOrType(defaults["default_kubex_gnyx_config_path"].(string), "")))
+	pubKeyPath := os.ExpandEnv(get.EnvOrType("KUBEX_GNYX_PUBLIC_KEY_PATH", get.ValOrType(defaults["default_kubex_gnyx_cert_path"].(string), "")))
+	privKeyPath := os.ExpandEnv(get.EnvOrType("KUBEX_GNYX_PRIVATE_KEY_PATH", get.ValOrType(defaults["default_kubex_gnyx_key_path"].(string), "")))
 
 	Cfg := types.NewSrvConfig()
 	Cfg.Files.ConfigFile = os.ExpandEnv(configPath)
-	Cfg.Files.DBConfigFile = os.ExpandEnv(get.EnvOr("CANALIZE_DS_CONFIG_PATH", "$HOME/.canalize/canalize_ds/config/config.json"))
-	Cfg.Files.EnvFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_ENV_PATH", "$HOME/mvp/canalize_be_latest/.be.env"))
-	Cfg.Files.LogFile = os.ExpandEnv(get.EnvOr("CANALIZE_BE_LOG_FILE_PATH", "$HOME/mvp/canalize_be_latest/canalize_be.log"))
-	Cfg.GlobalRef = types.NewGlobalRef(get.EnvOr("CANALIZE_BE_PROCESS_NAME", "canalize_be"))
-	Cfg.Basic.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
-	Cfg.Basic.ReleaseMode = get.EnvOrType("CANALIZE_BE_RELEASE_MODE", false)
-	Cfg.Basic.IsConfidential = get.EnvOrType("CANALIZE_BE_CONFIDENCIAL_MODE", false)
-	Cfg.Runtime.Port = get.EnvOrType("CANALIZE_BE_PORT", "4000")
+	Cfg.Files.DBConfigFile = os.ExpandEnv(get.EnvOr("KUBEX_DOMUS_CONFIG_PATH", get.ValOrType(defaults["default_kubex_domus_config_path"].(string), "$HOME/.kubex/domus/config/config.json")))
+	Cfg.Files.EnvFile = os.ExpandEnv(get.EnvOr("KUBEX_GNYX_ENV_PATH", get.ValOrType(defaults["default_kubex_gnyx_env_path"].(string), "$HOME/mvp/kubex_gnyx_latest/.be.env")))
+	Cfg.Files.LogFile = os.ExpandEnv(get.EnvOr("KUBEX_GNYX_LOG_FILE_PATH", get.ValOrType(defaults["default_kubex_gnyx_log_file_path"].(string), "$HOME/mvp/kubex_gnyx_latest/kubex_gnyx.log")))
+	Cfg.GlobalRef = types.NewGlobalRef(get.EnvOr("KUBEX_GNYX_PROCESS_NAME", get.ValOrType(defaults["default_kubex_gnyx_process_name"].(string), "kubex_gnyx")))
+	Cfg.Basic.Debug = get.EnvOrType("KUBEX_GNYX_DEBUG_MODE", false)
+	Cfg.Basic.ReleaseMode = get.EnvOrType("KUBEX_GNYX_RELEASE_MODE", false)
+	Cfg.Basic.IsConfidential = get.EnvOrType("KUBEX_GNYX_CONFIDENCIAL_MODE", false)
+	Cfg.Runtime.Port = get.EnvOrType("KUBEX_GNYX_PORT", get.ValOrType(defaults["default_kubex_gnyx_port"].(string), "4000"))
 	Cfg.Runtime.Host = baseURL
 	Cfg.Runtime.PrivKeyPath = privKeyPath   // pragma: allowlist secret
 	Cfg.Runtime.PubKeyPath = pubKeyPath     // pragma: allowlist secret
 	Cfg.Runtime.PubCertKeyPath = pubKeyPath // pragma: allowlist secret
-	Cfg.Basic.CORSEnabled = get.EnvOrType("CANALIZE_BE_ENABLE_CORS", true)
-	Cfg.Basic.Debug = get.EnvOrType("CANALIZE_BE_DEBUG_MODE", false)
-	Cfg.Files.ProvidersConfig = os.ExpandEnv(get.EnvOr("CANALIZE_BE_PROVIDERS_CONFIG_PATH", ""))
+	Cfg.Basic.CORSEnabled = get.EnvOrType("KUBEX_GNYX_ENABLE_CORS", true)
+	Cfg.Basic.Debug = get.EnvOrType("KUBEX_GNYX_DEBUG_MODE", false)
+	Cfg.Files.ProvidersConfig = os.ExpandEnv(get.EnvOr("KUBEX_GNYX_PROVIDERS_CONFIG_PATH", get.ValOrType(defaults["default_kubex_gnyx_providers_config_path"].(string), "")))
 	Cfg.Runtime.RefreshTokenTTL = defaultTTL
 
 	return Cfg

@@ -22,7 +22,8 @@ type Control struct {
 	EpochNS          int64      `json:"epoch_ns"`
 }
 
-func (c *Control) GetName() string    { return c.GlobalRef.Name }
+func (c *Control) GetName() string { return c.GlobalRef.Name }
+
 // func (c *Control) GetVersion() string { return c.GlobalRef.Version }
 
 // LoadControlByModule carrega o controle de um arquivo específico do módulo.
