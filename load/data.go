@@ -105,7 +105,7 @@ func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
 	Cfg.Basic.Debug = get.EnvOrType("KUBEX_GNYX_DEBUG_MODE", false)
 	Cfg.Basic.ReleaseMode = get.EnvOrType("KUBEX_GNYX_RELEASE_MODE", false)
 	Cfg.Basic.IsConfidential = get.EnvOrType("KUBEX_GNYX_CONFIDENCIAL_MODE", false)
-	Cfg.Runtime.Port = get.EnvOrType("KUBEX_GNYX_PORT", get.ValOrType(defaults["default_kubex_gnyx_port"].(string), "4000"))
+	Cfg.Runtime.Port = get.EnvOrType("KUBEX_GNYX_PORT", get.ValOrType(defaults["default_kubex_gnyx_port"].(string), "5000"))
 	Cfg.Runtime.Host = baseURL
 	Cfg.Runtime.PrivKeyPath = privKeyPath   // pragma: allowlist secret
 	Cfg.Runtime.PubKeyPath = pubKeyPath     // pragma: allowlist secret
