@@ -176,9 +176,9 @@ func Slice[T any](obj any) bool {
 }
 
 // Map checks if the given object is a map with key type K and value type V.
-func Map[K, V any](obj any) bool {
+func Map[K any, V any](obj V) bool {
 	v := reflect.ValueOf(obj)
-	if SameType[any](obj) || !Valid(obj) {
+	if SameType[V](obj) || !Valid(obj) {
 		return false
 	}
 	if !types.KindMap[v.Kind()] && (SameType[K](v.Interface()) || SameType[V](v.Interface())) {
@@ -220,7 +220,7 @@ func Compatible[T any](obj any) bool {
 	return true
 }
 
-// Compatible checks if the given object is convertible to type T.
+// Implements checks if the given object implements the interface T.
 func Implements[T any](obj any) bool {
 	v := reflect.ValueOf(obj)
 	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {

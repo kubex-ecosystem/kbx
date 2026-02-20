@@ -75,7 +75,7 @@ func NewServiceCommand(moduleName, defaultCmd string, binPath string, defaultCon
 // 	cmd.Flags().StringVarP(&initArgs.Host, "host", "", "localhost", "Host para o serviço escutar")
 // 	cmd.Flags().StringVarP(&initArgs.Command, "command", "", "localhost", "Comando para o serviço executar")
 // 	cmd.Flags().StringVarP(&initArgs.Subcommand, "subcommand", "", "localhost", "Subcomando para o serviço executar")
-// 	cmd.Flags().StringVarP(&initArgs.ConfigFile, "config", "c", os.ExpandEnv(kbx.DefaultCanalizeBECAPath), "Caminho para o arquivo de configuração")
+// 	cmd.Flags().StringVarP(&initArgs.ConfigFile, "config", "c", os.ExpandEnv(kbx.DefaultGNyxCAPath), "Caminho para o arquivo de configuração")
 // 	cmd.Flags().StringVarP(&initArgs.EnvFile, "env", "e", "", "Caminho para o arquivo .env")
 // 	cmd.Flags().StringVarP(&initArgs.LogFile, "log", "l", "", "Caminho para o arquivo de log")
 

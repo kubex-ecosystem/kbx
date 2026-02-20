@@ -10,8 +10,8 @@ import (
 func MailCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "mail",
-		Short: "CanalizeBE Mail - Send test emails using configured SMTP settings",
-		Long: `CanalizeBE Mail provides a CLI to send test emails using the configured SMTP settings.
+		Short: "GNyx Mail - Send test emails using configured SMTP settings",
+		Long: `GNyx Mail provides a CLI to send test emails using the configured SMTP settings.
 
 Features:
   • Send test emails using configured SMTP settings
@@ -45,8 +45,8 @@ func sendCommand() *cobra.Command {
 
 			// msg := mailParams.Email
 			// msg.To = []string{"test@example.com"}
-			// msg.Subject = "Test Email from CanalizeBE CLI"
-			// msg.Text = "This is a test email sent from the CanalizeBE CLI."
+			// msg.Subject = "Test Email from GNyx CLI"
+			// msg.Text = "This is a test email sent from the GNyx CLI."
 
 			// if err := sender.Send(mailParams.MailConfig, msg); err != nil {
 			// 	gl.Log("error", "Failed to send email:", err.Error())

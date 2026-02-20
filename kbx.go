@@ -80,6 +80,16 @@ type Email = types.Email
 type MManifest = types.MManifest
 type Manifest = load.Manifest
 
+type LLMConfig = types.LLMConfig
+type LLMProviderConfig = types.LLMProviderConfig
+type LLMDevelopmentConfig = types.LLMDevelopmentConfig
+type Provider = types.Provider
+type ProviderExt = types.ProviderExt
+
+type ChatRequest = types.ChatRequest
+type ChatChunk = types.ChatChunk
+type Message = types.Message
+
 type LogzConfig = types.LogzConfig
 type SrvConfig = types.SrvConfig
 type VendorAuthConfig = load.VendorAuthConfig
@@ -95,6 +105,13 @@ func NewMailAttachment() *MailAttachment             { return &MailAttachment{} 
 func NewEmail() *Email                               { return &Email{} }
 func NewManifestType() *MManifest                    { return load.NewManifestType() }
 func NewManifest() Manifest                          { return load.NewManifest() }
+func NewLLMConfig() *LLMConfig                       { return &LLMConfig{} }
+func NewLLMProviderConfigType() *LLMProviderConfig   { return &LLMProviderConfig{} }
+func NewLLMProviderConfigExt(name string, baseurl string, keyenv string, defaultmodel string) ProviderExt {
+	return types.NewLLMProviderConfigExt(name, baseurl, keyenv, defaultmodel)
+}
+func NewLLMProviderConfig() Provider                 { return &LLMProviderConfig{} }
+func NewLLMDevelopmentConfig() *LLMDevelopmentConfig { return &LLMDevelopmentConfig{} }
 
 // func NewMailSender(params *MailSrvParams) MailSender { return nil }
 
@@ -108,8 +125,26 @@ func ParseLogzArgs(level string, minLevel string, maxLevel string, output string
 func ParseSrvArgs(bind, port, pubCertKeyPath, pubKeyPath, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string, defaults map[string]any) types.SrvConfig {
 	return load.ParseSrvArgs(bind, port, pubCertKeyPath, pubKeyPath, privKeyPath, accessTokenTTL, refreshTokenTTL, issuer, defaults)
 }
+func ParseLLMConfig(providers map[string]types.LLMProviderConfig, development types.LLMDevelopmentConfig) load.LLMConfig {
+	return load.ParseLLMConfig(providers, development)
+}
 
 func LoadConfig[T any](path string) (T, error) { return load.LoadConfig[T](path) }
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | VendorAuthConfig | AuthOAuthClientConfig](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[
+	T MailConfig |
+		MailConnection |
+		LogzConfig |
+		SrvConfig |
+		LLMConfig |
+		LLMProviderConfig |
+		LLMDevelopmentConfig |
+		MailSrvParams |
+		Email |
+		MManifest |
+		VendorAuthConfig |
+		AuthOAuthClientConfig](
+	cfgPath string,
+	genFile bool,
+) (*T, error) {
 	return load.LoadConfigOrDefault[T](cfgPath, genFile)
 }

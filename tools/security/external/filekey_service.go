@@ -42,7 +42,7 @@ func NewFileKeyringService(service, name string) sci.IKeyringService {
 
 func newFileKeyringService(service, name string, def any) *FileKeyringService {
 	// m := kbxGet.EnvOr(strings.Join([]string{strings.ToUpper(types.KubexManifest.GetName()), "_MASTER_KEY"}, ""), "")
-	dir := kbxGet.EnvOr("APP_SECRETS_DIR", "") //os.ExpandEnv(DefaultVaultDir))
+	dir := kbxGet.EnvOr("KUBEX_GNYX_SECRETS_DIR", "") //os.ExpandEnv(DefaultVaultDir))
 	m := kbxGet.EnvOr("APP_MASTER_KEY", "")
 	masterKeyPath := filepath.Join(dir, "master.key")
 
@@ -97,7 +97,7 @@ func newFileKeyringService(service, name string, def any) *FileKeyringService {
 		}
 
 		// raw, _ := base64.StdEncoding.DecodeString(mk)
-		dir := kbxGet.EnvOr("APP_SECRETS_DIR", "")
+		dir := kbxGet.EnvOr("KUBEX_GNYX_SECRETS_DIR", "")
 		if dir == "" {
 			dir = "/var/lib/kubex/secrets"
 		}

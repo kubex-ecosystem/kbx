@@ -73,8 +73,8 @@ func ParseSrvArgs(bind string, port string, pubCertKeyPath string, pubKeyPath st
 	SrvArgs := NewSrvArgs()
 	SrvArgs.Runtime.Bind = os.ExpandEnv(get.ValOrType(bind, get.EnvOr(defaults["DefaultServerHost"].(string), "0.0.0.0")))
 	SrvArgs.Runtime.Port = get.ValOrType(port, get.EnvOr(defaults["DefaultServerPort"].(string), "5000"))
-	SrvArgs.Runtime.PubCertKeyPath = os.ExpandEnv(get.ValOrType(pubCertKeyPath, get.EnvOr(defaults["DefaultCanalizeBEPubCertKeyPath"].(string), "")))
-	SrvArgs.Runtime.PubKeyPath = os.ExpandEnv(get.ValOrType(pubKeyPath, get.EnvOr(defaults["DefaultCanalizeBEPubKeyPath"].(string), "")))
+	SrvArgs.Runtime.PubCertKeyPath = os.ExpandEnv(get.ValOrType(pubCertKeyPath, get.EnvOr(defaults["DefaultGNyxPubCertKeyPath"].(string), "")))
+	SrvArgs.Runtime.PubKeyPath = os.ExpandEnv(get.ValOrType(pubKeyPath, get.EnvOr(defaults["DefaultGNyxPubKeyPath"].(string), "")))
 	SrvArgs.Runtime.PrivKeyPath = os.ExpandEnv(get.ValOrType(privKeyPath, get.EnvOr(defaults["DefaultCanalizeBEPrivKeyPath"].(string), "")))
 	SrvArgs.Runtime.AccessTokenTTL = time.Duration(get.ValOrType(accessTokenTTL, 15)) * time.Minute
 	SrvArgs.Runtime.RefreshTokenTTL = time.Duration(get.ValOrType(refreshTokenTTL, 60)) * time.Minute
@@ -138,6 +138,227 @@ func NewSrvConfigFromParams(params *SrvConfig) SrvConfig {
 	Cfg.Runtime.RefreshTokenTTL = get.ValOrType(params.Runtime.RefreshTokenTTL, Cfg.Runtime.RefreshTokenTTL)
 	return Cfg
 }
+
+// ------------------------------- New LLM Config Functions -----------------------------//
+
+type LLMConfig = types.LLMConfig
+type LLMProviderConfig = types.LLMProviderConfig
+type LLMDevelopmentConfig = types.LLMDevelopmentConfig
+
+func NewLLMConfig() LLMConfig                       { return LLMConfig{} }
+func NewLLMProviderConfig() LLMProviderConfig       { return LLMProviderConfig{} }
+func NewLLMDevelopmentConfig() LLMDevelopmentConfig { return LLMDevelopmentConfig{} }
+
+func ParseLLMConfig(providers map[string]types.LLMProviderConfig, development types.LLMDevelopmentConfig) LLMConfig {
+	LLMArgs := NewLLMConfig()
+
+	LLMArgs.GlobalRef = types.NewGlobalRef(get.EnvOr("KUBEX_GNYX_PROCESS_NAME", "kubex_gnyx"))
+
+	// LLMArgs.Providers =
+	// LLMArgs.Development =
+	// etc... (principalmente ptr's e/ou interfaces)
+
+	return LLMArgs
+}
+func NewLLMConfigDefaultValues() LLMConfig {
+	cfg := NewLLMConfig()
+
+	cfg.GlobalRef = types.NewGlobalRef(get.EnvOr("KUBEX_GNYX_PROCESS_NAME", "kubex_gnyx"))
+
+	// As configs serão carregadas de arquivos/envvars/args em flags,
+	// aqui seriam os defaults totalmente básicos e genéricos. Eles podem ser
+	// usados como um "full-load" de defaults para geração de arquivos de config,
+	// ou como fallback caso alguma config específica não seja encontrada nos arquivos/envvars/args.
+	cfg.Providers = map[string]*types.LLMProviderConfig{
+		"groq": types.NewLLMProviderConfigType(
+			"groq",
+			"https://api.groq.com/v1",
+			"GROQ_API_KEY",
+			"",
+		),
+		"gemini": types.NewLLMProviderConfigType(
+			"gemini",
+			"https://ai.google.dev",
+			"GEMINI_API_KEY",
+			"",
+		),
+		"openai": types.NewLLMProviderConfigType(
+			"openai",
+			"https://api.openai.com",
+			"OPENAI_API_KEY",
+			"",
+		),
+		"anthropic": types.NewLLMProviderConfigType(
+			"anthropic",
+			"https://api.anthropic.com",
+			"ANTHROPIC_API_KEY",
+			"",
+		),
+		"azure": types.NewLLMProviderConfigType(
+			"azure",
+			"https://azure.microsoft.com/en-us/services/cognitive-services/openai-service/",
+			"AZURE_API_KEY",
+			"",
+		),
+		"deepseek": types.NewLLMProviderConfigType(
+			"deepseek",
+			"https://www.deepseek.com/api",
+			"DEEPSEEK_API_KEY",
+			"",
+		),
+		"custom": types.NewLLMProviderConfigType(
+			// Para providers custom, a ideia é que o usuário forneça a implementação da interface `LLMProvider` e registre ela no registry, e aí a config do provider custom seria mais pra guardar informações como baseURL, chave de API, modelo default, etc... que seriam usadas pela implementação custom na hora de fazer as requisições pros endpoints do provider。
+			"custom",
+			"",
+			"",
+			"",
+		),
+	}
+
+	perProviderCfg := types.LLMTokenBucket{
+		Capacity:   1000,
+		RefillRate: (1000 / 60), // 1000 tokens per minute
+	}
+	cfg.Development = types.LLMDevelopmentConfig{
+		LoggingLevel: "info",
+		HealthCheck: types.LLMHealthCheckConfig{
+			Enabled:     true,
+			IntervalSec: 60,
+			TimeoutSec:  5,
+		},
+		CircuitBreaker: types.LLMCircuitBreakerConfig{
+			Enabled: true,
+			PerProvider: map[string]types.LLMCircuitBreakerRule{
+				"groq": {
+					MaxFailures:      5,
+					ResetTimeoutSec:  300,
+					SuccessThreshold: 3,
+				},
+				"gemini": {
+					MaxFailures:      5,
+					ResetTimeoutSec:  300,
+					SuccessThreshold: 3,
+				},
+				"openai": {
+					MaxFailures:      5,
+					ResetTimeoutSec:  300,
+					SuccessThreshold: 3,
+				},
+			},
+			Default: types.LLMCircuitBreakerRule{
+				MaxFailures:      5,
+				ResetTimeoutSec:  300,
+				SuccessThreshold: 3,
+			},
+		},
+		RateLimit: types.LLMRateLimitConfig{
+			Enabled: true,
+			PerProvider: map[string]types.LLMTokenBucket{
+				"groq":      perProviderCfg,
+				"gemini":    perProviderCfg,
+				"openai":    perProviderCfg,
+				"anthropic": perProviderCfg,
+				"azure":     perProviderCfg,
+				"deepseek":  perProviderCfg,
+				"custom": {
+					Capacity:   10000,
+					RefillRate: (10000 / 15), // 10000 tokens per 15 minutes
+				},
+			},
+			Default: perProviderCfg,
+		},
+		Retry: types.LLMRetryConfig{
+			Enabled:     true,
+			MaxRetries:  3,
+			BaseDelayMS: 500,  // 500 milliseconds
+			MaxDelayMS:  5000, // 5 seconds
+			Multiplier:  2,
+			// TODO: implementar backoff exponencial com jitter na config (talvez já haja coisa pronta no `tools/retry.go`, lembro de ter feito algo nesse sentido)
+			// Backoff: types.LLMBackoffConfig{
+			// 	InitialDelay: 1000000000, // 1 second in nanoseconds
+			// 	MaxDelay:     1000000000, // 1 second in nanoseconds
+			// 	Multiplier:   2,
+			// },
+		},
+		Defaults: types.LLMRequestDefaults{
+			MaxTokens:        1000,
+			Temperature:      0.7,
+			TopP:             1,
+			FrequencyPenalty: 0,
+			PresencePenalty:  0,
+			Stream:           false,
+			TimeoutSec:       30,
+			TenantID:         "",
+			UserID:           "",
+		},
+	}
+
+	defProvProdCfg := types.LLMProviderProductionConfig{
+		TimeoutSec:  30,
+		Priority:    "standard",
+		MaxRetries:  3,
+		BaseDelayMS: 500,
+		MaxDelayMS:  5000,
+		Multiplier:  2,
+	}
+	cfg.ProviderProduction = map[string]types.LLMProviderProductionConfig{
+		"groq":      defProvProdCfg,
+		"gemini":    defProvProdCfg,
+		"openai":    defProvProdCfg,
+		"anthropic": defProvProdCfg,
+		"azure":     defProvProdCfg,
+		"deepseek":  defProvProdCfg,
+		"custom": {
+			TimeoutSec:  120,
+			Priority:    "low",
+			MaxRetries:  3,
+			BaseDelayMS: 500,
+			MaxDelayMS:  5000,
+			Multiplier:  1,
+			// Para providers custom, a ideia é que o usuário forneça a implementação da interface `LLMProvider` e registre ela no registry, e aí a config do provider custom seria mais pra guardar informações como baseURL, chave de API, modelo default, etc... que seriam usadas pela implementação custom na hora de fazer as requisições pros endpoints do provider.
+		},
+	}
+
+	cfg.Security = types.LLMSecurityConfig{
+		EnableHTTPS:    false,
+		AllowedOrigins: []string{"*"},
+		JWTSecret:      "",
+		APIKeys:        []string{},
+	}
+	for _, provCfg := range cfg.Providers {
+		if get.EnvOr(provCfg.KeyRef(), "") != "" {
+			cfg.Security.APIKeys = append(cfg.Security.APIKeys, provCfg.KeyRef())
+			// Note: aqui a gente tá assumindo que o valor da chave de API é o próprio
+			// nome da variável de ambiente onde a chave tá armazenada (ex: "OPENAI_API_KEY", "GROQ_API_KEY", etc...).
+			// Todas as apikeys carregadas na aplicação (seja por env, arquivos de config, args, etc...) serão
+			// definidas como variáveis de ambiente, assim o valor sempre será lido em tempo de execução.
+			// Se o user inserir uma chave de API na config diretamente, a aplicação irá definir uma variável de ambiente
+			// com o padrão de nomeclatura "KUBEX_GNYX_LLM_PROVIDER_{PROVIDER_NAME}_API_KEY" (ex: "KUBEX_GNYX_LLM_PROVIDER_OPENAI_API_KEY", "KUBEX_GNYX_LLM_PROVIDER_GROQ_API_KEY", etc...)
+			// com o valor da chave de API, e aí o valor da config do provider custom seria
+			// a variável de ambiente onde a chave tá armazenada, seguindo o mesmo padrão dos providers pré-definidos.
+		}
+	}
+
+	cfg.License = "MIT"
+	cfg.Monitoring = types.LLMMonitoringConfig{EnableMetrics: true}
+	cfg.Repository = "github.com/kubex-ecosystem/gnyx"
+	cfg.Authors = []string{"Rafael Mori"}
+	cfg.Version = "0.0.1"
+
+	return cfg
+}
+func NewLLMConfigFromParams(params *LLMConfig) LLMConfig {
+	LLMArgs := NewLLMConfig()
+	LLMArgs.GlobalRef = get.ValOrType(params.GlobalRef, LLMArgs.GlobalRef)
+	LLMArgs.Providers = get.ValOrType(params.Providers, LLMArgs.Providers)
+	LLMArgs.Development = get.ValOrType(params.Development, LLMArgs.Development)
+
+	// etc... (principalmente ptr's e/ou interfaces)
+
+	return LLMArgs
+}
+
+// ------------------------------- New Global Ref Functions -----------------------------//
 
 type GlobalRef = types.GlobalRef
 
@@ -246,6 +467,9 @@ var configRegistry = map[reflect.Type]bool{
 	reflect.TypeFor[MailConfig]():            true,
 	reflect.TypeFor[LogzConfig]():            true,
 	reflect.TypeFor[SrvConfig]():             true,
+	reflect.TypeFor[LLMConfig]():             true,
+	reflect.TypeFor[LLMProviderConfig]():     true,
+	reflect.TypeFor[LLMDevelopmentConfig]():  true,
 	reflect.TypeFor[MManifest]():             true,
 	reflect.TypeFor[VendorAuthConfig]():      true,
 	reflect.TypeFor[AuthOAuthClientConfig](): true,
@@ -259,6 +483,9 @@ var defaultFactories = map[reflect.Type]func() any{
 	reflect.TypeFor[LogzConfig]():            func() any { return NewLogzParams() },
 	reflect.TypeFor[SrvConfig]():             func() any { return NewSrvArgs() },
 	reflect.TypeFor[MManifest]():             func() any { return NewManifestType() },
+	reflect.TypeFor[LLMConfig]():             func() any { return NewLLMConfig() },
+	reflect.TypeFor[LLMProviderConfig]():     func() any { return NewLLMProviderConfig() },
+	reflect.TypeFor[LLMDevelopmentConfig]():  func() any { return NewLLMDevelopmentConfig() },
 	reflect.TypeFor[VendorAuthConfig]():      func() any { return NewVendorAuthConfig("") },
 	reflect.TypeFor[AuthOAuthClientConfig](): func() any { return NewVendorAuthConfig("").Web },
 	reflect.TypeFor[Email]():                 func() any { return types.NewEmail() },
@@ -293,7 +520,19 @@ func LoadConfig[T any](cfgPath string) (T, error) {
 	return zero, gl.Errorf("configuration type not registered")
 }
 
-func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig | MailSrvParams | Email | MManifest | VendorAuthConfig | AuthOAuthClientConfig](cfgPath string, genFile bool) (*T, error) {
+func LoadConfigOrDefault[
+	T MailConfig |
+		MailConnection |
+		LogzConfig |
+		SrvConfig |
+		LLMConfig |
+		LLMProviderConfig |
+		LLMDevelopmentConfig |
+		MailSrvParams |
+		Email |
+		MManifest |
+		VendorAuthConfig |
+		AuthOAuthClientConfig](cfgPath string, genFile bool) (*T, error) {
 	cfgPath = os.ExpandEnv(strings.TrimSpace(strings.ToValidUTF8(cfgPath, "")))
 	if cfgPath == "" {
 		return nil, gl.Errorf("configuration path cannot be empty")
@@ -306,6 +545,12 @@ func LoadConfigOrDefault[T MailConfig | MailConnection | LogzConfig | SrvConfig 
 		return cfg, nil
 	}
 	gl.Warnf("failed to load config from '%s', using default: %v", cfgPath, err)
+
+	if !is.Compatible[T](cfg) {
+		gl.Warnf("loaded config is not compatible with expected type '%s'", reflect.TypeFor[T]())
+		return nil, gl.Errorf("loaded config is not compatible with expected type '%s'", reflect.TypeFor[T]())
+	}
+
 	defaultCfg := defaultFactories[reflect.TypeFor[T]()]().(T)
 	if !is.PtrOf[T](defaultCfg) {
 		if genFile {

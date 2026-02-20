@@ -24,10 +24,10 @@ func (m *Kbx) Alias() string {
 	return ""
 }
 func (m *Kbx) ShortDescription() string {
-	return "CanalizeDS: GKBX Database and Docker manager/service. "
+	return "Domus: GKBX Database and Docker manager/service. "
 }
 func (m *Kbx) LongDescription() string {
-	return `CanalizeDS: Is a tool to manage GKBX database and Docker services. It provides many DB flavors like MySQL, PostgreSQL, MongoDB, Redis, etc. It also provides Docker services like Docker Swarm, Docker Compose, etc. It is a command line tool that can be used to manage GKBX database and Docker services.`
+	return `Domus: Is a tool to manage GKBX database and Docker services. It provides many DB flavors like MySQL, PostgreSQL, MongoDB, Redis, etc. It also provides Docker services like Docker Swarm, Docker Compose, etc. It is a command line tool that can be used to manage GKBX database and Docker services.`
 }
 func (m *Kbx) Usage() string {
 	return "domus [command] [args]"

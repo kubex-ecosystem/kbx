@@ -106,7 +106,7 @@ func runDaemon(cmd *cobra.Command, args []string) error {
 
 	// Graceful shutdown
 	// d.Stop()
-	// gl.Log("info", "CanalizeBE daemon stopped gracefully")
+	// gl.Log("info", "GNyx daemon stopped gracefully")
 
 	return nil
 }

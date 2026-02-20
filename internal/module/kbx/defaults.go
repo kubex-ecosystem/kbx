@@ -5,14 +5,14 @@ const (
 	KeyringService        = "kubex"
 	DefaultKubexConfigDir = "$HOME/.kubex"
 
-	DefaultCanalizeBEKeyPath    = "$HOME/.kubex/gnyx/kubex_gnyx-key.pem"
-	DefaultCanalizeBECertPath   = "$HOME/.kubex/gnyx/kubex_gnyx-cert.pem"
-	DefaultCanalizeBECAPath     = "$HOME/.kubex/gnyx/ca-cert.pem"
-	DefaultCanalizeBEConfigPath = "$HOME/.kubex/gnyx/config/config.json"
+	DefaultGNyxKeyPath    = "$HOME/.kubex/gnyx/kubex_gnyx-key.pem"
+	DefaultGNyxCertPath   = "$HOME/.kubex/gnyx/kubex_gnyx-cert.pem"
+	DefaultGNyxCAPath     = "$HOME/.kubex/gnyx/ca-cert.pem"
+	DefaultGNyxConfigPath = "$HOME/.kubex/gnyx/config/config.json"
 
-	DefaultConfigDir            = "$HOME/.kubex/domus/config"
-	DefaultConfigFile           = "$HOME/.kubex/domus/config.json"
-	DefaultCanalizeDSConfigPath = "$HOME/.kubex/domus/config/config.json"
+	DefaultConfigDir       = "$HOME/.kubex/domus/config"
+	DefaultConfigFile      = "$HOME/.kubex/domus/config.json"
+	DefaultDomusConfigPath = "$HOME/.kubex/domus/config/config.json"
 )
 
 const (
@@ -46,6 +46,27 @@ const (
 	DefaultTimeout               = 30 * 1000 // 30 seconds
 	DefaultKeepAlive             = 30 * 1000 // 30 seconds
 	DefaultMaxConnsPerHost       = 100
+)
+
+const (
+	DefaultLLMOpenAIKeyEnv       = "OPENAI_API_KEY"
+	DefaultLLMGoogleKeyEnv       = "GOOGLE_API_KEY"
+	DefaultLLMAzureKeyEnv        = "AZURE_API_KEY"
+	DefaultLLMAnthropicKeyEnv    = "ANTHROPIC_API_KEY"
+	DefaultLLMGeminiKeyEnv       = "GEMINI_API_KEY"
+	DefaultLLMOllamaKeyEnv       = "OLLAMA_API_KEY"
+	DefaultLLMChatGPTKeyEnv      = "CHATGPT_API_KEY"
+	DefaultLLMDeepseekKeyEnv     = "DEEPSEEK_API_KEY"
+	DefaultLLMCohereKeyEnv       = "COHERE_API_KEY"
+	DefaultLLMGroqKeyEnv         = "GROQ_API_KEY"
+	DefaultLLMGrokKeyEnv         = "GROK_API_KEY"
+	DefaultLLMMistralKeyEnv      = "MISTRAL_API_KEY"
+	DefaultLLMCustomKeyEnv       = "CUSTOM_API_KEY"
+	DefaultLLMMetaKeyEnv         = "META_API_KEY"
+	DefaultLLMClaudeKeyEnv       = "CLAUDE_API_KEY"
+	DefaultLLMErnieKeyEnv        = "ERNIE_API_KEY"
+	DefaultLLMCustomKeyEnvPrefix = "CUSTOM_"
+	DefaultLLMCustomKeyEnvSuffix = "_KEY_ENV"
 )
 
 const (

@@ -21,6 +21,8 @@ type SrvBasicParams struct {
 	IsConfidential bool     `yaml:"is_confidential" json:"is_confidential" mapstructure:"is_confidential"`
 	CORSEnabled    bool     `yaml:"enable_cors" json:"enable_cors" mapstructure:"enable_cors"`
 	TrustedProxies []string `yaml:"trusted_proxies" json:"trusted_proxies" mapstructure:"trusted_proxies"`
+
+	UIDisabled bool `yaml:"ui_enabled" json:"ui_enabled" mapstructure:"ui_enabled"`
 }
 
 func NewSrvBasic() SrvBasicParams { return SrvBasicParams{} }
@@ -28,7 +30,7 @@ func NewSrvBasic() SrvBasicParams { return SrvBasicParams{} }
 func NewSrvBasicDefault() SrvBasicParams {
 	return SrvBasicParams{
 		CompanyName:    "Canalize",
-		FriendlyName:   "CanalizeBE",
+		FriendlyName:   "GNyx",
 		AppName:        "kubex",
 		AppVersion:     "v0.1.0",
 		Environment:    "development",
@@ -39,6 +41,7 @@ func NewSrvBasicDefault() SrvBasicParams {
 		IsConfidential: true,
 		CORSEnabled:    true,
 		TrustedProxies: []string{},
+		UIDisabled:     true,
 	}
 }
 
@@ -174,28 +177,52 @@ type InviteConfig struct {
 	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
 }
 
+func NewInviteConfig() InviteConfig { return InviteConfig{} }
+
+func NewInviteConfigDefault() InviteConfig {
+	return InviteConfig{
+		BaseURL:     "https://app.kubex.world",
+		SenderName:  "Kubex Team",
+		SenderEmail: "team@kubex.world",
+		CompanyName: "Kubex",
+		DefaultTTL:  7 * 24 * time.Hour,
+	}
+}
+
 type SrvConfig struct {
-	GlobalRef    `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Basic        SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Files        SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Runtime      SrvRuntimeParams     `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Advanced     SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Flags        SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Performance  SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Auth         AuthConfig           `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
-	TemplatesDir string               `json:"templates_dir,omitempty" yaml:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
+	GlobalRef   `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Basic       SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Files       SrvFilesParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Runtime     SrvRuntimeParams     `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Advanced    SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Flags       SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
+	Auth        AuthConfig           `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
+	// TemplatesDir string               `json:"templates_dir,omitempty" yaml:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
 }
 
 func NewSrvConfig() SrvConfig {
 	return SrvConfig{
-		GlobalRef:    GlobalRef{ID: uuid.New()},
-		Basic:        NewSrvBasic(),
-		Files:        NewSrvFiles(),
-		Runtime:      NewSrvRuntime(),
-		Advanced:     NewSrvAdvanced(),
-		Flags:        NewSrvFlags(),
-		Performance:  NewSrvPerformance(),
-		Auth:         AuthConfig{},
-		TemplatesDir: "",
+		GlobalRef:   GlobalRef{ID: uuid.New()},
+		Basic:       NewSrvBasic(),
+		Files:       NewSrvFiles(),
+		Runtime:     NewSrvRuntime(),
+		Advanced:    NewSrvAdvanced(),
+		Flags:       NewSrvFlags(),
+		Performance: NewSrvPerformance(),
+		Auth:        AuthConfig{},
+	}
+}
+
+func NewSrvConfigDefault() SrvConfig {
+	return SrvConfig{
+		GlobalRef:   GlobalRef{ID: uuid.New()},
+		Basic:       NewSrvBasicDefault(),
+		Files:       NewSrvFilesDefault(),
+		Runtime:     NewSrvRuntimeDefault(),
+		Advanced:    NewSrvAdvancedDefault(),
+		Flags:       NewSrvFlagsDefault(),
+		Performance: NewSrvPerformanceDefault(),
+		Auth:        AuthConfig{},
 	}
 }
