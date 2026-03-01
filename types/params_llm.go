@@ -37,6 +37,7 @@ func (r ChatRequest) Validate() error {
 }
 
 func (r ChatRequest) GetModel() string { return r.Model }
+
 func (r ChatRequest) Read(ctx context.Context) (ChatChunk, error) {
 	if r.Stream {
 		return ChatChunk{}, gl.Error("streaming not implemented in this method")

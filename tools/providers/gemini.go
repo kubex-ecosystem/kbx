@@ -190,38 +190,24 @@ func (g *geminiProvider) Chat(ctx context.Context, req providers.ChatRequest) (<
 	return ch, nil
 }
 
-func (g *geminiProvider) Notify(ctx context.Context, event providers.NotificationEvent) error {
-	// Implement notification logic here
+// Close gracefully closes the Gemini client
+func (g *geminiProvider) Close() error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.client != nil {
+		return g.client.Batches.Cancel(
+			context.Background(),
+			"",
+			&genai.CancelBatchJobConfig{},
+		)
+	}
 	return nil
 }
 
-// toGeminiContents converts generic messages to Gemini SDK format
-func (g *geminiProvider) toGeminiContents(messages []providers.Message) []*genai.Part {
-	contents := make([]*genai.Part, 0, len(messages))
-
-	for _, msg := range messages {
-		if msg.Content == "" {
-			continue
-		}
-
-		//role := "user"
-		// if msg.Role == "assistant" || msg.Role == "model" {
-		// 	role = "model"
-		// }
-		// Já é criado no loop acima
-		// contents := make([]*genai.Content, 0)
-
-		for _, msg := range messages {
-			// Normal chat - convert messages to parts
-			reqPart := genai.Text(msg.Content)
-			for _, part := range reqPart {
-				if part != nil {
-					contents = append(contents, part.Parts...)
-				}
-			}
-		}
-	}
-	return contents
+// Notify provides an event-driven management into LLM usage pipeline
+func (g *geminiProvider) Notify(ctx context.Context, event providers.NotificationEvent) error {
+	// Implement notification logic here
+	return nil
 }
 
 // getAnalysisPrompt generates analysis prompts (your original logic, cleaned up)
@@ -252,6 +238,55 @@ func (g *geminiProvider) getAnalysisPrompt(projectContext, analysisType string, 
 - Be specific and concrete in your suggestions
 
 Analyze thoroughly and provide valuable insights.`, analysisType, language, projectContext)
+}
+
+// estimateTokens provides a rough token estimation
+func (g *geminiProvider) estimateTokens(text string) int {
+	// Rough estimation: ~4 characters per token
+	return len(text) / 4
+}
+
+// estimateCost provides cost estimation for Gemini models
+func (g *geminiProvider) estimateCost(model string, tokens int) float64 {
+	var costPerToken float64
+	switch {
+	case strings.Contains(model, "flash"):
+		costPerToken = 0.000000125 // $0.125/1M tokens for Gemini Flash
+	case strings.Contains(model, "pro"):
+		costPerToken = 0.000001 // $1/1M tokens for Gemini Pro
+	default:
+		costPerToken = 0.000000125 // Default to Flash pricing
+	}
+	return float64(tokens) * costPerToken
+}
+
+// toGeminiContents converts generic messages to Gemini SDK format
+func (g *geminiProvider) toGeminiContents(messages []providers.Message) []*genai.Part {
+	contents := make([]*genai.Part, 0, len(messages))
+
+	for _, msg := range messages {
+		if msg.Content == "" {
+			continue
+		}
+
+		//role := "user"
+		// if msg.Role == "assistant" || msg.Role == "model" {
+		// 	role = "model"
+		// }
+		// Já é criado no loop acima
+		// contents := make([]*genai.Content, 0)
+
+		for _, msg := range messages {
+			// Normal chat - convert messages to parts
+			reqPart := genai.Text(msg.Content)
+			for _, part := range reqPart {
+				if part != nil {
+					contents = append(contents, part.Parts...)
+				}
+			}
+		}
+	}
+	return contents
 }
 
 // getResponseSchema returns the expected JSON schema for structured responses
@@ -291,38 +326,4 @@ func (g *geminiProvider) getResponseSchema(analysisType string) map[string]inter
 		}
 	}
 	return baseSchema
-}
-
-// estimateTokens provides a rough token estimation
-func (g *geminiProvider) estimateTokens(text string) int {
-	// Rough estimation: ~4 characters per token
-	return len(text) / 4
-}
-
-// estimateCost provides cost estimation for Gemini models
-func (g *geminiProvider) estimateCost(model string, tokens int) float64 {
-	var costPerToken float64
-	switch {
-	case strings.Contains(model, "flash"):
-		costPerToken = 0.000000125 // $0.125/1M tokens for Gemini Flash
-	case strings.Contains(model, "pro"):
-		costPerToken = 0.000001 // $1/1M tokens for Gemini Pro
-	default:
-		costPerToken = 0.000000125 // Default to Flash pricing
-	}
-	return float64(tokens) * costPerToken
-}
-
-// Close gracefully closes the Gemini client
-func (g *geminiProvider) Close() error {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	if g.client != nil {
-		return g.client.Batches.Cancel(
-			context.Background(),
-			"",
-			&genai.CancelBatchJobConfig{},
-		)
-	}
-	return nil
 }

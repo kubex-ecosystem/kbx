@@ -13,6 +13,7 @@ import (
 	kbxMod "github.com/kubex-ecosystem/kbx/internal/module/kbx"
 	kbxIs "github.com/kubex-ecosystem/kbx/is"
 	kbxTypes "github.com/kubex-ecosystem/kbx/types"
+
 	gl "github.com/kubex-ecosystem/logz"
 )
 
@@ -21,13 +22,14 @@ type Registry struct {
 	cfg *kbxTypes.LLMConfig
 }
 
+// -------------------------------- REGISTRY CONSTRUCTORS --------------------------------
+
 func NewRegistry(c *kbxTypes.LLMConfig) *Registry {
 	return &Registry{
 		cfg: c,
 	}
 }
 
-// Load creates a new registry from a YAML configuration file
 func Load(path string) (*Registry, error) {
 	path = strings.TrimSpace(filepath.Clean(strings.ToValidUTF8(path, "")))
 	if len(path) == 0 {
@@ -44,7 +46,7 @@ func Load(path string) (*Registry, error) {
 	gl.Debugf("Loading provider configuration from %s", path)
 
 	// Load or create config file with kbx method
-	rgCfg, err := kbx.LoadConfigOrDefault[kbx.LLMConfig](path, true)
+	rgCfg, err := kbx.LoadConfigOrDefault[kbxTypes.LLMConfig](path, true)
 	if err != nil {
 		gl.Errorf("Failed to load config: %v", err)
 		return nil, fmt.Errorf("failed to load provider config: %w", err)
@@ -146,6 +148,25 @@ func Load(path string) (*Registry, error) {
 	return rg, nil
 }
 
+// -------------------------------- REGISTRY GENERAL METHODS --------------------------------
+
+func (r *Registry) Config() kbxTypes.LLMConfig {
+	if r.cfg == nil {
+		gl.Warn("Provider registry config is nil. Returning empty config.")
+		return kbxTypes.LLMConfig{}
+	}
+	return *r.cfg
+}
+
+func (r *Registry) GetProviderConfig(name string) *kbxTypes.LLMProviderConfig {
+	if r.cfg != nil {
+		if pc, ok := r.cfg.Providers[name]; ok {
+			return pc
+		}
+	}
+	return nil
+}
+
 func (r *Registry) Providers() kbxTypes.LLMProvidersExtMap {
 	providers := make(map[string]kbxTypes.ProviderExt)
 	for name, pc := range r.cfg.Providers {
@@ -161,30 +182,77 @@ func (r *Registry) Providers() kbxTypes.LLMProvidersExtMap {
 	return providers
 }
 
-func (r *Registry) GetProvider(name string) kbxTypes.ProviderExt {
-	p := r.ResolveProvider(name)
-	if p == nil {
-		gl.Warnf("Provider '%s' not found in registry. Trying to recover from process history and/or config...", name)
-		if r.cfg != nil {
-			if pc, ok := r.cfg.Providers[name]; ok {
-				gl.Infof("Provider '%s' found in config. Adding to registry.", name)
-				r.cfg.Providers[name] = pc
-				return pc
+func (r *Registry) ListProviders() []string {
+	if !kbxIs.Valid(r.cfg.Providers) {
+		gl.Warn("Provider registry is empty. No providers available for listing.")
+		r.cfg.Providers = make(map[string]*kbxTypes.LLMProviderConfig)
+		cfg := r.Config()
+		if cfg.Providers != nil {
+			for name := range cfg.Providers {
+				gl.Debugf("Provider '%s' found in config during ListProviders. Adding to registry.", name)
+				r.cfg.Providers[name] = cfg.Providers[name]
 			}
+		} else {
+			gl.Warn("No providers found in config during ListProviders.")
 		}
-		gl.Warnf("Provider '%s' not found in config. Unable to recover provider.", name)
+		return []string{}
 	}
+	names := make([]string, 0, len(r.cfg.Providers))
+	for name := range r.cfg.Providers {
+		names = append(names, name)
+	}
+	return names
+}
+
+// -------------------------------- PROVIDER INTERFACE IMPLEMENTATION --------------------------------
+
+func (r *Registry) Resolve(name string) kbxTypes.Provider {
+	if len(r.cfg.Providers) == 0 {
+		r.cfg.Providers = make(map[string]*kbxTypes.LLMProviderConfig)
+	}
+	p, ok := r.cfg.Providers[name]
+	if !ok {
+		gl.Warnf("Provider '%s' found in registry but does not implement Provider interface. This provider will be unavailable for use.", name)
+		return nil
+	}
+	if p == nil {
+		gl.Warnf("Provider '%s' not found in registry.", name)
+		return nil
+	}
+	return p
+}
+
+func (r *Registry) ResolveProvider(name string) kbxTypes.ProviderExt {
+	if len(r.cfg.Providers) == 0 {
+		gl.Warnf("Provider registry is empty. No providers available for resolution.")
+		return nil
+	}
+	if p, ok := r.cfg.Providers[name]; ok {
+		return p
+	}
+	gl.Warnf("Provider '%s' not found in registry.", name)
 	return nil
 }
 
-func (r *Registry) GetProviderConfig(name string) *kbxTypes.LLMProviderConfig {
-	if r.cfg != nil {
-		if pc, ok := r.cfg.Providers[name]; ok {
-			return pc
-		}
+// -------------------------------- PROVIDER INTERFACE IMPLEMENTATION --------------------------------
+
+func (r *Registry) Chat(ctx context.Context, req kbxTypes.ChatRequest) (<-chan kbxTypes.ChatChunk, error) {
+	p := r.ResolveProvider(req.Provider)
+	if p == nil {
+		return nil, gl.Errorf("provider '%s' not found", req.Provider)
 	}
-	return nil
+	return p.Chat(ctx, req)
 }
+
+func (r *Registry) Notify(ctx context.Context, event kbxTypes.NotificationEvent) error {
+	p := r.ResolveProvider(event.Type)
+	if p == nil {
+		return gl.Errorf("provider '%s' not found", event.Type)
+	}
+	return p.Notify(ctx, event)
+}
+
+// -------------------------------- PRIVATE INTERNAL METHODS --------------------------------
 
 func (r *Registry) getEnvKeyValueWithFallback(c kbxTypes.LLMConfig, p kbxTypes.ProviderExt, fb string) string {
 	pt := r.ResolveProvider(p.Name())
@@ -222,89 +290,3 @@ func (r *Registry) getEnvKeyValueWithFallback(c kbxTypes.LLMConfig, p kbxTypes.P
 
 	return key
 }
-
-// Resolve returns a provider by name
-func (r *Registry) Resolve(name string) kbxTypes.Provider {
-	if len(r.cfg.Providers) == 0 {
-		r.cfg.Providers = make(map[string]*kbxTypes.LLMProviderConfig)
-	}
-	p, ok := r.cfg.Providers[name]
-	if !ok {
-		gl.Warnf("Provider '%s' found in registry but does not implement Provider interface. This provider will be unavailable for use.", name)
-		return nil
-	}
-	if p == nil {
-		gl.Warnf("Provider '%s' not found in registry.", name)
-		return nil
-	}
-	return p
-}
-
-// ListProviders returns all available provider names
-func (r *Registry) ListProviders() []string {
-	if !kbxIs.Valid(r.cfg.Providers) {
-		gl.Warn("Provider registry is empty. No providers available for listing.")
-		r.cfg.Providers = make(map[string]*kbxTypes.LLMProviderConfig)
-		cfg := r.GetConfig()
-		if cfg.Providers != nil {
-			for name := range cfg.Providers {
-				gl.Debugf("Provider '%s' found in config during ListProviders. Adding to registry.", name)
-				r.cfg.Providers[name] = cfg.Providers[name]
-			}
-		} else {
-			gl.Warn("No providers found in config during ListProviders.")
-		}
-		return []string{}
-	}
-	names := make([]string, 0, len(r.cfg.Providers))
-	for name := range r.cfg.Providers {
-		names = append(names, name)
-	}
-	return names
-}
-
-// GetConfig returns the provider configuration
-func (r *Registry) GetConfig() kbxTypes.LLMConfig {
-	if r.cfg == nil {
-		gl.Warn("Provider registry config is nil. Returning empty config.")
-		return kbxTypes.LLMConfig{}
-	}
-	return *r.cfg
-}
-
-func (r *Registry) ResolveProvider(name string) kbxTypes.ProviderExt {
-	if len(r.cfg.Providers) == 0 {
-		gl.Warnf("Provider registry is empty. No providers available for resolution.")
-		return nil
-	}
-	if p, ok := r.cfg.Providers[name]; ok {
-		return p
-	}
-	gl.Warnf("Provider '%s' not found in registry.", name)
-	return nil
-}
-
-func (r *Registry) Config() kbxTypes.LLMConfig {
-	if r.cfg == nil {
-		gl.Warn("Provider registry config is nil. Returning empty config.")
-		return kbxTypes.LLMConfig{}
-	}
-	return *r.cfg
-} // <- usado por /v1/providers
-
-func (r *Registry) Chat(ctx context.Context, req kbxTypes.ChatRequest) (<-chan kbxTypes.ChatChunk, error) {
-	p := r.ResolveProvider(req.Provider)
-	if p == nil {
-		return nil, gl.Errorf("provider '%s' not found", req.Provider)
-	}
-	return p.Chat(ctx, req)
-}
-func (r *Registry) Notify(ctx context.Context, event kbxTypes.NotificationEvent) error {
-	p := r.ResolveProvider(event.Type)
-	if p == nil {
-		return gl.Errorf("provider '%s' not found", event.Type)
-	}
-	return p.Notify(ctx, event)
-}
-
-// /v1/chat/completions — SSE endpoints
