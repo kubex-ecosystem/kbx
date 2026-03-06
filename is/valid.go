@@ -17,6 +17,33 @@ func LogEntry(obj any) bool {
 	return ok
 }
 
+// NilPtr checks if the given object is a nil pointer or interface
+func NilPtr(obj any) bool {
+	v := reflect.ValueOf(obj)
+	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return true
+		}
+	}
+	return false
+}
+
+// PtrOf checks if the given object is a non-nil pointer to type T.
+// The type argument is required and used to ensure a type safe execution
+func PtrOf[T any](obj any) bool {
+	v := reflect.ValueOf(obj)
+	if v.Kind() != reflect.Pointer {
+		return false
+	}
+	if v.IsNil() {
+		return false
+	}
+	if v.Elem().Type() != reflect.TypeFor[T]() {
+		return false
+	}
+	return true
+}
+
 // Valid checks if the given object is valid (not nil, not zero value, etc.)
 // This function checks like JS, Python truthy/falsy values.
 // It returns false for nil pointers, zero values, empty strings, and empty collections.
@@ -51,21 +78,6 @@ func Valid(obj any) bool {
 	}
 	if v.Kind() == reflect.Bool {
 		return true
-	}
-	return true
-}
-
-// PtrOf checks if the given object is a non-nil pointer to type T.
-func PtrOf[T any](obj any) bool {
-	v := reflect.ValueOf(obj)
-	if v.Kind() != reflect.Pointer {
-		return false
-	}
-	if v.IsNil() {
-		return false
-	}
-	if v.Elem().Type() != reflect.TypeFor[T]() {
-		return false
 	}
 	return true
 }
@@ -233,17 +245,6 @@ func Implements[T any](obj any) bool {
 		return false
 	}
 	return true
-}
-
-// NilPtr checks if the given object is a nil pointer or interface
-func NilPtr(obj any) bool {
-	v := reflect.ValueOf(obj)
-	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
-		if v.IsNil() {
-			return true
-		}
-	}
-	return false
 }
 
 // ArrayObj checks if the object o exists in the array a of type T.

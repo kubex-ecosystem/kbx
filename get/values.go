@@ -3,8 +3,6 @@
 package get
 
 import (
-	"encoding/json"
-	"os"
 	"reflect"
 
 	"github.com/kubex-ecosystem/kbx/is"
@@ -18,6 +16,26 @@ func ValueOr[T any](value T, d T) (T, reflect.Type) {
 		return d, reflect.TypeFor[T]()
 	}
 	return value, reflect.TypeFor[T]()
+}
+
+// ValOrType returns the value if it's valid,
+// otherwise returns the default value.
+func ValOrType[T any](value T, d T) T {
+	if !is.Valid(value) {
+		return d
+	}
+	return value
+}
+
+// ValueOrCb returns the default value if valid,
+// otherwise will execute the callback and validate its result
+func ValueOrCb[T *any](value *T, fn func() (*T, error)) (*T, error) {
+	if is.Valid(value) {
+		return value, nil
+	}
+	return ValueOrIf(is.Safe(fn, false), fn, func() (*T, error) {
+		return nil, gl.Errorf("")
+	})()
 }
 
 // ValErrOr executes the provided function and returns
@@ -35,34 +53,13 @@ func ValErrOr[T any](fn func() (T, error), d T) T {
 	return d
 }
 
-// ValOrType returns the value if it's valid,
-// otherwise returns the default value.
-func ValOrType[T any](value T, d T) T {
-	if !is.Valid(value) {
-		return d
+// ValueOrIf returns the value v if the expression exp is true,
+// otherwise returns the default value d.
+func ValueOrIf[T any](exp bool, v T, d T) T {
+	if exp {
+		return v
 	}
-	return value
-}
-
-// EnvOrType retrieves an environment variable by key and attempts to convert it to the specified type T.
-// If the environment variable is not set or conversion fails, it returns the default value.
-func EnvOrType[T any](key string, d T) T {
-	value := os.Getenv(key)
-	// Sempre vem texto da env
-	if len(value) == 0 {
-		return d
-	}
-	if reflect.ValueOf(value).CanConvert(reflect.TypeFor[T]()) {
-		return reflect.ValueOf(value).Convert(reflect.TypeFor[T]()).Interface().(T)
-	}
-	var result T
-	if err := json.Unmarshal([]byte(value), &result); err != nil {
-		return d
-	}
-	if is.Safe(result, false) {
-		return result
-	}
-	return result
+	return d
 }
 
 // ValOrAny returns the value if it's valid, otherwise returns the default value.
@@ -89,15 +86,6 @@ func FileExt(filePath string) string {
 		}
 	}
 	return ext
-}
-
-// ValueOrIf returns the value v if the expression exp is true,
-// otherwise returns the default value d.
-func ValueOrIf[T any](exp bool, v T, d T) T {
-	if exp {
-		return v
-	}
-	return d
 }
 
 // ValIfOk returns the received pointer to value v if the expression exp is true,

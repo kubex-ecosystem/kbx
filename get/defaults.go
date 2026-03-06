@@ -2,21 +2,10 @@
 package get
 
 import (
-	"os"
 	"reflect"
 
 	gl "github.com/kubex-ecosystem/logz"
 )
-
-// EnvOr retrieves the value of the environment variable named by the key.
-// If the variable is empty or not set, it returns the provided default value d.
-func EnvOr(key, d string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return d
-	}
-	return value
-}
 
 // Integer pointer helper functions - Convenience wrappers around generic Ptr function with type conversion
 
