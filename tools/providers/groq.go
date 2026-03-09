@@ -304,7 +304,7 @@ func (p *groqProvider) Chat(ctx context.Context, req providers.ChatRequest) (<-c
 
 		// Log completion with speed info
 		tokensPerSecond := float64(totalTokens) / (float64(latencyMs) / 1000.0)
-		gl.Log("info", "⚡ Groq Model: %s, Tokens: %d, Duration: %v, Speed: %.1f tok/s",
+		gl.Infof("⚡ Groq Model: %s, Tokens: %d, Duration: %v, Speed: %.1f tok/s",
 			model, totalTokens, time.Since(startTime), tokensPerSecond)
 	}()
 
