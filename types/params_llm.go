@@ -623,14 +623,20 @@ func getDefaultLLMConfigPath() string {
 }
 
 func getLLMProviderByName(cfg *LLMConfig, name string) (ProviderExt, error) {
-	if cfg.Providers == nil {
-		cfg.Providers = make(map[string]*LLMProviderConfig)
+	loadedCfg, err := getLLMConfig(cfg)
+	if err != nil {
+		return nil, err
 	}
-	if p, ok := cfg.Providers[name]; ok && p != nil {
+	if loadedCfg == nil {
+		return nil, gl.Errorf("provider config is not available")
+	}
+	if loadedCfg.Providers == nil {
+		loadedCfg.Providers = make(map[string]*LLMProviderConfig)
+	}
+	if p, ok := loadedCfg.Providers[name]; ok && p != nil {
 		return p, nil
-	} else {
-		return nil, gl.Errorf("provider with name '%s' not found in configuration", name)
 	}
+	return nil, gl.Errorf("provider with name '%s' not found in configuration", name)
 }
 
 func loadLLMConfigFromFile(path string) (LLMConfig, error) {

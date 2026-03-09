@@ -47,11 +47,12 @@ func NewGeminiProvider(name, baseURL, key, model string) (providers.ProviderExt,
 	}
 
 	return &geminiProvider{
-		name:         name,
-		apiKey:       key,
-		defaultModel: model,
-		baseURL:      baseURL,
-		client:       client,
+		LLMProviderConfig: *providers.NewLLMProviderConfigType(name, baseURL, "GEMINI_API_KEY", model),
+		name:              name,
+		apiKey:            key,
+		defaultModel:      model,
+		baseURL:           baseURL,
+		client:            client,
 	}, nil
 }
 

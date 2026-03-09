@@ -36,10 +36,11 @@ func NewOpenAIProvider(name, baseURL, key, model string) (providers.ProviderExt,
 	}
 
 	return &openaiProvider{
-		name:         name,
-		baseURL:      baseURL,
-		apiKey:       key,
-		defaultModel: model,
+		LLMProviderConfig: *providers.NewLLMProviderConfigType(name, baseURL, "OPENAI_API_KEY", model),
+		name:              name,
+		baseURL:           baseURL,
+		apiKey:            key,
+		defaultModel:      model,
 		client: &http.Client{
 			Timeout: 30 * time.Second,
 		},

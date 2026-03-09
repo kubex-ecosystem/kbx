@@ -41,10 +41,11 @@ func NewGroqProvider(name, baseURL, key, model string) (providers.ProviderExt, e
 	}
 
 	return &groqProvider{
-		name:         name,
-		apiKey:       key,
-		defaultModel: model,
-		baseURL:      baseURL,
+		LLMProviderConfig: *providers.NewLLMProviderConfigType(name, baseURL, "GROQ_API_KEY", model),
+		name:              name,
+		apiKey:            key,
+		defaultModel:      model,
+		baseURL:           baseURL,
 		client: &http.Client{
 			Timeout: time.Minute * 2, // Groq is so fast we can use shorter timeout
 		},

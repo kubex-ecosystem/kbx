@@ -6,144 +6,56 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	kbx "github.com/kubex-ecosystem/kbx"
-	kbxGet "github.com/kubex-ecosystem/kbx/get"
 	kbxMod "github.com/kubex-ecosystem/kbx/internal/module/kbx"
-	kbxIs "github.com/kubex-ecosystem/kbx/is"
 	kbxTypes "github.com/kubex-ecosystem/kbx/types"
 
 	gl "github.com/kubex-ecosystem/logz"
 )
 
-// Registry manages provider registration and resolution
+// Registry manages provider registration, configuration, and runtime resolution.
 type Registry struct {
-	cfg *kbxTypes.LLMConfig
+	cfg       *kbxTypes.LLMConfig
+	providers map[string]kbxTypes.ProviderExt
 }
 
 // -------------------------------- REGISTRY CONSTRUCTORS --------------------------------
 
 func NewRegistry(c *kbxTypes.LLMConfig) *Registry {
+	cfg := c
+	if cfg == nil {
+		defaultCfg := kbxTypes.NewLLMConfigDefault()
+		cfg = &defaultCfg
+	}
+	if cfg.Providers == nil {
+		cfg.Providers = make(kbxTypes.LLMProvidersMap)
+	}
 	return &Registry{
-		cfg: c,
+		cfg:       cfg,
+		providers: make(map[string]kbxTypes.ProviderExt, len(cfg.Providers)),
 	}
 }
 
 func Load(path string) (*Registry, error) {
 	path = strings.TrimSpace(filepath.Clean(strings.ToValidUTF8(path, "")))
-	if len(path) == 0 {
-		gl.Warn("No provider config path specified. AI services will be unavailable.")
-		return nil, nil
-	}
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		gl.Warnf("Provider config file not found at %s. AI services will be unavailable.", path)
-		return nil, nil
-	} else if err != nil {
-		return nil, gl.Errorf("error checking provider config file at %s: %v", path, err)
+	if path == "" {
+		return nil, gl.Errorf("provider config path cannot be empty")
 	}
 
 	gl.Debugf("Loading provider configuration from %s", path)
 
-	// Load or create config file with kbx method
-	rgCfg, err := kbx.LoadConfigOrDefault[kbxTypes.LLMConfig](path, true)
+	loadedCfg, err := kbx.LoadConfigOrDefault[kbxTypes.LLMConfig](path, true)
 	if err != nil {
 		gl.Errorf("Failed to load config: %v", err)
 		return nil, fmt.Errorf("failed to load provider config: %w", err)
-	} else if rgCfg == nil {
-		gl.Noticef("No config file found, proceeding with default auto-generated config at %s", path)
-		rgCfg = kbx.NewLLMConfig()
-	}
-	rg := &Registry{
-		cfg: rgCfg,
 	}
 
-	// Initialize providers based on configuration
-	for name, pc := range rg.cfg.Providers {
-		cmiMap, err := pc.ModelInfo(context.Background())
-		if err != nil {
-			gl.Warnf("Failed to get model info for provider '%s': %v. Using default model from config.", name, err)
-		}
-		cmiStrName := cmiMap["name"].(string)
-		if cmiStrName != "" {
-			gl.Debugf("Provider '%s' model info: %v", name, cmiMap)
-		} else {
-			gl.Debugf("Provider '%s' does not have model info available. Using default model from config.", name)
-		}
-
-		var providerConstructor func(name, baseURL, key, model string) (kbxTypes.ProviderExt, error)
-		tp := strings.ToLower(pc.Type())
-		key := os.ExpandEnv(kbxGet.EnvOr(pc.KeyRef(), kbxGet.ValueOrIf(kbxIs.Map[string](rg.cfg.Providers[name].KeyRef()), kbxGet.EnvOr(rg.cfg.Providers[name].KeyRef(), ""), "")))
-
-		switch tp {
-		case "openai":
-			lKey := kbxGet.EnvOr(
-				kbxGet.EnvOr(strings.ToUpper(name)+"_API_KEY", ""), // Se não achar nada de jeito nenhum até aqui, tenta buscar pela variável de ambiente genérica GEMINI_API_KEY (para compatibilidade com versões anteriores ou configuração sem especificar KeyEnv)
-				kbxMod.DefaultLLMOpenAIKeyEnv,                      // Por fim, tenta buscar pela variável de ambiente padrão para o kubex, definida no módulo kbx e documentada, padronizada em todo ecossistema para fins de fallback e resiliência (ex: KUBEX_GNYX_GEMINI_KEY)
-			)
-			key := rg.getEnvKeyValueWithFallback(*rg.cfg, pc, lKey)
-			if key == "" {
-				gl.Log("warning", fmt.Sprintf("Skipping OpenAI provider '%s' - no API key found in %s", name, pc.KeyRef()))
-				continue
-			}
-			providerConstructor = NewOpenAIProvider
-		case "gemini":
-			lKey := kbxGet.EnvOr(
-				kbxGet.EnvOr(strings.ToUpper(name)+"_API_KEY", ""), // Se não achar nada de jeito nenhum até aqui, tenta buscar pela variável de ambiente genérica GEMINI_API_KEY (para compatibilidade com versões anteriores ou configuração sem especificar KeyEnv)
-				kbxMod.DefaultLLMGeminiKeyEnv,                      // Por fim, tenta buscar pela variável de ambiente padrão para o kubex, definida no módulo kbx e documentada, padronizada em todo ecossistema para fins de fallback e resiliência (ex: KUBEX_GNYX_GEMINI_KEY)
-			)
-			key := rg.getEnvKeyValueWithFallback(*rg.cfg, pc, lKey)
-			if key == "" {
-				gl.Log("warning", fmt.Sprintf("Skipping Gemini provider '%s' - no API key found in %s", name, pc.KeyRef()))
-				continue
-			}
-			providerConstructor = NewGeminiProvider
-		case "anthropic":
-			lKey := kbxGet.EnvOr(
-				kbxGet.EnvOr(strings.ToUpper(name)+"_API_KEY", ""), // Se não achar nada de jeito nenhum até aqui, tenta buscar pela variável de ambiente genérica ANTHROPIC_API_KEY (para compatibilidade com versões anteriores ou configuração sem especificar KeyEnv)
-				kbxMod.DefaultLLMAnthropicKeyEnv,                   // Por fim, tenta buscar pela variável de ambiente padrão para o kubex, definida no módulo kbx e documentada, padronizada em todo ecossistema para fins de fallback e resiliência (ex: KUBEX_GNYX_ANTHROPIC_KEY)
-			)
-			key := rg.getEnvKeyValueWithFallback(*rg.cfg, pc, lKey)
-			if key == "" {
-				gl.Log("warning", fmt.Sprintf("Skipping Anthropic provider '%s' - no API key found in %s", name, pc.KeyRef()))
-				continue
-			}
-			providerConstructor = NewAnthropicProvider
-		case "groq":
-			lKey := kbxGet.EnvOr(
-				kbxGet.EnvOr(strings.ToUpper(name)+"_API_KEY", ""), // Se não achar nada de jeito nenhum até aqui, tenta buscar pela variável de ambiente genérica GROQ_API_KEY (para compatibilidade com versões anteriores ou configuração sem especificar KeyEnv)
-				kbxMod.DefaultLLMGroqKeyEnv,                        // Por fim, tenta buscar pela variável de ambiente padrão para o kubex, definida no módulo kbx e documentada, padronizada em todo ecossistema para fins de fallback e resiliência (ex: KUBEX_GNYX_GROQ_KEY)
-			)
-			key := rg.getEnvKeyValueWithFallback(*rg.cfg, pc, lKey)
-			if key == "" {
-				gl.Log("warning", fmt.Sprintf("Skipping Groq provider '%s' - no API key found in %s", name, pc.KeyRef()))
-				continue
-			}
-			providerConstructor = NewGroqProvider
-		case "openrouter":
-			// TODO: Implement OpenRouter provider
-			return nil, gl.Errorf("openrouter provider not yet implemented")
-		case "ollama":
-			// TODO: Implement Ollama provider
-			return nil, gl.Errorf("ollama provider not yet implemented")
-		default:
-			gl.Errorf("unknown provider type: %s", tp)
-			continue
-		}
-
-		p, err := providerConstructor(name, pc.URLBase(), key, cmiStrName)
-		if err != nil {
-			gl.Warnf("Failed to initialize provider '%s': %v. This provider will be unavailable for use.", name, err)
-			continue
-		}
-		nPrv, ok := p.(*kbxTypes.LLMProviderConfig)
-		if !ok {
-			gl.Warnf("Failed to assert provider '%s' to *kbxTypes.LLMProviderConfig", name)
-			continue
-		}
-
-		rg.cfg.Providers[name] = nPrv
-	}
+	cfg := buildRuntimeConfig(path, loadedCfg)
+	rg := NewRegistry(&cfg)
+	rg.instantiateProviders()
 
 	return rg, nil
 }
@@ -151,90 +63,58 @@ func Load(path string) (*Registry, error) {
 // -------------------------------- REGISTRY GENERAL METHODS --------------------------------
 
 func (r *Registry) Config() kbxTypes.LLMConfig {
-	if r.cfg == nil {
-		gl.Warn("Provider registry config is nil. Returning empty config.")
-		return kbxTypes.LLMConfig{}
+	if r == nil || r.cfg == nil {
+		gl.Warn("Provider registry config is nil. Returning default config.")
+		return kbxTypes.NewLLMConfigDefault()
 	}
 	return *r.cfg
 }
 
 func (r *Registry) GetProviderConfig(name string) *kbxTypes.LLMProviderConfig {
-	if r.cfg != nil {
-		if pc, ok := r.cfg.Providers[name]; ok {
-			return pc
-		}
+	if r == nil || r.cfg == nil || r.cfg.Providers == nil {
+		return nil
 	}
-	return nil
+	return r.cfg.Providers[normalizeProviderName(name)]
 }
 
 func (r *Registry) Providers() kbxTypes.LLMProvidersExtMap {
-	providers := make(map[string]kbxTypes.ProviderExt)
-	for name, pc := range r.cfg.Providers {
-		p := r.ResolveProvider(name)
-		if p != nil {
-			providers[name] = p
-		} else if pc != nil {
-			providers[name] = pc
-		} else {
-			gl.Warnf("Provider '%s' not found in registry and failed to load from config. This provider will be unavailable for use.", name)
-		}
+	providers := make(map[string]kbxTypes.ProviderExt, len(r.providers))
+	for name, provider := range r.providers {
+		providers[name] = provider
 	}
 	return providers
 }
 
 func (r *Registry) ListProviders() []string {
-	if !kbxIs.Valid(r.cfg.Providers) {
-		gl.Warn("Provider registry is empty. No providers available for listing.")
-		r.cfg.Providers = make(map[string]*kbxTypes.LLMProviderConfig)
-		cfg := r.Config()
-		if cfg.Providers != nil {
-			for name := range cfg.Providers {
-				gl.Debugf("Provider '%s' found in config during ListProviders. Adding to registry.", name)
-				r.cfg.Providers[name] = cfg.Providers[name]
-			}
-		} else {
-			gl.Warn("No providers found in config during ListProviders.")
-		}
+	if r == nil || len(r.providers) == 0 {
 		return []string{}
 	}
-	names := make([]string, 0, len(r.cfg.Providers))
-	for name := range r.cfg.Providers {
+	names := make([]string, 0, len(r.providers))
+	for name := range r.providers {
 		names = append(names, name)
 	}
+	sort.Strings(names)
 	return names
 }
 
 // -------------------------------- PROVIDER INTERFACE IMPLEMENTATION --------------------------------
 
 func (r *Registry) Resolve(name string) kbxTypes.Provider {
-	if len(r.cfg.Providers) == 0 {
-		r.cfg.Providers = make(map[string]*kbxTypes.LLMProviderConfig)
-	}
-	p, ok := r.cfg.Providers[name]
-	if !ok {
-		gl.Warnf("Provider '%s' found in registry but does not implement Provider interface. This provider will be unavailable for use.", name)
-		return nil
-	}
-	if p == nil {
-		gl.Warnf("Provider '%s' not found in registry.", name)
-		return nil
-	}
-	return p
+	return r.ResolveProvider(name)
 }
 
 func (r *Registry) ResolveProvider(name string) kbxTypes.ProviderExt {
-	if len(r.cfg.Providers) == 0 {
-		gl.Warnf("Provider registry is empty. No providers available for resolution.")
+	if r == nil || len(r.providers) == 0 {
+		gl.Warn("Provider registry is empty. No providers available for resolution.")
 		return nil
 	}
-	if p, ok := r.cfg.Providers[name]; ok {
-		return p
+	provider, ok := r.providers[normalizeProviderName(name)]
+	if !ok {
+		gl.Warnf("Provider '%s' not found in registry.", name)
+		return nil
 	}
-	gl.Warnf("Provider '%s' not found in registry.", name)
-	return nil
+	return provider
 }
-
-// -------------------------------- PROVIDER INTERFACE IMPLEMENTATION --------------------------------
 
 func (r *Registry) Chat(ctx context.Context, req kbxTypes.ChatRequest) (<-chan kbxTypes.ChatChunk, error) {
 	p := r.ResolveProvider(req.Provider)
@@ -254,39 +134,210 @@ func (r *Registry) Notify(ctx context.Context, event kbxTypes.NotificationEvent)
 
 // -------------------------------- PRIVATE INTERNAL METHODS --------------------------------
 
-func (r *Registry) getEnvKeyValueWithFallback(c kbxTypes.LLMConfig, p kbxTypes.ProviderExt, fb string) string {
-	pt := r.ResolveProvider(p.Name())
-	pp, ok := pt.(*kbxTypes.LLMProviderConfig)
-	if !ok {
-		gl.Warnf("Provider '%s' does not have a valid LLMProviderConfig, cannot resolve API key with fallback logic", p.Name())
-		return fb
+func (r *Registry) instantiateProviders() {
+	if r == nil || r.cfg == nil {
+		return
+	}
+	if r.providers == nil {
+		r.providers = make(map[string]kbxTypes.ProviderExt)
 	}
 
-	lKey := kbxGet.EnvOr(
-		pp.KeyRef(), // Busca pela variável de ambiente específica do provider (Ex: GEMINI_API_KEY)
-		kbxGet.ValueOrIf(
-			kbxIs.Map[string](c.Providers[p.Name()].KeyRef()), // Verifica se a chave do provider é um mapa (para múltiplas chaves por provider) e se o valor tem o tipo correto caso ele exista
-			kbxGet.EnvOr(
-				c.Providers[p.Name()].KeyRef(), // Se passar no teste do mapa anterior, tenta buscar a variável de ambiente usando o valor do campo KeyEnv do provider (ex: GEMINI_API_KEY_1)
-				kbxGet.ValOrType(fb, ""),       // Se não for um mapa ou tiver tipo errado, usa o valor lido anteriormente (que já considera o fallback para a variável de ambiente genérica)
-			),
-			kbxGet.ValOrType(fb, ""), // Se não for um mapa ou tiver tipo errado, usa o valor lido anteriormente (que já considera o fallback para a variável de ambiente genérica)
-		),
-	)
+	for name, pc := range r.cfg.Providers {
+		providerType := normalizeProviderType(name, pc)
+		constructor, ok := providerConstructors[providerType]
+		if !ok {
+			gl.Warnf("Skipping provider '%s' - unsupported type '%s'", name, providerType)
+			continue
+		}
 
-	key := os.ExpandEnv(
-		kbxGet.EnvOr(
-			p.KeyRef(), // Busca pela variável de ambiente específica do provider (Ex: GEMINI_API_KEY)
-			kbxGet.ValueOrIf(
-				kbxIs.Map[string](p), // Verifica se a chave do provider é um mapa (para múltiplas chaves por provider) e se o valor tem o tipo correto caso ele exista
-				kbxGet.EnvOr(
-					p.KeyRef(),                 // Se passar no teste do mapa anterior, tenta buscar a variável de ambiente usando o valor do campo KeyEnv do provider (ex: GEMINI_API_KEY_1)
-					kbxGet.ValOrType(lKey, ""), // Se não for um mapa ou tiver tipo errado, usa o valor lido anteriormente (que já considera o fallback para a variável de ambiente genérica)
-				),
-				kbxGet.ValOrType(lKey, ""), // Se não for um mapa ou tiver tipo errado, usa o valor lido anteriormente (que já considera o fallback para a variável de ambiente genérica)
-			),
-		),
-	)
+		key := resolveAPIKey(name, pc)
+		if key == "" {
+			gl.Warnf("Skipping provider '%s' - no API key found in %s", name, pc.KeyEnv)
+			continue
+		}
 
-	return key
+		provider, err := constructor(name, strings.TrimSpace(pc.BaseURL), key, strings.TrimSpace(pc.DefaultModel))
+		if err != nil {
+			gl.Warnf("Failed to initialize provider '%s': %v. This provider will be unavailable for use.", name, err)
+			continue
+		}
+
+		r.providers[name] = provider
+
+		if info, err := provider.ModelInfo(context.Background()); err == nil {
+			if modelName, _ := info["name"].(string); modelName != "" {
+				gl.Debugf("Provider '%s' model info: %v", name, info)
+			}
+		}
+	}
+}
+
+var providerConstructors = map[string]func(name, baseURL, key, model string) (kbxTypes.ProviderExt, error){
+	"openai":    NewOpenAIProvider,
+	"gemini":    NewGeminiProvider,
+	"anthropic": NewAnthropicProvider,
+	"groq":      NewGroqProvider,
+}
+
+func buildRuntimeConfig(path string, loaded *kbxTypes.LLMConfig) kbxTypes.LLMConfig {
+	cfg := kbxTypes.NewLLMConfigDefault()
+	cfg.FilePath = path
+
+	if loaded == nil {
+		return cfg
+	}
+
+	if loaded.Name != "" {
+		cfg.GlobalRef = loaded.GlobalRef
+	}
+	cfg.Development = loaded.Development
+	if loaded.ProviderProduction != nil {
+		cfg.ProviderProduction = loaded.ProviderProduction
+	}
+	cfg.Security = loaded.Security
+	cfg.Monitoring = loaded.Monitoring
+	if loaded.Repository != "" {
+		cfg.Repository = loaded.Repository
+	}
+	if loaded.Version != "" {
+		cfg.Version = loaded.Version
+	}
+	if len(loaded.Authors) > 0 {
+		cfg.Authors = loaded.Authors
+	}
+	if loaded.License != "" {
+		cfg.License = loaded.License
+	}
+
+	if len(loaded.Providers) > 0 {
+		cfg.Providers = make(kbxTypes.LLMProvidersMap, len(loaded.Providers))
+		for rawName, providerCfg := range loaded.Providers {
+			name := normalizeProviderName(rawName)
+			cfg.Providers[name] = normalizeProviderConfig(name, providerCfg, cfg.Providers[name])
+		}
+	}
+
+	return cfg
+}
+
+func normalizeProviderConfig(name string, providerCfg *kbxTypes.LLMProviderConfig, fallback *kbxTypes.LLMProviderConfig) *kbxTypes.LLMProviderConfig {
+	baseURL := ""
+	keyEnv := ""
+	defaultModel := ""
+
+	if fallback != nil {
+		baseURL = strings.TrimSpace(fallback.BaseURL)
+		keyEnv = strings.TrimSpace(fallback.KeyEnv)
+		defaultModel = strings.TrimSpace(fallback.DefaultModel)
+	}
+	if providerCfg != nil {
+		if strings.TrimSpace(providerCfg.BaseURL) != "" {
+			baseURL = strings.TrimSpace(providerCfg.BaseURL)
+		}
+		if strings.TrimSpace(providerCfg.KeyEnv) != "" {
+			keyEnv = strings.TrimSpace(providerCfg.KeyEnv)
+		}
+		if strings.TrimSpace(providerCfg.DefaultModel) != "" {
+			defaultModel = strings.TrimSpace(providerCfg.DefaultModel)
+		}
+	}
+
+	return kbxTypes.NewLLMProviderConfigType(name, baseURL, keyEnv, defaultModel)
+}
+
+func normalizeProviderName(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
+}
+
+func normalizeProviderType(name string, providerCfg *kbxTypes.LLMProviderConfig) string {
+	if providerCfg == nil {
+		return normalizeProviderName(name)
+	}
+	if providerType := strings.TrimSpace(providerCfg.Type()); providerType != "" {
+		return strings.ToLower(providerType)
+	}
+	return normalizeProviderName(name)
+}
+
+func resolveAPIKey(name string, providerCfg *kbxTypes.LLMProviderConfig) string {
+	for _, candidate := range apiKeyCandidates(name, providerCfg) {
+		if value := resolveCandidateValue(candidate); value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func apiKeyCandidates(name string, providerCfg *kbxTypes.LLMProviderConfig) []string {
+	candidates := []string{}
+	appendCandidate := func(value string) {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			return
+		}
+		for _, existing := range candidates {
+			if existing == value {
+				return
+			}
+		}
+		candidates = append(candidates, value)
+	}
+
+	if providerCfg != nil {
+		appendCandidate(providerCfg.KeyEnv)
+	}
+	appendCandidate(strings.ToUpper(normalizeProviderName(name)) + "_API_KEY")
+	appendCandidate(defaultKeyEnv(normalizeProviderType(name, providerCfg)))
+
+	return candidates
+}
+
+func resolveCandidateValue(candidate string) string {
+	candidate = strings.TrimSpace(candidate)
+	if candidate == "" {
+		return ""
+	}
+
+	if expanded := strings.TrimSpace(os.ExpandEnv(candidate)); expanded != "" && expanded != candidate {
+		return expanded
+	}
+	if value := strings.TrimSpace(os.Getenv(candidate)); value != "" {
+		return value
+	}
+	if !looksLikeEnvName(candidate) {
+		return candidate
+	}
+
+	return ""
+}
+
+func looksLikeEnvName(value string) bool {
+	if value == "" {
+		return false
+	}
+	for _, r := range value {
+		switch {
+		case r >= 'A' && r <= 'Z':
+		case r >= '0' && r <= '9':
+		case r == '_':
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+func defaultKeyEnv(providerType string) string {
+	switch strings.ToLower(strings.TrimSpace(providerType)) {
+	case "openai":
+		return kbxMod.DefaultLLMOpenAIKeyEnv
+	case "gemini":
+		return kbxMod.DefaultLLMGeminiKeyEnv
+	case "anthropic":
+		return kbxMod.DefaultLLMAnthropicKeyEnv
+	case "groq":
+		return kbxMod.DefaultLLMGroqKeyEnv
+	default:
+		return ""
+	}
 }
