@@ -128,6 +128,7 @@ func (g *geminiProvider) Chat(ctx context.Context, req providers.ChatRequest) (<
 	}
 
 	ch := make(chan providers.ChatChunk, 8)
+	inputText := collectGeminiContentText(contents)
 
 	// Inicia a goroutine para gerenciar o streaming
 	go func() {
@@ -137,6 +138,8 @@ func (g *geminiProvider) Chat(ctx context.Context, req providers.ChatRequest) (<
 		// Chamada CORRIGIDA: Usa o iterador do GenerateContentStream
 		iter := g.client.Models.GenerateContentStream(ctx, modelName, contents, config)
 
+		promptTokens := 0
+		completionTokens := 0
 		totalTokens := 0
 		var fullContent strings.Builder
 
@@ -167,23 +170,33 @@ func (g *geminiProvider) Chat(ctx context.Context, req providers.ChatRequest) (<
 
 			// Extrair metadados de uso (podem vir em qualquer chunk)
 			if resp.UsageMetadata != nil {
-				totalTokens = int(resp.UsageMetadata.PromptTokenCount + resp.UsageMetadata.CandidatesTokenCount)
+				promptTokens = int(resp.UsageMetadata.PromptTokenCount)
+				completionTokens = int(resp.UsageMetadata.CandidatesTokenCount)
+				totalTokens = promptTokens + completionTokens
 			}
 		}
 
 		// Enviar chunk final com métricas
+		if promptTokens == 0 {
+			promptTokens = g.estimateTokens(inputText)
+		}
+		if completionTokens == 0 {
+			completionTokens = g.estimateTokens(fullContent.String())
+		}
 		if totalTokens == 0 {
-			totalTokens = g.estimateTokens(fullContent.String())
+			totalTokens = promptTokens + completionTokens
 		}
 		latencyMs := time.Since(startTime).Milliseconds()
 		ch <- providers.ChatChunk{
 			Done: true,
 			Usage: &providers.Usage{
-				Tokens:   totalTokens,
-				Ms:       latencyMs,
-				CostUSD:  g.estimateCost(modelName, totalTokens),
-				Provider: g.name,
-				Model:    modelName,
+				Completion: completionTokens,
+				Prompt:     promptTokens,
+				Tokens:     totalTokens,
+				Ms:         latencyMs,
+				CostUSD:    g.estimateCost(modelName, totalTokens),
+				Provider:   g.name,
+				Model:      modelName,
 			},
 		}
 	}()
@@ -245,6 +258,29 @@ Analyze thoroughly and provide valuable insights.`, analysisType, language, proj
 func (g *geminiProvider) estimateTokens(text string) int {
 	// Rough estimation: ~4 characters per token
 	return len(text) / 4
+}
+
+func collectGeminiContentText(contents []*genai.Content) string {
+	var builder strings.Builder
+	for _, content := range contents {
+		if content == nil {
+			continue
+		}
+		for _, part := range content.Parts {
+			if part == nil {
+				continue
+			}
+			text := strings.TrimSpace(string(part.Text))
+			if text == "" {
+				continue
+			}
+			if builder.Len() > 0 {
+				builder.WriteString("\n")
+			}
+			builder.WriteString(text)
+		}
+	}
+	return builder.String()
 }
 
 // estimateCost provides cost estimation for Gemini models
