@@ -483,7 +483,7 @@ var defaultFactories = map[reflect.Type]func() any{
 	reflect.TypeFor[LogzConfig]():            func() any { return NewLogzParams() },
 	reflect.TypeFor[SrvConfig]():             func() any { return NewSrvArgs() },
 	reflect.TypeFor[MManifest]():             func() any { return NewManifestType() },
-	reflect.TypeFor[LLMConfig]():             func() any { return NewLLMConfig() },
+	reflect.TypeFor[LLMConfig]():             func() any { return NewLLMConfigDefaultValues() },
 	reflect.TypeFor[LLMProviderConfig]():     func() any { return NewLLMProviderConfig() },
 	reflect.TypeFor[LLMDevelopmentConfig]():  func() any { return NewLLMDevelopmentConfig() },
 	reflect.TypeFor[VendorAuthConfig]():      func() any { return NewVendorAuthConfig("") },

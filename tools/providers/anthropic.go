@@ -41,10 +41,11 @@ func NewAnthropicProvider(name, baseURL, key, model string) (providers.ProviderE
 	}
 
 	return &anthropicProvider{
-		name:         name,
-		apiKey:       key,
-		defaultModel: model,
-		baseURL:      baseURL,
+		LLMProviderConfig: *providers.NewLLMProviderConfigType(name, baseURL, "ANTHROPIC_API_KEY", model),
+		name:              name,
+		apiKey:            key,
+		defaultModel:      model,
+		baseURL:           baseURL,
 		client: &http.Client{
 			Timeout: time.Minute * 5,
 		},

@@ -41,10 +41,11 @@ func NewGroqProvider(name, baseURL, key, model string) (providers.ProviderExt, e
 	}
 
 	return &groqProvider{
-		name:         name,
-		apiKey:       key,
-		defaultModel: model,
-		baseURL:      baseURL,
+		LLMProviderConfig: *providers.NewLLMProviderConfigType(name, baseURL, "GROQ_API_KEY", model),
+		name:              name,
+		apiKey:            key,
+		defaultModel:      model,
+		baseURL:           baseURL,
 		client: &http.Client{
 			Timeout: time.Minute * 2, // Groq is so fast we can use shorter timeout
 		},
@@ -303,7 +304,7 @@ func (p *groqProvider) Chat(ctx context.Context, req providers.ChatRequest) (<-c
 
 		// Log completion with speed info
 		tokensPerSecond := float64(totalTokens) / (float64(latencyMs) / 1000.0)
-		gl.Log("info", "⚡ Groq Model: %s, Tokens: %d, Duration: %v, Speed: %.1f tok/s",
+		gl.Infof("⚡ Groq Model: %s, Tokens: %d, Duration: %v, Speed: %.1f tok/s",
 			model, totalTokens, time.Since(startTime), tokensPerSecond)
 	}()
 
