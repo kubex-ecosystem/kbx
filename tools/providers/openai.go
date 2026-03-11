@@ -67,7 +67,7 @@ func (o *openaiProvider) Chat(ctx context.Context, req providers.ChatRequest) (<
 		model = o.defaultModel
 	}
 
-	body := map[string]interface{}{
+	body := map[string]any{
 		"model":       model,
 		"messages":    toOpenAIMessages(req.Messages),
 		"temperature": req.Temp,

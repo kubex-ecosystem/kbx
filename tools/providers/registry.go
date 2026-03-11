@@ -3,7 +3,6 @@ package registry
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -50,7 +49,7 @@ func Load(path string) (*Registry, error) {
 	loadedCfg, err := kbx.LoadConfigOrDefault[kbxTypes.LLMConfig](path, true)
 	if err != nil {
 		gl.Errorf("Failed to load config: %v", err)
-		return nil, fmt.Errorf("failed to load provider config: %w", err)
+		return nil, gl.Errorf("failed to load provider config: %w", err)
 	}
 
 	cfg := buildRuntimeConfig(path, loadedCfg)
