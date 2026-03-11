@@ -1,453 +1,190 @@
 # Kbx
 
-Kbx is the shared utility and infrastructure toolkit of the Kubex ecosystem.
+English version: [../README.md](../README.md)
 
-It is used as a Go library first, and as a small executable/tooling surface second. Its job is to provide reusable building blocks that should not live inside a single product repository: configuration loading, runtime defaults, mail utilities, security helpers, lightweight concurrency primitives, manifest handling, and the provider registry used for multi-LLM execution.
+## Sumário
 
-Today, Kbx is already part of the real runtime path for projects such as `GNyx` and `Domus`. It is not documentation-only scaffolding, and it is not just a bag of helpers. It is shared infrastructure code with active blast radius across multiple repositories.
-
-> Current posture: real and useful, but heterogeneous. Some modules are mature and operationally relevant right now, while others are still more like toolkit surface, compatibility code, or planned CLI expansion.
-
-## Table of Contents
-
-- [What Kbx Is](#what-kbx-is)
-- [Current Product Scope](#current-product-scope)
-- [Current Operational Status](#current-operational-status)
-- [Core Capabilities](#core-capabilities)
-- [Architecture Overview](#architecture-overview)
-- [Repository Layout](#repository-layout)
-- [Library-First Design](#library-first-design)
-- [Configuration and Runtime Conventions](#configuration-and-runtime-conventions)
-- [LLM Provider Registry](#llm-provider-registry)
-- [Mail and IMAP Utilities](#mail-and-imap-utilities)
-- [Security and Secret Handling](#security-and-secret-handling)
-- [CLI Surface](#cli-surface)
-- [Using Kbx as a Go Dependency](#using-kbx-as-a-go-dependency)
-- [Ecosystem Role](#ecosystem-role)
-- [Current Limitations](#current-limitations)
-- [Roadmap Direction](#roadmap-direction)
+- [Visão Geral](#visão-geral)
+- [Escopo Atual do Produto](#escopo-atual-do-produto)
+- [Estado Operacional Atual](#estado-operacional-atual)
+- [Capacidades Principais](#capacidades-principais)
+- [Visão Geral da Arquitetura](#visão-geral-da-arquitetura)
+- [Estrutura do Repositório](#estrutura-do-repositório)
+- [Design Library-First](#design-library-first)
+- [Convenções de Configuração e Runtime](#convenções-de-configuração-e-runtime)
+- [Registry de Providers LLM](#registry-de-providers-llm)
+- [Utilitários de Mail e IMAP](#utilitários-de-mail-e-imap)
+- [Segurança e Tratamento de Secrets](#segurança-e-tratamento-de-secrets)
+- [Superfície de CLI](#superfície-de-cli)
+- [Papel no Ecossistema](#papel-no-ecossistema)
+- [Limitações Atuais](#limitações-atuais)
 - [Screenshots](#screenshots)
-- [License](#license)
 
-## What Kbx Is
+## Visão Geral
 
-Kbx is the common toolbox layer for Kubex applications.
+`Kbx` é o toolkit de infraestrutura compartilhada do ecossistema Kubex.
 
-In practical terms, it currently serves as:
+Ele é usado primeiro como biblioteca Go e depois como superfície de CLI/tooling.
 
-1. a shared configuration and defaults layer
-2. a reusable utility library for Go services
-3. a mail and IMAP support package
-4. a security helper layer for crypto and secret storage
-5. a provider registry for LLM integrations
-6. a lightweight executable/tooling surface for selected operations
+Seu papel é hospedar capacidades reutilizáveis que não devem ficar presas dentro de um único repositório de produto, especialmente:
 
-Kbx should not be understood as a standalone product in the same way as `GNyx`. It is infrastructure code for products, services, automation flows, and runtime coordination across the Kubex ecosystem.
+- carregamento de config e defaults
+- helpers de segurança
+- pacotes utilitários
+- utilitários de mail e IMAP
+- tipos compartilhados
+- registry de providers e adapters para paths multi-LLM
 
-## Current Product Scope
+O `Kbx` agora faz parte do caminho real de runtime de produtos ativos, especialmente o `GNyx`.
 
-As of the current codebase state, Kbx is strongest in these areas:
+## Escopo Atual do Produto
 
-- shared config/default loading
-- generic helper packages such as `get`, `is`, `load`, and `tools`
-- security utilities for encryption and secret storage
-- SMTP mail sending and IMAP fetch utilities
-- LLM provider registry and provider adapters
-- shared type definitions reused by other projects
+No estado atual, o `Kbx` é mais forte em:
 
-Kbx also includes:
+- carregamento compartilhado de config e defaults
+- helper packages reutilizáveis
+- helpers de segurança e secret storage
+- utilitários de envio de mail e leitura IMAP
+- registry e adapters de providers LLM
+- definições de tipos compartilhados usadas por outros repositórios
 
-- a Cobra-based CLI surface
-- manifest and metadata helpers
-- service/daemon-oriented command scaffolding
-- documentation/build support scripts
+Ele também inclui:
 
-However, not every part of Kbx has the same level of maturity. The library surface is currently more important and more operationally relevant than the CLI surface.
+- uma superfície de CLI baseada em Cobra
+- helpers de manifest e metadata
+- scaffolding selecionado de serviços/daemons
 
-## Current Operational Status
+## Estado Operacional Atual
 
-Operationally, Kbx is already being used in real flows.
+Operacionalmente, o `Kbx` não está dormente.
 
-Examples of current practical value:
+Ele já participa de fluxos reais:
 
-- `GNyx` uses Kbx defaults, config helpers, and provider registry support.
-- `Domus` uses Kbx config and utility layers.
-- the LLM provider registry is now part of the active provider runtime path used by `GNyx`
-- security helpers are used to generate, encode, encrypt, and persist secrets
-- mail helpers provide a reusable path for SMTP send and IMAP read capabilities
+- o `GNyx` usa seu support de runtime/registry de providers
+- `GNyx` e `Domus` dependem de comportamentos compartilhados de config/defaults
+- a seleção e o comportamento de runtime dos providers no gateway agora dependem de infraestrutura do `Kbx`
+- helpers de segurança e utilitários são usados em caminhos práticos do código
 
-So Kbx is not merely “available for future use”. It already participates in the live runtime of the ecosystem.
+## Capacidades Principais
 
-## Core Capabilities
+Capacidades práticas atuais incluem:
 
-### 1. Shared configuration and defaults
+- carregamento compartilhado de configuração
+- helpers de defaults e runtime
+- suporte a crypto e secret storage
+- metadata e lógica de instanciação de providers
+- adapters para `openai`, `gemini`, `groq` e `anthropic`
+- utilitários de SMTP e IMAP
+- tipos comuns e helper packages de apoio
 
-Kbx provides reusable defaults and parsing logic for:
+## Visão Geral da Arquitetura
 
-- server/runtime settings
-- logging configuration
-- mail configuration
-- OAuth/auth provider configuration
-- LLM provider configuration
-- path conventions across the ecosystem
+O `Kbx` é propositalmente amplo, mas continua sendo library-first.
 
-Packages central to this layer include:
+Áreas importantes incluem:
 
-- `get/`
-- `is/`
-- `load/`
-- `types/`
-- `internal/module/kbx/`
+- `load/` e helpers relacionados para config e defaults
+- `tools/providers/` para registry e adapters concretos
+- `types/` para estruturas compartilhadas de runtime
+- pacotes de mail, segurança e utilidades
+- `cmd/` para a superfície leve de CLI
 
-### 2. LLM provider registry
-
-Kbx includes a provider registry used to load, normalize, instantiate, and resolve LLM providers from configuration.
-
-The active and implemented provider adapters currently include:
-
-- OpenAI
-- Gemini
-- Groq
-- Anthropic
-
-This registry is no longer hypothetical. It is part of the runtime path already consumed by `GNyx`.
-
-### 3. Mail utilities
-
-Kbx includes:
-
-- SMTP send helpers
-- provider-specific mail send integrations
-- IMAP mailbox reading
-- email rendering and template-loading helpers
-- retry-aware mailer orchestration
-
-### 4. Security helpers
-
-Kbx provides reusable security primitives such as:
-
-- symmetric encryption helpers
-- file-based encrypted secret storage
-- Vault-backed secret storage
-- Redis-backed secret storage
-- interface-based abstractions for secret handling
-
-### 5. Generic utility primitives
-
-The `tools/` layer includes reusable helpers for:
-
-- retry handling
-- finite state machines
-- queues
-- wait groups
-- manifest parsing and validation
-- mapper and style helpers
-
-## Architecture Overview
-
-At a high level, Kbx is organized like this:
+## Estrutura do Repositório
 
 ```text
-Public library surface
-  -> kbx.go
-  -> get/
-  -> is/
-  -> load/
-  -> types/
-  -> tools/
-
-Feature toolkits
-  -> mailing/
-  -> tools/mail/
-  -> tools/providers/
-  -> tools/security/
-
-Executable / CLI surface
-  -> cmd/
-  -> cmd/cli/
-  -> internal/module/
-
-Build / packaging support
-  -> support/
-  -> Makefile
+cmd/                    entrypoints da CLI
+defaults/               defaults de runtime e helpers de config
+load/                   helpers de loading
+tools/providers/        registry de providers e adapters concretos
+types/                  tipos compartilhados do ecossistema
 ```
 
-The key architectural point is this:
+## Design Library-First
 
-- Kbx is primarily a reusable shared library
-- the executable exists, but the library surface carries more strategic weight
+O principal valor do `Kbx` não é sua CLI. É o fato de múltiplos repositórios consumirem a mesma superfície compartilhada de implementação.
 
-## Repository Layout
+Isso implica duas coisas:
 
-```text
-cmd/                    Binary entrypoints and CLI glue
-get/                    Generic value/env/default helpers
-is/                     Validation and safety helpers
-load/                   Config parsing and runtime hydration helpers
-mailing/                Higher-level mailer and IMAP flows
-tools/                  Generic utility packages and subsystems
-tools/mail/             Provider-based mail send helpers
-tools/providers/        LLM provider registry and adapters
-tools/security/         Crypto and secret storage utilities
-types/                  Shared config and domain types
-internal/module/        CLI/module metadata and manifest plumbing
-support/                Build, install, validation, and docs scripts
-```
+- mudanças no `Kbx` podem ter blast radius imediato no ecossistema
+- correção, compatibilidade e comportamento de inicialização importam mais do que aparência
 
-## Library-First Design
+## Convenções de Configuração e Runtime
 
-The main way to understand Kbx is as a dependency.
+O `Kbx` ajuda a padronizar convenções de runtime como:
 
-The root package re-exports and simplifies access to several internal facilities, including:
+- loading de config
+- expansão de defaults
+- comportamento sensível a runtime-home em aplicações dependentes
+- utilidades que precisam ser consistentes entre repositórios
 
-- default path helpers
-- config loaders
-- LLM config builders
-- mail config builders
-- server/logging config loaders
-- shared types such as `ChatRequest`, `ChatChunk`, `Email`, `MailConnection`, and `LLMConfig`
+## Registry de Providers LLM
 
-This means consumers can use Kbx without needing to navigate every internal package directly.
+Esta é uma das áreas mais estrategicamente importantes do `Kbx` agora.
 
-## Configuration and Runtime Conventions
+A consolidação recente tornou o registry materialmente mais confiável para uso real em produto.
 
-Kbx encodes shared path and runtime conventions used across Kubex projects.
+Estado prático atual:
 
-Examples from current defaults include:
+- a config de runtime ficou separada do runtime de provider instanciado
+- o loading do registry está menos frágil do que antes
+- providers suportados são expostos de forma coerente
+- o `GNyx` usa essa camada no caminho ativo de execução de providers
 
-- `~/.kubex`
-- `~/.kubex/gnyx/...`
-- `~/.kubex/domus/...`
-- default server host/port values
-- default provider API key env names
-- default mail/config path helpers
+Providers suportados na prática hoje incluem:
 
-This is useful because it gives multiple repositories a common vocabulary for runtime files, certificates, secrets, and config bootstrapping.
+- `OpenAI`
+- `Gemini`
+- `Groq`
+- `Anthropic`
 
-It also means changes in Kbx defaults can affect several consumers, so these defaults are part of the real architecture, not just convenience sugar.
+## Utilitários de Mail e IMAP
 
-## LLM Provider Registry
+O `Kbx` inclui utilitários reutilizáveis para:
 
-The provider subsystem lives under `tools/providers/`.
+- envio SMTP
+- leitura/fetch via IMAP
+- helpers relacionados a mail que podem ser reaproveitados em vários projetos Kubex
 
-Its job is to:
+Essas áreas não são hoje o centro da evolução do ecossistema, mas continuam sendo infraestrutura compartilhada valiosa.
 
-- load provider configuration
-- normalize provider names and runtime config
-- resolve API keys from environment-backed references
-- instantiate available providers
-- expose a consistent provider interface for chat and capability inspection
+## Segurança e Tratamento de Secrets
 
-Core concepts include:
+Os helpers de segurança hoje incluem áreas como:
 
-- `LLMConfig`
-- `LLMProviderConfig`
-- `Provider`
-- `ProviderExt`
-- `ChatRequest`
-- `ChatChunk`
-- `Usage`
+- helpers de criptografia
+- suporte a secret storage
+- helpers de encoding/geração
 
-### What is actually implemented today
+Esses utilitários não são apenas toolkit decorativo. Eles são reaproveitados quando o tratamento de segredos e material de runtime precisa ser consistente.
 
-Implemented adapters:
+## Superfície de CLI
 
-- `openai`
-- `gemini`
-- `groq`
-- `anthropic`
+Existe uma CLI, mas ela é secundária em relação ao valor de biblioteca do repositório.
 
-There are also broader config defaults for additional future providers, but the supported runtime registry surface is narrower than the full list of names present in config defaults.
+A pergunta de engenharia mais importante para o `Kbx` normalmente não é “qual comando existe?”, mas sim “de qual contrato compartilhado de runtime os consumidores dependem?”.
 
-That distinction matters.
+## Papel no Ecossistema
 
-### Why this matters
+Hoje o `Kbx` é dependência real de:
 
-This is now a real shared subsystem with immediate impact on upstream applications. In practice, it is one of the highest-value parts of Kbx because it enables multi-provider AI execution without forcing each product repository to reinvent the same contracts.
+- `GNyx`
+- `Domus`
+- outros códigos de runtime e automação do lado Kubex
 
-## Mail and IMAP Utilities
+Sua importância estratégica cresceu bastante quando o runtime de providers passou a ser caminho crítico para features de produto.
 
-Kbx contains two related but distinct mail layers.
+## Limitações Atuais
 
-### `tools/mail/`
+Limitações atuais incluem:
 
-This is the lower-level provider-based SMTP sending layer.
-
-Current provider map includes:
-
-- Gmail
-- Outlook
-- Microsoft
-- `sendmail` is present as a conceptual fallback path, but not part of the active provider map in the same way as the others
-
-### `mailing/`
-
-This is the higher-level orchestration layer that adds:
-
-- request-to-email conversion
-- retries
-- timeouts
-- template sending
-- IMAP read support
-
-This split is useful:
-
-- `tools/mail/` is the delivery primitive
-- `mailing/` is the workflow-oriented layer
-
-## Security and Secret Handling
-
-The security subsystem under `tools/security/` is one of the more reusable parts of Kbx.
-
-It currently includes:
-
-- ChaCha20-Poly1305 based crypto utilities
-- file-based encrypted keyring replacement
-- Vault-backed secret storage
-- Redis-backed secret storage
-- interfaces for pluggable secret backends
-
-The file-based secret storage is especially relevant in local and self-hosted Kubex flows because it avoids depending on desktop keyring behavior.
-
-This is infrastructure code, not just helper code.
-
-## CLI Surface
-
-Kbx includes a Cobra-based executable, but the CLI surface is lighter and less strategically central than the library surface.
-
-The active root module/CLI metadata exists, along with command packages for areas such as:
-
-- `mail`
-- `daemon`
-- `service`
-- `version`
-
-Important caveat:
-
-- parts of the CLI are still scaffold-like or only partially realized
-- some command descriptions still reflect legacy or copied text and should not be treated as authoritative product documentation
-
-So the executable should be read as a secondary surface, not as the primary identity of the repository.
-
-## Using Kbx as a Go Dependency
-
-Minimal example using the root package:
-
-```go
-package main
-
-import (
-    "context"
-
-    kbx "github.com/kubex-ecosystem/kbx"
-    registry "github.com/kubex-ecosystem/kbx/tools/providers"
-)
-
-func main() {
-    cfg := kbx.NewLLMConfig()
-    _ = cfg
-
-    rg, err := registry.Load("./providers.yaml")
-    if err != nil {
-        panic(err)
-    }
-
-    _, err = rg.Chat(context.Background(), kbx.ChatRequest{
-        Provider: "gemini",
-        Messages: []kbx.Message{{Role: "user", Content: "hello"}},
-    })
-    if err != nil {
-        panic(err)
-    }
-}
-```
-
-Minimal example using mail configuration helpers:
-
-```go
-package main
-
-import kbx "github.com/kubex-ecosystem/kbx"
-
-func main() {
-    params := kbx.NewMailSrvParams("./smtp.json")
-    _ = params
-}
-```
-
-## Ecosystem Role
-
-Kbx is a cross-project dependency layer.
-
-### In relation to GNyx
-
-Kbx supplies:
-
-- provider registry support
-- runtime defaults
-- config loading helpers
-- shared auth/logging/server config helpers
-- mail and secret-management building blocks
-
-### In relation to Domus
-
-Kbx supplies:
-
-- configuration defaults
-- manifest/build helpers
-- runtime utility code
-- supporting abstractions reused by the data-service layer
-
-### In relation to Logz
-
-Kbx builds on `Logz` for its logging behavior, rather than trying to become a logging framework itself.
-
-## Current Limitations
-
-Kbx is valuable, but it is not yet perfectly uniform.
-
-Current limitations include:
-
-- the repository mixes highly reusable infrastructure with lighter helper code and partially realized CLI ideas
-- the CLI surface is less mature and less central than the library surface
-- some module metadata and descriptions still carry legacy or copied naming/text
-- configuration defaults include more provider names than the actively implemented registry adapters
-- some packages still reflect ecosystem evolution rather than a fully consolidated architectural pass
-
-These limitations do not negate the usefulness of the repository. They simply define how it should be read accurately.
-
-## Roadmap Direction
-
-The practical direction for Kbx is clear.
-
-### Near-term consolidation
-
-- keep strengthening Kbx as a shared library first
-- continue hardening the LLM provider registry
-- keep security and mail utilities stable for reuse
-- reduce legacy/ambiguous CLI metadata and copied descriptions
-
-### Mid-term consolidation
-
-- formalize runtime contracts between Kbx and consuming projects
-- tighten config/default conventions across the ecosystem
-- keep broad helper growth under control so the package remains coherent
-
-### Future expansion
-
-- expand provider support only where there is a real consumer path
-- treat new subsystems as infrastructure products, not as arbitrary helper accumulation
-- preserve the distinction between “available in config defaults” and “implemented in runtime adapters”
+- a maturidade é desigual entre módulos
+- algumas áreas do toolkit são muito mais battle-tested que outras
+- a camada de providers é recente o bastante para ainda exigir hardening contínuo
+- a superfície de CLI é menos central do que a superfície de biblioteca
 
 ## Screenshots
 
-Placeholders for future documentation assets:
+Sugestões de placeholders:
 
-- `[Placeholder] Provider registry flow diagram`
-- `[Placeholder] Mail + IMAP usage screenshot`
-- `[Placeholder] Secret storage/runtime path diagram`
-- `[Placeholder] Library usage example screenshot`
-
-## License
-
-This repository is licensed under the [MIT License](./LICENSE).
+- `[Screenshot Placeholder: debug do provider registry]`
+- `[Screenshot Placeholder: ajuda da CLI]`
