@@ -226,3 +226,16 @@ func NewSrvConfigDefault() SrvConfig {
 		Auth:        AuthConfig{},
 	}
 }
+
+func NewSrvCfg() *SrvConfig {
+	return &SrvConfig{
+		GlobalRef:   GlobalRef{ID: uuid.New()},
+		Basic:       NewSrvBasic(),
+		Files:       NewSrvFiles(),
+		Runtime:     NewSrvRuntime(),
+		Advanced:    NewSrvAdvanced(),
+		Flags:       NewSrvFlags(),
+		Performance: NewSrvPerformance(),
+		Auth:        *NewAuthConfig(),
+	}
+}

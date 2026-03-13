@@ -117,6 +117,7 @@ func NewLLMDevelopmentConfig() *LLMDevelopmentConfig { return &LLMDevelopmentCon
 
 func NewLogzParams() *types.LogzConfig   { return load.NewLogzParams() }
 func NewSrvArgs() types.SrvConfig        { return load.NewSrvArgs() }
+func NewSrvCfg() *types.SrvConfig        { return types.NewSrvCfg() }
 func NewGlobalRef(name string) GlobalRef { return load.NewGlobalRef(name) }
 
 func ParseLogzArgs(level string, minLevel string, maxLevel string, output string) *types.LogzConfig {

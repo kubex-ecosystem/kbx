@@ -67,15 +67,55 @@ type VendorAuthConfig struct {
 // 	APIURL string `json:"api_url,omitempty" env:"AUTH_PLATFORM_API_URL"`
 // }
 
-var aaa = VendorAuthConfig{
-	AuthClientConfig: AuthClientConfig{},
-	AuthProvider:     "custom_provider",
-	ConfigPath:       "/path/to/config.json",
+func NewAuthOAuthClientConfig() *AuthOAuthClientConfig {
+	return &AuthOAuthClientConfig{
+		ProjectID:               "",
+		ClientID:                "",
+		ClientSecret:            "",
+		RedirectURL:             "",
+		AuthURI:                 "",
+		TokenURI:                "",
+		AuthProviderX509CertURL: "",
+		MapUserInfo:             false,
+		MetadataOnly:            false,
+		Scopes:                  []string{},
+		RedirectURIs:            []string{},
+		JavaScriptOrigins:       []string{},
+		Metadata:                map[string]any{},
+	}
 }
 
-func main() {
+func NewAuthClientConfig() *AuthClientConfig {
+	return &AuthClientConfig{
+		Web:          *NewAuthOAuthClientConfig(),
+		Mobile:       *NewAuthOAuthClientConfig(),
+		API:          *NewAuthOAuthClientConfig(),
+		Internal:     *NewAuthOAuthClientConfig(),
+		AuthProvider: "",
+		Options:      AuthClientOptions{},
+	}
+}
 
-	aaa.AuthProvider = "updated_provider"
-	aaa.AuthClientConfig.AuthProvider = "updated_provider_in_client_config"
+func NewAuthProvidersConfig() *AuthProvidersConfig {
+	return &AuthProvidersConfig{
+		Google:    *NewAuthClientConfig(),
+		Microsoft: *NewAuthClientConfig(),
+		Facebook:  *NewAuthClientConfig(),
+		LinkedIn:  *NewAuthClientConfig(),
+		Twitter:   *NewAuthClientConfig(),
+		Github:    *NewAuthClientConfig(),
+		Custom:    []VendorAuthConfig{},
+	}
+}
 
+func NewAuthConfig() *AuthConfig {
+	return &AuthConfig{
+		JWTSecret:           "",
+		AccessTokenTTL:      0,
+		RefreshTokenTTL:     0,
+		PasswordSaltRounds:  0,
+		EnableEmailVerified: false,
+		Invite:              NewInviteConfig(),
+		AuthProvidersConfig: *NewAuthProvidersConfig(),
+	}
 }

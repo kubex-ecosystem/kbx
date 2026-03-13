@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type DSN struct {
+type DSNAlt struct {
 	Scheme   string
 	User     string
 	Password string
@@ -16,20 +16,20 @@ type DSN struct {
 	Params   map[string]string
 }
 
-func ParseDSN(input string) (*DSN, error) {
+func ParseDSN(input string) (*DSNAlt, error) {
 	if strings.Contains(input, "://") {
 		return parseURLDSN(input)
 	}
 	return parseKVDSN(input)
 }
 
-func parseURLDSN(raw string) (*DSN, error) {
+func parseURLDSN(raw string) (*DSNAlt, error) {
 	u, err := url.Parse(raw)
 	if err != nil {
 		return nil, err
 	}
 
-	dsn := &DSN{
+	dsn := &DSNAlt{
 		Scheme: u.Scheme,
 		Host:   u.Hostname(),
 		Port:   u.Port(),
@@ -51,8 +51,8 @@ func parseURLDSN(raw string) (*DSN, error) {
 	return dsn, nil
 }
 
-func parseKVDSN(raw string) (*DSN, error) {
-	dsn := &DSN{
+func parseKVDSN(raw string) (*DSNAlt, error) {
+	dsn := &DSNAlt{
 		Params: map[string]string{},
 	}
 
@@ -74,7 +74,7 @@ func parseKVDSN(raw string) (*DSN, error) {
 		case "user":
 			dsn.User = val
 		case "password":
-			dsn.Password = val
+			dsn.Password = val //pragma: allowlist secrets
 		case "dbname":
 			dsn.DBName = val
 		default:
@@ -85,7 +85,7 @@ func parseKVDSN(raw string) (*DSN, error) {
 	return dsn, nil
 }
 
-func (d *DSN) ToURL() string {
+func (d *DSNAlt) ToURL() string {
 	u := &url.URL{
 		Scheme: d.Scheme,
 		Host:   d.Host,
@@ -113,7 +113,7 @@ func (d *DSN) ToURL() string {
 	return u.String()
 }
 
-func (d *DSN) ToKV() string {
+func (d *DSNAlt) ToKV() string {
 	var parts []string
 
 	if d.Host != "" {
