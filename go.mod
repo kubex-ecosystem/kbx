@@ -61,7 +61,7 @@ require (
 	github.com/hashicorp/vault/api v1.22.0
 	github.com/redis/go-redis/v9 v9.17.2
 	golang.org/x/crypto v0.46.0
-	golang.org/x/oauth2 v0.35.0
+	golang.org/x/oauth2 v0.36.0
 	golang.org/x/text v0.32.0 // indirect
 	google.golang.org/genai v1.47.0
 )
