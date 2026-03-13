@@ -666,9 +666,9 @@ func getLLMConfig(cfg *LLMConfig) (*LLMConfig, error) {
 		return &loadedCfg, err
 	}
 	// Merge loaded config with defaults, giving precedence to loaded values
-	if loadedCfg.Providers != nil && len(loadedCfg.Providers) > 0 {
+	if len(loadedCfg.Providers) > 0 {
 		cfg.Providers = loadedCfg.Providers
-	} else if cfg.Providers == nil || len(cfg.Providers) == 0 {
+	} else {
 		cfg.Providers = make(map[string]*LLMProviderConfig, 0)
 		gl.Warn("no providers found in loaded config, using defaults")
 		pp := NewLLMConfig(

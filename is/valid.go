@@ -3,6 +3,7 @@ package is
 
 import (
 	"reflect"
+	"slices"
 
 	"github.com/kubex-ecosystem/kbx/types"
 	gl "github.com/kubex-ecosystem/logz"
@@ -20,7 +21,7 @@ func LogEntry(obj any) bool {
 // NilPtr checks if the given object is a nil pointer or interface
 func NilPtr(obj any) bool {
 	v := reflect.ValueOf(obj)
-	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+	if v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface {
 		if v.IsNil() {
 			return true
 		}
@@ -50,12 +51,12 @@ func PtrOf[T any](obj any) bool {
 // Its behavior is always resilient and very strict.
 func Valid(obj any) bool {
 	v := reflect.ValueOf(obj)
-	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+	if v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface {
 		if v.IsNil() {
 			return false
 		}
-		if v.Kind() == reflect.Ptr {
-			if v.Elem().Kind() == reflect.Ptr && v.Elem().IsNil() {
+		if v.Kind() == reflect.Pointer {
+			if v.Elem().Kind() == reflect.Pointer && v.Elem().IsNil() {
 				return false
 			}
 			v = v.Elem()
@@ -92,7 +93,7 @@ func Safe(obj any, strict bool) bool {
 	if !v.IsValid() {
 		return false
 	}
-	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+	if v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface {
 		if v.IsNil() {
 			return false
 		}
@@ -160,7 +161,7 @@ func Numeric(c any) bool {
 // It returns false for nil pointers or mismatched types.
 func SameType[T any](obj any) bool {
 	v := reflect.ValueOf(obj)
-	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+	if v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface {
 		if v.IsNil() {
 			return false
 		}
@@ -220,7 +221,7 @@ func Struct[T any](obj any) bool {
 // Compatible checks if the given object is convertible to type T.
 func Compatible[T any](obj any) bool {
 	v := reflect.ValueOf(obj)
-	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+	if v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface {
 		if v.IsNil() {
 			return false
 		}
@@ -235,7 +236,7 @@ func Compatible[T any](obj any) bool {
 // Implements checks if the given object implements the interface T.
 func Implements[T any](obj any) bool {
 	v := reflect.ValueOf(obj)
-	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+	if v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface {
 		if v.IsNil() {
 			return false
 		}
@@ -255,4 +256,9 @@ func ArrayObj[T any](o T, a []T) bool {
 		}
 	}
 	return false
+}
+
+// KindIn checks if the given object is of any of the specified kinds.
+func KindIn(obj any, k ...reflect.Kind) bool {
+	return slices.Contains(k, reflect.ValueOf(obj).Kind())
 }

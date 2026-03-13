@@ -31,7 +31,8 @@ func NewGeminiProvider(name, baseURL, key, model string) (providers.ProviderExt,
 		return nil, errors.New("API key is required for Gemini provider")
 	}
 	if model == "" {
-		model = "gemini-1.5-flash"
+		// model = "gemini-1.5-flashs"
+		model = "gemini-flash-latest"
 	}
 
 	// Create a client for the entire provider instance
@@ -327,21 +328,21 @@ func (g *geminiProvider) toGeminiContents(messages []providers.Message) []*genai
 }
 
 // getResponseSchema returns the expected JSON schema for structured responses
-func (g *geminiProvider) getResponseSchema(analysisType string) map[string]interface{} {
-	baseSchema := map[string]interface{}{
+func (g *geminiProvider) getResponseSchema(analysisType string) map[string]any {
+	baseSchema := map[string]any{
 		"type": "object",
-		"properties": map[string]interface{}{
+		"properties": map[string]any{
 			"projectName": map[string]string{"type": "string"},
 			"summary":     map[string]string{"type": "string"},
-			"strengths": map[string]interface{}{
+			"strengths": map[string]any{
 				"type":  "array",
 				"items": map[string]string{"type": "string"},
 			},
-			"weaknesses": map[string]interface{}{
+			"weaknesses": map[string]any{
 				"type":  "array",
 				"items": map[string]string{"type": "string"},
 			},
-			"recommendations": map[string]interface{}{
+			"recommendations": map[string]any{
 				"type":  "array",
 				"items": map[string]string{"type": "string"},
 			},
@@ -350,14 +351,14 @@ func (g *geminiProvider) getResponseSchema(analysisType string) map[string]inter
 	}
 	switch analysisType {
 	case "security":
-		props := baseSchema["properties"].(map[string]interface{})
-		props["securityRisks"] = map[string]interface{}{
+		props := baseSchema["properties"].(map[string]any)
+		props["securityRisks"] = map[string]any{
 			"type":  "array",
 			"items": map[string]string{"type": "string"},
 		}
 	case "scalability":
-		props := baseSchema["properties"].(map[string]interface{})
-		props["bottlenecks"] = map[string]interface{}{
+		props := baseSchema["properties"].(map[string]any)
+		props["bottlenecks"] = map[string]any{
 			"type":  "array",
 			"items": map[string]string{"type": "string"},
 		}

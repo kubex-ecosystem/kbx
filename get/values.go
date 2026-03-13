@@ -11,12 +11,10 @@ import (
 
 // ValueOr returns the value if it's valid,
 // otherwise returns the default value along with its type.
-func ValueOr[T any](value T, d T) (T, reflect.Type) {
-	if !is.Valid(value) {
-		return d, reflect.TypeFor[T]()
-	}
-	return value, reflect.TypeFor[T]()
-}
+func ValueOr[T any](value T, d T) (T, reflect.Type) { return ValOrType(value, d), reflect.TypeFor[T]() }
+
+// ValOrAny returns the value if it's valid, otherwise returns the default value.
+func ValOrAny[T any](value T, d T) T { return ValOrType(value, d) }
 
 // ValOrType returns the value if it's valid,
 // otherwise returns the default value.
@@ -60,14 +58,6 @@ func ValueOrIf[T any](exp bool, v T, d T) T {
 		return v
 	}
 	return d
-}
-
-// ValOrAny returns the value if it's valid, otherwise returns the default value.
-func ValOrAny[T any](value T, d T) T {
-	if !is.Valid(value) {
-		return d
-	}
-	return value
 }
 
 // FileExt extracts the file extension from the given file path.
