@@ -2,7 +2,7 @@ module github.com/kubex-ecosystem/kbx
 
 go 1.26.1
 
-require github.com/kubex-ecosystem/logz v1.6.8
+require github.com/kubex-ecosystem/logz v1.6.89
 
 require (
 	github.com/pelletier/go-toml/v2 v2.2.4
