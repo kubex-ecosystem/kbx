@@ -33,7 +33,7 @@ The daemon provides:
 • Integration with KubeX AI Squad system
 • Discord/WhatsApp/Email notifications
 • Health monitoring and reporting
-• Meta-recursivity coordination with lookatni/grompt
+• Meta-recursivity coordination with lookatni/gnyx
 
 Examples:
   kubexGnyx daemon --gobe-url=http://localhost:3000 --gobe-api-key=abc123
@@ -145,7 +145,7 @@ func printDaemonInfo(config any /* daemon.DaemonConfig */) {
 	gl.Log("info", "")
 	gl.Log("info", "🔄 META-RECURSIVITY:")
 	gl.Log("info", "   • Coordinates with lookatni (analysis)")
-	gl.Log("info", "   • Orchestrates grompt (improvement)")
+	gl.Log("info", "   • Orchestrates gnyx (improvement)")
 	gl.Log("info", "   • Manages continuous optimization")
 	gl.Log("info", "✅ Daemon running... Press Ctrl+C to stop")
 	gl.Log("info", "")
