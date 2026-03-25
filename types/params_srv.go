@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// SrvBasicParams representa parâmetros básicos.
 type SrvBasicParams struct {
 	// Basic options
 	CompanyName  string `yaml:"company_name,omitempty" json:"company_name,omitempty" mapstructure:"company_name,omitempty"`
@@ -25,8 +26,10 @@ type SrvBasicParams struct {
 	UIDisabled bool `yaml:"ui_enabled" json:"ui_enabled" mapstructure:"ui_enabled"`
 }
 
+// NewSrvBasic cria uma nova instância de SrvBasicParams.
 func NewSrvBasic() SrvBasicParams { return SrvBasicParams{} }
 
+// NewSrvBasicDefault cria uma nova instância de SrvBasicParams com valores padrão.
 func NewSrvBasicDefault() SrvBasicParams {
 	return SrvBasicParams{
 		CompanyName:    "Canalize",
@@ -45,6 +48,7 @@ func NewSrvBasicDefault() SrvBasicParams {
 	}
 }
 
+// SrvFilesParams representa parâmetros de arquivos.
 type SrvFilesParams struct {
 	// Paths and files
 	Cwd              string `yaml:"cwd,omitempty" json:"cwd,omitempty" mapstructure:"cwd,omitempty"`
@@ -58,8 +62,10 @@ type SrvFilesParams struct {
 	ProvidersConfig  string `yaml:"providers_config,omitempty" json:"providers_config,omitempty" mapstructure:"providers_config,omitempty"`
 }
 
+// NewSrvFiles cria uma nova instância de SrvFilesParams.
 func NewSrvFiles() SrvFilesParams { return SrvFilesParams{} }
 
+// NewSrvFilesDefault cria uma nova instância de SrvFilesParams com valores padrão.
 func NewSrvFilesDefault() SrvFilesParams {
 	return SrvFilesParams{
 		Cwd:              "",
@@ -74,6 +80,7 @@ func NewSrvFilesDefault() SrvFilesParams {
 	}
 }
 
+// SrvRuntimeParams representa parâmetros de tempo de execução.
 type SrvRuntimeParams struct {
 	// Runtime options
 
@@ -88,8 +95,10 @@ type SrvRuntimeParams struct {
 	Issuer          string        `yaml:"issuer,omitempty" json:"issuer,omitempty" mapstructure:"issuer,omitempty"`
 }
 
+// NewSrvRuntime cria uma nova instância de SrvRuntimeParams.
 func NewSrvRuntime() SrvRuntimeParams { return SrvRuntimeParams{} }
 
+// NewSrvRuntimeDefault cria uma nova instância de SrvRuntimeParams com valores padrão.
 func NewSrvRuntimeDefault() SrvRuntimeParams {
 	return SrvRuntimeParams{
 		Host:            "localhost",
@@ -104,6 +113,7 @@ func NewSrvRuntimeDefault() SrvRuntimeParams {
 	}
 }
 
+// SrvAdvancedParams representa parâmetros avançados.
 type SrvAdvancedParams struct {
 	// Advanced options
 
@@ -114,8 +124,10 @@ type SrvAdvancedParams struct {
 	EnvVars    map[string]string `yaml:"env_vars,omitempty" json:"env_vars,omitempty" mapstructure:"env_vars,omitempty"`
 }
 
+// NewSrvAdvanced cria uma nova instância de SrvAdvancedParams.
 func NewSrvAdvanced() SrvAdvancedParams { return SrvAdvancedParams{} }
 
+// NewSrvAdvancedDefault cria uma nova instância de SrvAdvancedParams com valores padrão.
 func NewSrvAdvancedDefault() SrvAdvancedParams {
 	return SrvAdvancedParams{
 		Context:    "",
@@ -126,6 +138,7 @@ func NewSrvAdvancedDefault() SrvAdvancedParams {
 	}
 }
 
+// SrvFlagsParams representa parâmetros de flags.
 type SrvFlagsParams struct {
 	// Flags
 
@@ -137,8 +150,10 @@ type SrvFlagsParams struct {
 	RootMode  bool `yaml:"root_mode,omitempty" json:"root_mode,omitempty" mapstructure:"root_mode,omitempty"`
 }
 
+// NewSrvFlags cria uma nova instância de SrvFlagsParams.
 func NewSrvFlags() SrvFlagsParams { return SrvFlagsParams{} }
 
+// NewSrvFlagsDefault cria uma nova instância de SrvFlagsParams com valores padrão.
 func NewSrvFlagsDefault() SrvFlagsParams {
 	return SrvFlagsParams{
 		FailFast:  false,
@@ -150,6 +165,7 @@ func NewSrvFlagsDefault() SrvFlagsParams {
 	}
 }
 
+// SrvPerformanceParams representa parâmetros de performance.
 type SrvPerformanceParams struct {
 	// Performance options
 
@@ -158,8 +174,10 @@ type SrvPerformanceParams struct {
 	Hash      string `yaml:"hash,omitempty" json:"hash,omitempty" mapstructure:"hash,omitempty"`
 }
 
+// NewSrvPerformance cria uma nova instância de SrvPerformanceParams.
 func NewSrvPerformance() SrvPerformanceParams { return SrvPerformanceParams{} }
 
+// NewSrvPerformanceDefault cria uma nova instância de SrvPerformanceParams com valores padrão.
 func NewSrvPerformanceDefault() SrvPerformanceParams {
 	return SrvPerformanceParams{
 		MaxProcs:  0,
@@ -177,18 +195,21 @@ type InviteConfig struct {
 	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
 }
 
+// NewInviteConfig cria uma nova instância de InviteConfig.
 func NewInviteConfig() InviteConfig { return InviteConfig{} }
 
+// NewInviteConfigDefault cria uma nova instância de InviteConfig com valores padrão.
 func NewInviteConfigDefault() InviteConfig {
 	return InviteConfig{
-		BaseURL:     "https://app.kubex.world",
+		BaseURL:     "https://gnyx.kubex.world",
 		SenderName:  "Kubex Team",
-		SenderEmail: "team@kubex.world",
+		SenderEmail: "contact@kubex.world",
 		CompanyName: "Kubex",
 		DefaultTTL:  7 * 24 * time.Hour,
 	}
 }
 
+// SrvConfig representa a configuração completa do servidor.
 type SrvConfig struct {
 	GlobalRef   `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Basic       SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
@@ -201,6 +222,7 @@ type SrvConfig struct {
 	// TemplatesDir string               `json:"templates_dir,omitempty" yaml:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
 }
 
+// NewSrvConfig cria uma nova instância de SrvConfig.
 func NewSrvConfig() SrvConfig {
 	return SrvConfig{
 		GlobalRef:   GlobalRef{ID: uuid.New()},
@@ -214,6 +236,7 @@ func NewSrvConfig() SrvConfig {
 	}
 }
 
+// NewSrvConfigDefault cria uma nova instância de SrvConfig com valores padrão.
 func NewSrvConfigDefault() SrvConfig {
 	return SrvConfig{
 		GlobalRef:   GlobalRef{ID: uuid.New()},
