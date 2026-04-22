@@ -2,7 +2,7 @@
 package info
 
 import (
-	_ "embed"
+	_ "embed" //embeds the manifest.json file
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -12,21 +12,17 @@ import (
 
 var banners = []string{
 	`
- __
-|  \
-| ▓▓       ______   ______  ________
-| ▓▓      /      \ /      \|        \
-| ▓▓     |  ▓▓▓▓▓▓\  ▓▓▓▓▓▓\\▓▓▓▓▓▓▓▓
-| ▓▓     | ▓▓  | ▓▓ ▓▓  | ▓▓ /    ▓▓
-| ▓▓_____| ▓▓__/ ▓▓ ▓▓__| ▓▓/  ▓▓▓▓_
-| ▓▓     \\▓▓    ▓▓\▓▓    ▓▓  ▓▓    \
- \▓▓▓▓▓▓▓▓ \▓▓▓▓▓▓ _\▓▓▓▓▓▓▓\▓▓▓▓▓▓▓▓
-                  |  \__| ▓▓
-                   \▓▓    ▓▓
-                    \▓▓▓▓▓▓
+██╗  ██╗██████╗ ██╗  ██╗
+██║ ██╔╝██╔══██╗╚██╗██╔╝
+█████╔╝ ██████╔╝ ╚███╔╝
+██╔═██╗ ██╔══██╗ ██╔██╗
+██║  ██╗██████╔╝██╔╝ ██╗
+╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝
+
 `,
 }
 
+// GetDescriptions returns the description of the application.
 func GetDescriptions(descriptionArg []string, hideBanner bool) map[string]string {
 	var description, banner string
 
@@ -53,6 +49,7 @@ var manifestJSONData []byte
 
 // var application Manifest
 
+// Reference is a reference to an application.
 type Reference struct {
 	Name            string `json:"name"`
 	ApplicationName string `json:"application"`
@@ -60,6 +57,7 @@ type Reference struct {
 	Version         string `json:"version"`
 }
 
+// mmanifest is a manifest that is embedded in the application.
 type mmanifest struct {
 	Manifest
 	Name            string   `json:"name"`
@@ -80,6 +78,8 @@ type mmanifest struct {
 	ShowTrace       bool     `json:"show_trace,omitempty"`
 	Private         bool     `json:"private,omitempty"`
 }
+
+// Manifest is an interface that represents the manifest of an application.
 type Manifest interface {
 	GetName() string
 	GetVersion() string
@@ -139,6 +139,7 @@ type FS interface {
 	ReadFile(name string) ([]byte, error)
 }
 
+// LoadFromFS loads the manifest and control from the file system.
 func LoadFromFS(fs FS) (Manifest, Control, error) {
 	var m Manifest
 	var c Control
