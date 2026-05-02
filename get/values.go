@@ -4,6 +4,7 @@ package get
 
 import (
 	"reflect"
+	"strings"
 
 	"github.com/kubex-ecosystem/kbx/is"
 	gl "github.com/kubex-ecosystem/logz"
@@ -85,4 +86,36 @@ func ValIfOk[T any](v *T, exp bool) *T {
 		return v
 	}
 	return nil
+}
+
+// NormalizeStr Sanitizes strings from multiple chars (\r \n \t ) to single space.
+// It also removes any invalid UTF-8 characters and trims the string.
+// It also replaces any sequence of whitespace characters with a single space.
+func NormalizeStr(value string) string {
+	// First we'll remove any invalid UTF-8 characters and trim the string
+	// (avoid garbage, spaces and unexpected behavior)
+	value = strings.TrimSpace(strings.ToValidUTF8(value, ""))
+
+	// If the string is empty, return it
+	t := len(value)
+	if t == 0 {
+		return value
+	}
+
+	// create a new string builder to store the normalized string
+	s := strings.Builder{}
+	s.Grow(t)
+
+	// Loop through and replace consecutive spaces, tabs, newlines, carriage returns
+	for _, r := range value {
+		switch r {
+		case '\r', '\n', '\t', ' ':
+			s.WriteRune(' ')
+		default:
+			s.WriteRune(r)
+		}
+	}
+
+	// Finally, we'll trim the string to remove any leading/trailing spaces
+	return s.String()
 }

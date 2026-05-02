@@ -13,7 +13,7 @@ import (
 type SMTP = types.MailConnection
 
 func BasicSMTP(from string) (*SMTP, error) {
-	mailerConfig, err := load.LoadConfigOrDefault[types.MailConfig](from, true)
+	mailerConfig, err := load.ConfigOrDefault[types.MailConfig](from, true)
 	if err != nil {
 		return nil, err
 	}

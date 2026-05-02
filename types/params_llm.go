@@ -212,6 +212,7 @@ type LLMConfig struct {
 	Version            string                                 `yaml:"version,omitempty" json:"version,omitempty" mapstructure:"version,omitempty"`
 	Authors            []string                               `yaml:"authors,omitempty" json:"authors,omitempty" mapstructure:"authors,omitempty"`
 	License            string                                 `yaml:"license,omitempty" json:"license,omitempty" mapstructure:"license,omitempty"`
+	MailSrvParams      MailSrvParams                          `yaml:"mail_srv_params,omitempty" json:"mail_srv_params,omitempty" mapstructure:"mail_srv_params,omitempty"`
 }
 
 func NewLLMConfig(path string, name string, version string, p map[string]*LLMProviderConfig) LLMConfig {

@@ -46,7 +46,7 @@ func GetManifest(manifest []byte, path string) (Manifest, error) {
 		return nil, gl.Errorf("manifest.json: no data provided")
 	} else if len(manifest) == 0 && len(path) > 0 {
 		// load from file
-		data, err := load.LoadConfig[MManifest](path)
+		data, err := load.Config[MManifest](path)
 		if err != nil {
 			return nil, gl.Errorf("manifest.json: %v", err)
 		}

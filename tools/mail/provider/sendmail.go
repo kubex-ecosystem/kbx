@@ -20,7 +20,7 @@ type SendmailProvider interface {
 
 func NewProvider[T SendmailProvider](cfgFilePath string) (SendmailProvider, error) {
 	// Load the SMTP config from the specified file
-	mailConfig, err := load.LoadConfigOrDefault[load.MailConfig](cfgFilePath, true)
+	mailConfig, err := load.ConfigOrDefault[load.MailConfig](cfgFilePath, true)
 	if err != nil {
 		return nil, err
 	}

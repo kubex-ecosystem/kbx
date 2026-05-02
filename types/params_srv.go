@@ -218,7 +218,7 @@ type SrvConfig struct {
 	Advanced    SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Flags       SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Auth        AuthConfig           `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
+	Auth        AuthClientWrapper    `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
 	// TemplatesDir string               `json:"templates_dir,omitempty" yaml:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
 }
 
@@ -232,7 +232,7 @@ func NewSrvConfig() SrvConfig {
 		Advanced:    NewSrvAdvanced(),
 		Flags:       NewSrvFlags(),
 		Performance: NewSrvPerformance(),
-		Auth:        AuthConfig{},
+		Auth:        AuthClientWrapper{},
 	}
 }
 
@@ -246,6 +246,6 @@ func NewSrvConfigDefault() SrvConfig {
 		Advanced:    NewSrvAdvancedDefault(),
 		Flags:       NewSrvFlagsDefault(),
 		Performance: NewSrvPerformanceDefault(),
-		Auth:        AuthConfig{},
+		Auth:        AuthClientWrapper{},
 	}
 }

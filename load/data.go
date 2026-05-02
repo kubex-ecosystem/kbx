@@ -8,24 +8,98 @@ import (
 	"strings"
 	"time"
 
-	// "net"
 	"net/url"
+	"sync/atomic"
 
-	"github.com/kubex-ecosystem/kbx/get"
-	"github.com/kubex-ecosystem/kbx/is"
-	"github.com/kubex-ecosystem/kbx/tools"
-	"github.com/kubex-ecosystem/kbx/types"
-	"golang.org/x/oauth2"
+	get "github.com/kubex-ecosystem/kbx/get"
+	is "github.com/kubex-ecosystem/kbx/is"
+	tools "github.com/kubex-ecosystem/kbx/tools"
+	types "github.com/kubex-ecosystem/kbx/types"
+	oauth2 "golang.org/x/oauth2"
 
 	gl "github.com/kubex-ecosystem/logz"
 )
 
-type MailConfig = types.MailConfig
-type MailConnection = types.MailConnection
-type Email = types.Email
+// ------------------------------- New Manifest Functions -----------------------------//
+
+// Manifest is a type alias for types.Manifest
+type Manifest = types.Manifest
+
+// MManifest is a type alias for types.MManifest
+type MManifest = types.MManifest
+
+// NewManifestType creates a new instance of MManifest.
+func NewManifestType() *MManifest {
+	bin, _ := os.Executable()
+
+	return &MManifest{
+		Version:      "1.0.0",
+		Name:         "kubex-manifest",
+		Description:  "Kubex Ecosystem Manifest File",
+		GoVersion:    "1.25.5",
+		Private:      true,
+		Author:       "Rafael Mori",
+		License:      "MIT",
+		Published:    false,
+		Aliases:      []string{"kbx-manifest"},
+		Homepage:     "https://kubex.world",
+		Repository:   "github.com/kubex-ecosystem/kbx",
+		Keywords:     []string{"kubex", "kbx", "manifest", "configuration", "ecosystem"},
+		Bin:          bin,
+		Organization: "Kubex Ecosystem",
+		Application:  "kbx",
+		Main:         "cmd",
+		Platforms: []string{
+			"linux/amd64",
+			"linux/arm64",
+			"darwin/amd64",
+			"darwin/arm64",
+			"windows/amd64",
+		},
+		Dependencies: []string{
+			"tar",
+			"gzip",
+			"curl",
+			"git",
+			"zip",
+			"unzip",
+			"jq",
+			"upx",
+		},
+	}
+}
+
+// NewManifest creates a new instance of Manifest.
+func NewManifest() Manifest {
+	return NewManifestType()
+}
+
+// EnsureGlobalManifest ensures that the global manifest is set.
+func EnsureGlobalManifest(n, c *MManifest) {
+	if n == nil && c == nil {
+		gl.Fatal("No manifest available")
+	}
+	if c == nil {
+		c = n
+	} else if n != nil && n.GetVersion() != c.GetVersion() {
+		// Merge new manifest into existing one
+		*c = *n
+	}
+	types.KubexManifest = c
+}
 
 // ------------------------------- New Mail Srv Params Functions -----------------------------//
 
+// MailConfig is a type alias for types.MailConfig
+type MailConfig = types.MailConfig
+
+// MailConnection is a type alias for types.MailConnection
+type MailConnection = types.MailConnection
+
+// Email is a type alias for types.Email
+type Email = types.Email
+
+// MailSrvParams is a struct that holds the configuration for the mail server.
 type MailSrvParams struct {
 	ConfigPath         string `json:"config_path,omitempty" yaml:"config_path,omitempty" xml:"config_path,omitempty" toml:"config_path,omitempty" mapstructure:"config_path,omitempty"`
 	types.Attachment   `json:",inline" yaml:",inline" xml:"-" toml:",inline" mapstructure:",squash"`
@@ -34,6 +108,7 @@ type MailSrvParams struct {
 	types.MailProvider `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
 }
 
+// NewMailSrvParams creates a new instance of MailSrvParams.
 func NewMailSrvParams(configPath string) *MailSrvParams {
 	mailCfg := types.NewMailConfig(configPath)
 	return &MailSrvParams{ConfigPath: configPath, MailConfig: mailCfg, Attachment: types.Attachment{}, Email: types.Email{}}
@@ -41,6 +116,7 @@ func NewMailSrvParams(configPath string) *MailSrvParams {
 
 // ------------------------------- New Mail Params Functions -----------------------------//
 
+// NewMailConfig creates a new instance of MailConfig.
 func NewMailConfig(configPath string) *MailConfig {
 	return &MailConfig{
 		ConfigPath:  configPath,
@@ -51,10 +127,13 @@ func NewMailConfig(configPath string) *MailConfig {
 
 // ------------------------------- New Logz Params Functions -----------------------------//
 
+// LogzConfig is a type alias for types.LogzConfig
 type LogzConfig = types.LogzConfig
 
+// NewLogzParams creates a new instance of LogzConfig.
 func NewLogzParams() *LogzConfig { return &LogzConfig{} }
 
+// ParseLogzArgs parses the logz arguments.
 func ParseLogzArgs(level string, minLevel string, maxLevel string, output string) *LogzConfig {
 	LogzArgs := NewLogzParams()
 	LogzArgs.Level = gl.Level(get.ValOrType(level, "info"))
@@ -65,10 +144,13 @@ func ParseLogzArgs(level string, minLevel string, maxLevel string, output string
 
 // ------------------------------- New Srv Params Functions -----------------------------//
 
+// SrvConfig is a type alias for types.SrvConfig
 type SrvConfig = types.SrvConfig
 
+// NewSrvArgs creates a new instance of SrvConfig.
 func NewSrvArgs() SrvConfig { return types.NewSrvConfig() }
 
+// ParseSrvArgs parses the server arguments.
 func ParseSrvArgs(bind string, port string, pubCertKeyPath string, pubKeyPath string, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string, defaults map[string]any) SrvConfig {
 	SrvArgs := NewSrvArgs()
 	SrvArgs.Runtime.Bind = os.ExpandEnv(get.ValOrType(bind, get.EnvOr(defaults["DefaultServerHost"].(string), "0.0.0.0")))
@@ -82,6 +164,7 @@ func ParseSrvArgs(bind string, port string, pubCertKeyPath string, pubKeyPath st
 	return SrvArgs
 }
 
+// NewSrvDefaultConfig creates a new instance of SrvConfig with default values.
 func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
 	scheme := os.ExpandEnv(get.EnvOr("KUBEX_GNYX_SCHEME", "http"))
 	host := os.ExpandEnv(get.EnvOr("KUBEX_GNYX_HOST", defaults["DefaultServerHost"].(string)))
@@ -118,6 +201,7 @@ func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
 	return Cfg
 }
 
+// NewSrvConfigFromParams creates a new instance of SrvConfig from parameters.
 func NewSrvConfigFromParams(params *SrvConfig) SrvConfig {
 	Cfg := types.NewSrvConfig()
 	Cfg.Files.ConfigFile = get.ValOrType(params.Files.ConfigFile, Cfg.Files.ConfigFile)
@@ -141,15 +225,26 @@ func NewSrvConfigFromParams(params *SrvConfig) SrvConfig {
 
 // ------------------------------- New LLM Config Functions -----------------------------//
 
+// LLMConfig is a type alias for types.LLMConfig
 type LLMConfig = types.LLMConfig
+
+// LLMProviderConfig is a type alias for types.LLMProviderConfig
 type LLMProviderConfig = types.LLMProviderConfig
+
+// LLMDevelopmentConfig is a type alias for types.LLMDevelopmentConfig
 type LLMDevelopmentConfig = types.LLMDevelopmentConfig
 
-func NewLLMConfig() LLMConfig                       { return LLMConfig{} }
-func NewLLMProviderConfig() LLMProviderConfig       { return LLMProviderConfig{} }
+// NewLLMConfig creates a new instance of LLMConfig.
+func NewLLMConfig() LLMConfig { return LLMConfig{} }
+
+// NewLLMProviderConfig creates a new instance of LLMProviderConfig.
+func NewLLMProviderConfig() LLMProviderConfig { return LLMProviderConfig{} }
+
+// NewLLMDevelopmentConfig creates a new instance of LLMDevelopmentConfig.
 func NewLLMDevelopmentConfig() LLMDevelopmentConfig { return LLMDevelopmentConfig{} }
 
-func ParseLLMConfig(providers map[string]types.LLMProviderConfig, development types.LLMDevelopmentConfig) LLMConfig {
+// ParseLLMConfig parses the LLM arguments.
+func ParseLLMConfig(providers map[string]LLMProviderConfig, development LLMDevelopmentConfig) LLMConfig {
 	LLMArgs := NewLLMConfig()
 
 	LLMArgs.GlobalRef = types.NewGlobalRef(get.EnvOr("KUBEX_GNYX_PROCESS_NAME", "kubex_gnyx"))
@@ -160,6 +255,8 @@ func ParseLLMConfig(providers map[string]types.LLMProviderConfig, development ty
 
 	return LLMArgs
 }
+
+// NewLLMConfigDefaultValues creates a new instance of LLMConfig with default values.
 func NewLLMConfigDefaultValues() LLMConfig {
 	cfg := NewLLMConfig()
 
@@ -347,6 +444,8 @@ func NewLLMConfigDefaultValues() LLMConfig {
 
 	return cfg
 }
+
+// NewLLMConfigFromParams creates a new instance of LLMConfig from parameters.
 func NewLLMConfigFromParams(params *LLMConfig) LLMConfig {
 	LLMArgs := NewLLMConfig()
 	LLMArgs.GlobalRef = get.ValOrType(params.GlobalRef, LLMArgs.GlobalRef)
@@ -360,23 +459,153 @@ func NewLLMConfigFromParams(params *LLMConfig) LLMConfig {
 
 // ------------------------------- New Global Ref Functions -----------------------------//
 
+// GlobalRef is a type alias for types.GlobalRef
 type GlobalRef = types.GlobalRef
 
+// NewGlobalRef creates a new instance of GlobalRef.
 func NewGlobalRef(name string) GlobalRef { return types.NewGlobalRef(name) }
 
 // ------------------------------- Google Auth Config Functions -----------------------------//
 
-type AuthOAuthClientConfig = types.AuthOAuthClientConfig
-type AuthClientConfig = types.AuthClientConfig
-type AuthProvidersConfig = types.AuthProvidersConfig
-type VendorAuthConfig = types.VendorAuthConfig
+// BasicAuth is a type alias for types.BasicAuth
+type BasicAuth = types.BasicAuth
 
-func NewVendorAuthConfig(cfgPath string) VendorAuthConfig {
-	return VendorAuthConfig{
-		AuthClientConfig: AuthClientConfig{
-			AuthProvider: "google",
-			// Web default config
-			Web: AuthOAuthClientConfig{
+// AuthClient is a type alias for types.AuthClient
+type AuthClient = types.AuthClient
+
+// AuthSettings is a type alias for types.AuthSettings
+type AuthSettings = types.AuthSettings
+
+// AuthOptionValue represents a wrapper for a value that can be used to set an option for an AuthClient.
+type AuthOptionValue[T any] struct {
+	T     T
+	Name  string
+	Value *atomic.Pointer[T]
+}
+
+// GetAuthOptionValue gets a new instance of Opt.
+func GetAuthOptionValue[T any](value T, name string) (AuthOptionValue[T], error) {
+	nameStr := get.NormalizeStr(name)
+	val := &atomic.Pointer[T]{}
+	val.Store(&value)
+
+	if len(nameStr) == 0 {
+		return AuthOptionValue[T]{Name: nameStr, Value: val}, gl.Errorf("name is empty for value '%v'", value)
+	}
+	if !is.Safe(value, false) {
+		return AuthOptionValue[T]{Name: nameStr, Value: val}, gl.Errorf("value '%v' is not safe", value)
+	}
+	return AuthOptionValue[T]{Name: nameStr, Value: val}, nil
+}
+
+// NewAuthOptionValue creates a new instance of Opt.
+func NewAuthOptionValue[T any](name string, value T) (*AuthOptionValue[T], error) {
+	if !is.Safe(value, false) {
+		return nil, gl.Errorf("value '%v' is not safe", value)
+	}
+	if len(get.NormalizeStr(name)) == 0 {
+		return nil, gl.Errorf("name is empty for value '%v'", value)
+	}
+	opt := &AuthOptionValue[T]{
+		Name: name,
+	}
+	opt.Value.Store(&value)
+	return opt, nil
+}
+
+func (o *AuthOptionValue[T]) GetType() reflect.Type {
+	return reflect.TypeFor[T]()
+}
+
+// AuthClientWithOpts sets the options for the AuthClient.
+func AuthClientWithOpts[T any](client *AuthClient, opts ...*AuthOptionValue[T]) (*AuthClient, error) {
+	optsVal := get.ValOrType(opts, []*AuthOptionValue[T]{})
+
+	for _, opt := range optsVal {
+		o := opt.Value.Load()
+		if o == nil {
+			return nil, gl.Errorf("failed to set option '%s'", opt.Name)
+		}
+		t := reflect.TypeFor[T]()
+		if t.Comparable() {
+			oStr, ok := any(o).(*string)
+			if ok {
+				switch opt.Name {
+				case "ConfigPath":
+					client.ConfigPath = string(*oStr)
+				case "ProjectID":
+					client.ProjectID = string(*oStr)
+				case "ClientID":
+					client.ClientID = string(*oStr)
+				case "ClientSecret":
+					client.ClientSecret = string(*oStr)
+				case "RedirectURL":
+					client.RedirectURL = string(*oStr)
+				case "AuthURI":
+					client.AuthURI = string(*oStr)
+				case "TokenURI":
+					client.TokenURI = string(*oStr)
+				case "AuthProviderX509CertURL":
+					client.AuthProviderX509CertURL = string(*oStr)
+				default:
+					return nil, gl.Errorf("unknown option '%s' for AuthClient", opt.Name)
+				}
+			}
+		} else {
+			switch t {
+			case reflect.TypeFor[oauth2.Config]():
+			case reflect.TypeFor[BasicAuth]():
+			default:
+				return nil, gl.Errorf("unknown option '%s' for AuthClient", opt.Name)
+			}
+		}
+	}
+	return client, nil
+}
+
+// NewAuthClientz creates a new instance of AuthClient.
+func NewAuthClientz[T any](name string, value *T) AuthOptionValue[T] {
+	var vPtr *atomic.Pointer[T]
+	if is.Safe(value, false) {
+		vPtr.Store(value)
+	}
+	return AuthOptionValue[T]{
+		Name:  get.NormalizeStr(name),
+		Value: vPtr,
+	}
+}
+
+// AuthClientWrapper is a type alias for types.AuthClientWrapper
+type AuthClientWrapper = types.AuthClientWrapper
+
+// AuthProviders is a type alias for types.AuthProviders
+type AuthProviders = types.AuthProviders
+
+// NewAuthClient creates a new instance of AuthClient.
+func NewAuthClient() *AuthClient {
+	return &AuthClient{
+		ClientID:                "",                                     // String, não tem tipo próprio
+		ClientSecret:            "",                                     // String, não tem tipo próprio
+		RedirectURL:             "",                                     // String, não tem tipo próprio
+		AuthURI:                 "",                                     // String, não tem tipo próprio
+		TokenURI:                "",                                     // String, não tem tipo próprio
+		AuthProviderX509CertURL: "",                                     // String, não tem tipo próprio
+		Scopes:                  []string{"openid", "email", "profile"}, // Slice de String, não tem tipo próprio
+		RedirectURIs:            make([]string, 0),                      // Slice de String, não tem tipo próprio
+		JavaScriptOrigins:       make([]string, 0),                      // Slice de String, não tem tipo próprio
+		MapUserInfo:             false,                                  // Bool, não tem tipo próprio
+		MetadataOnly:            false,                                  // Bool, não tem tipo próprio
+		ProjectID:               "",                                     // String, não tem tipo próprio
+		Metadata:                make(map[string]any),                   // Map de String para Any, não tem tipo próprio
+		Config:                  &oauth2.Config{},                       // Struct, não tem tipo próprio
+	}
+}
+
+// NewAuthProviders creates a new instance of AuthProviders.
+func NewAuthProviders(cfgPath string) AuthProviders {
+	return AuthProviders{
+		Google: &AuthClientWrapper{
+			Web: &AuthClient{
 				ClientID:                "",
 				ClientSecret:            "",
 				RedirectURL:             "",
@@ -392,109 +621,45 @@ func NewVendorAuthConfig(cfgPath string) VendorAuthConfig {
 				Metadata:                make(map[string]any),
 				Config:                  &oauth2.Config{},
 			},
-			Options: make(map[string]any),
-		},
-		ConfigPath: cfgPath,
-	}
-}
-
-// ------------------------------- New Manifest Functions -----------------------------//
-
-type Manifest = types.Manifest
-type MManifest = types.MManifest
-
-func NewManifestType() *MManifest {
-	bin, _ := os.Executable()
-
-	return &MManifest{
-		Version:      "1.0.0",
-		Name:         "kubex-manifest",
-		Description:  "Kubex Ecosystem Manifest File",
-		GoVersion:    "1.25.5",
-		Private:      true,
-		Author:       "Rafael Mori",
-		License:      "MIT",
-		Published:    false,
-		Aliases:      []string{"kbx-manifest"},
-		Homepage:     "https://kubex.world",
-		Repository:   "github.com/kubex-ecosystem/kbx",
-		Keywords:     []string{"kubex", "kbx", "manifest", "configuration", "ecosystem"},
-		Bin:          bin,
-		Organization: "Kubex Ecosystem",
-		Application:  "kbx",
-		Main:         "cmd",
-		Platforms: []string{
-			"linux/amd64",
-			"linux/arm64",
-			"darwin/amd64",
-			"darwin/arm64",
-			"windows/amd64",
-		},
-		Dependencies: []string{
-			"tar",
-			"gzip",
-			"curl",
-			"git",
-			"zip",
-			"unzip",
-			"jq",
-			"upx",
+			Mobile: NewAuthClient(),
 		},
 	}
-}
-
-func NewManifest() Manifest {
-	return NewManifestType()
-}
-
-func EnsureGlobalManifest(n, c *MManifest) {
-	if n == nil && c == nil {
-		gl.Fatal("No manifest available")
-	}
-	if c == nil {
-		c = n
-	} else if n != nil && n.GetVersion() != c.GetVersion() {
-		// Merge new manifest into existing one
-		*c = *n
-	}
-	types.KubexManifest = c
 }
 
 // ------------------------------- KBX Config Registry -----------------------------//
 
 var configRegistry = map[reflect.Type]bool{
-	reflect.TypeFor[MailSrvParams]():         true,
-	reflect.TypeFor[MailConfig]():            true,
-	reflect.TypeFor[LogzConfig]():            true,
-	reflect.TypeFor[SrvConfig]():             true,
-	reflect.TypeFor[LLMConfig]():             true,
-	reflect.TypeFor[LLMProviderConfig]():     true,
-	reflect.TypeFor[LLMDevelopmentConfig]():  true,
-	reflect.TypeFor[MManifest]():             true,
-	reflect.TypeFor[VendorAuthConfig]():      true,
-	reflect.TypeFor[AuthOAuthClientConfig](): true,
-	reflect.TypeFor[Email]():                 true,
-	reflect.TypeFor[MailConnection]():        true,
+	reflect.TypeFor[MailSrvParams]():        true,
+	reflect.TypeFor[MailConfig]():           true,
+	reflect.TypeFor[LogzConfig]():           true,
+	reflect.TypeFor[SrvConfig]():            true,
+	reflect.TypeFor[LLMConfig]():            true,
+	reflect.TypeFor[LLMProviderConfig]():    true,
+	reflect.TypeFor[LLMDevelopmentConfig](): true,
+	reflect.TypeFor[MManifest]():            true,
+	reflect.TypeFor[AuthProviders]():        true,
+	reflect.TypeFor[AuthClient]():           true,
+	reflect.TypeFor[Email]():                true,
+	reflect.TypeFor[MailConnection]():       true,
 }
 
 var defaultFactories = map[reflect.Type]func() any{
-	reflect.TypeFor[MailSrvParams]():         func() any { return NewMailSrvParams("") },
-	reflect.TypeFor[MailConfig]():            func() any { return NewMailConfig("") },
-	reflect.TypeFor[LogzConfig]():            func() any { return NewLogzParams() },
-	reflect.TypeFor[SrvConfig]():             func() any { return NewSrvArgs() },
-	reflect.TypeFor[MManifest]():             func() any { return NewManifestType() },
-	reflect.TypeFor[LLMConfig]():             func() any { return NewLLMConfigDefaultValues() },
-	reflect.TypeFor[LLMProviderConfig]():     func() any { return NewLLMProviderConfig() },
-	reflect.TypeFor[LLMDevelopmentConfig]():  func() any { return NewLLMDevelopmentConfig() },
-	reflect.TypeFor[VendorAuthConfig]():      func() any { return NewVendorAuthConfig("") },
-	reflect.TypeFor[AuthOAuthClientConfig](): func() any { return NewVendorAuthConfig("").Web },
-	reflect.TypeFor[Email]():                 func() any { return types.NewEmail() },
-	reflect.TypeFor[MailConnection]():        func() any { return types.NewMailConnection() },
+	reflect.TypeFor[MailSrvParams]():        func() any { return NewMailSrvParams("") },
+	reflect.TypeFor[MailConfig]():           func() any { return NewMailConfig("") },
+	reflect.TypeFor[LogzConfig]():           func() any { return NewLogzParams() },
+	reflect.TypeFor[SrvConfig]():            func() any { return NewSrvArgs() },
+	reflect.TypeFor[MManifest]():            func() any { return NewManifestType() },
+	reflect.TypeFor[LLMConfig]():            func() any { return NewLLMConfigDefaultValues() },
+	reflect.TypeFor[LLMProviderConfig]():    func() any { return NewLLMProviderConfig() },
+	reflect.TypeFor[LLMDevelopmentConfig](): func() any { return NewLLMDevelopmentConfig() },
+	reflect.TypeFor[AuthProviders]():        func() any { return NewAuthProviders("") },
+	reflect.TypeFor[AuthClientWrapper]():    func() any { return NewAuthProviders("").Sankhya.Web },
+	reflect.TypeFor[Email]():                func() any { return types.NewEmail() },
+	reflect.TypeFor[MailConnection]():       func() any { return types.NewMailConnection() },
 }
 
-// LoadConfig loads a configuration of type T from the specified file path.
-
-func LoadConfig[T any](cfgPath string) (T, error) {
+// Config loads a configuration of type T from the specified file path.
+func Config[T any](cfgPath string) (T, error) {
 	var zero T
 	var okob bool
 	if configRegistry[reflect.TypeFor[T]()] {
@@ -520,19 +685,26 @@ func LoadConfig[T any](cfgPath string) (T, error) {
 	return zero, gl.Errorf("configuration type not registered")
 }
 
-func LoadConfigOrDefault[
-	T MailConfig |
-		MailConnection |
-		LogzConfig |
+// ConfigOrDefault loads a configuration of type T from the specified file path, or returns a default value if the configuration file does not exist.
+func ConfigOrDefault[
+	T LogzConfig |
 		SrvConfig |
+
 		LLMConfig |
 		LLMProviderConfig |
 		LLMDevelopmentConfig |
+
+		MailConfig |
+		MailConnection |
 		MailSrvParams |
 		Email |
 		MManifest |
-		VendorAuthConfig |
-		AuthOAuthClientConfig](cfgPath string, genFile bool) (*T, error) {
+
+		AuthProviders |
+		AuthClient |
+		AuthClientWrapper |
+		AuthSettings |
+		BasicAuth](cfgPath string, genFile bool) (*T, error) {
 	cfgPath = os.ExpandEnv(strings.TrimSpace(strings.ToValidUTF8(cfgPath, "")))
 	if cfgPath == "" {
 		return nil, gl.Errorf("configuration path cannot be empty")
@@ -558,12 +730,11 @@ func LoadConfigOrDefault[
 			cfgMapper.SerializeToFile(get.FileExt(cfgPath))
 		}
 		return &defaultCfg, nil
-	} else {
-		d := any(defaultCfg).(*T)
-		if genFile {
-			cfgMapper.SetValue(d)
-			cfgMapper.SerializeToFile(get.FileExt(cfgPath))
-		}
-		return d, nil
 	}
+	d := any(defaultCfg).(*T)
+	if genFile {
+		cfgMapper.SetValue(d)
+		cfgMapper.SerializeToFile(get.FileExt(cfgPath))
+	}
+	return d, nil
 }

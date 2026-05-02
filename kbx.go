@@ -80,9 +80,9 @@ type Email = types.Email
 type MManifest = types.MManifest
 type Manifest = load.Manifest
 
-type LLMConfig = types.LLMConfig
-type LLMProviderConfig = types.LLMProviderConfig
-type LLMDevelopmentConfig = types.LLMDevelopmentConfig
+type LLMConfig = load.LLMConfig
+type LLMProviderConfig = load.LLMProviderConfig
+type LLMDevelopmentConfig = load.LLMDevelopmentConfig
 type Provider = types.Provider
 type ProviderExt = types.ProviderExt
 
@@ -92,10 +92,12 @@ type Message = types.Message
 
 type LogzConfig = types.LogzConfig
 type SrvConfig = types.SrvConfig
-type VendorAuthConfig = load.VendorAuthConfig
-type AuthOAuthClientConfig = load.AuthOAuthClientConfig
-type AuthClientConfig = load.AuthClientConfig
-type AuthProvidersConfig = load.AuthProvidersConfig
+type AuthClient = load.AuthClient
+type AuthClientWrapper = load.AuthClientWrapper
+type AuthProviders = load.AuthProviders
+type AuthOptions = load.AuthSettings
+type BasicAuth = load.BasicAuth
+
 type GlobalRef = load.GlobalRef
 
 func NewMailSrvParams(cfgPath string) *MailSrvParams { return load.NewMailSrvParams(cfgPath) }
@@ -125,26 +127,32 @@ func ParseLogzArgs(level string, minLevel string, maxLevel string, output string
 func ParseSrvArgs(bind, port, pubCertKeyPath, pubKeyPath, privKeyPath string, accessTokenTTL int, refreshTokenTTL int, issuer string, defaults map[string]any) types.SrvConfig {
 	return load.ParseSrvArgs(bind, port, pubCertKeyPath, pubKeyPath, privKeyPath, accessTokenTTL, refreshTokenTTL, issuer, defaults)
 }
-func ParseLLMConfig(providers map[string]types.LLMProviderConfig, development types.LLMDevelopmentConfig) load.LLMConfig {
+func ParseLLMConfig(providers map[string]LLMProviderConfig, development types.LLMDevelopmentConfig) load.LLMConfig {
 	return load.ParseLLMConfig(providers, development)
 }
 
-func LoadConfig[T any](path string) (T, error) { return load.LoadConfig[T](path) }
+func LoadConfig[T any](path string) (T, error) { return load.Config[T](path) }
 func LoadConfigOrDefault[
-	T MailConfig |
-		MailConnection |
-		LogzConfig |
+	T LogzConfig |
 		SrvConfig |
+
 		LLMConfig |
 		LLMProviderConfig |
 		LLMDevelopmentConfig |
+
+		MailConfig |
+		MailConnection |
 		MailSrvParams |
 		Email |
 		MManifest |
-		VendorAuthConfig |
-		AuthOAuthClientConfig](
+
+		AuthProviders |
+		AuthClient |
+		AuthClientWrapper |
+		AuthOptions |
+		BasicAuth](
 	cfgPath string,
 	genFile bool,
 ) (*T, error) {
-	return load.LoadConfigOrDefault[T](cfgPath, genFile)
+	return load.ConfigOrDefault[T](cfgPath, genFile)
 }

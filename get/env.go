@@ -20,7 +20,9 @@ func EnvOr(key, defaultValue string) string {
 
 // ExpandIfEnv resolves a configuration value by checking for an environment variable
 // if the value is an environment variable, it will be expanded
-func ExpandIfEnv(value string) string {
+func ExpandIfEnv(value, defaultValue string) string {
+	value = NormalizeStr(value)
+
 	if envVal := EnvOr(value, value); !strings.EqualFold(value, envVal) {
 		return envVal // Expanded EnvVar
 	}
