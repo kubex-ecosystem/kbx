@@ -6,16 +6,20 @@ import (
 	"time"
 )
 
+// ErrRetryExhausted is returned when all retry attempts have been exhausted.
 var ErrRetryExhausted = errors.New("retry limits exhausted")
 
+// Retryer struct
 type Retryer struct {
 	cfg RetryConfig
 }
 
+// NewRetryer creates a new retryer.
 func NewRetryer(cfg RetryConfig) *Retryer {
 	return &Retryer{cfg: cfg}
 }
 
+// DoVoid executes a function with retry logic, ignoring the result.
 func (r *Retryer) DoVoid(fn func() error) error {
 	_, err := Retry(func() (struct{}, error) {
 		return struct{}{}, fn()
@@ -26,6 +30,8 @@ func (r *Retryer) DoVoid(fn func() error) error {
 	)
 	return err
 }
+
+// Do executes a function with retry logic.
 func (r *Retryer) Do(fn func(a any) (any, error)) (any, error) {
 	return Retry[any](
 		func() (any, error) {
@@ -37,17 +43,21 @@ func (r *Retryer) Do(fn func(a any) (any, error)) (any, error) {
 	)
 }
 
+// RetryResult holds the result of a retry operation.
 type RetryResult[T any] struct {
 	Result T
 	Error  error
 }
 
+// RetryStats holds the statistics of a retry operation.
 type RetryStats struct {
 	Attempts    int
 	Successful  bool
 	TotalTime   time.Duration
 	MaxAttempts int
 }
+
+// RetryOption holds the options for the retry mechanism.
 type RetryOption struct {
 	Retries       int
 	Delay         time.Duration
@@ -58,6 +68,7 @@ type RetryOption struct {
 	BackoffFactor float64
 }
 
+// RetryConfig holds the configuration for the retry mechanism.
 type RetryConfig struct {
 	Retries       int
 	Delay         time.Duration
@@ -67,30 +78,37 @@ type RetryConfig struct {
 	BackoffFactor float64
 }
 
+// WithRetries returns a RetryOption retries value.
 func WithRetries(n int) *RetryOption {
 	return &RetryOption{Retries: n}
 }
 
+// WithDelay returns a RetryOption delay value.
 func WithDelay(d time.Duration) *RetryOption {
 	return &RetryOption{Delay: d}
 }
 
+// WithMaxAttempts returns a RetryOption max attempts value.
 func WithMaxAttempts(n int) *RetryOption {
 	return &RetryOption{MaxRetries: n}
 }
 
+// WithInitialDelay returns a RetryOption initial delay value.
 func WithInitialDelay(d time.Duration) *RetryOption {
 	return &RetryOption{InitialDelay: d}
 }
 
+// WithMaxDelay returns a RetryOption max delay value.
 func WithMaxDelay(d time.Duration) *RetryOption {
 	return &RetryOption{MaxDelay: d}
 }
 
+// WithBackoffFactor returns a RetryOption backoff factor value.
 func WithBackoffFactor(f float64) *RetryOption {
 	return &RetryOption{BackoffFactor: f}
 }
 
+// WithTimeout returns a RetryOption timeout value.
 func WithTimeout(d time.Duration) *RetryOption {
 	return &RetryOption{Timeout: d}
 }
