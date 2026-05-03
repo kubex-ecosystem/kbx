@@ -5,10 +5,13 @@ import (
 	"github.com/kubex-ecosystem/kbx/get"
 	"github.com/kubex-ecosystem/kbx/is"
 	"github.com/kubex-ecosystem/kbx/tools"
+	"github.com/kubex-ecosystem/kbx/tools/flow/fsm"
+	"github.com/kubex-ecosystem/kbx/tools/flow/queue"
 
 	gl "github.com/kubex-ecosystem/logz"
 )
 
+// MMin is the main function of the application.
 func MMin() {
 	smtpConfigPath := kbx.DefaultSMTPConfigPath()
 	templatePath := kbx.DefaultTemplatePath()
@@ -24,22 +27,24 @@ func MMin() {
 
 }
 
+// Kernel is a simple example of a kernel with a finite state machine, a queue, and a retryer.
 type Kernel struct {
-	fsm   *tools.FSM
-	queue *tools.Queue
+	fsm   *fsm.FSM
+	queue *queue.Queue
 	retry *tools.Retryer
 }
 
+// NewKernel creates a new Kernel with the given initial state and transitions.
 func NewKernel() *Kernel {
-	transitions := []tools.Transition{
+	transitions := []fsm.Transition{
 		{From: "idle", Event: "start", To: "running"},
 		{From: "running", Event: "stop", To: "stopped"},
 		{From: "stopped", Event: "reset", To: "idle"},
 	}
 
-	fsm := tools.NewFSM("idle", transitions)
+	fsm := fsm.NewFSM("idle", transitions)
 
-	queue := tools.NewQueue(100)
+	queue := queue.NewQueue(100)
 
 	retry := tools.NewRetryer(tools.RetryConfig{
 		Retries:       5,
