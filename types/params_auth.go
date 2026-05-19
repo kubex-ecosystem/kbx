@@ -26,6 +26,7 @@ type AuthSettings struct {
 	PasswordSaltRounds  int           `json:"password_salt_rounds,omitempty" yaml:"password_salt_rounds,omitempty" toml:"password_salt_rounds,omitempty" mapstructure:"password_salt_rounds,omitempty"`
 	EnableEmailVerified bool          `json:"enable_email_verified,omitempty" yaml:"enable_email_verified,omitempty" toml:"enable_email_verified,omitempty" mapstructure:"enable_email_verified,omitempty"`
 	Invite              InviteConfig  `json:"invite" yaml:"invite,omitempty" toml:"invite,omitempty" mapstructure:"invite,omitempty"`
+	AuthProviders       AuthProviders `json:"auth_providers" yaml:"auth_providers,omitempty" toml:"auth_providers,omitempty" mapstructure:"auth_providers,omitempty"`
 	Options             OptionsMap    `json:"options,omitempty" yaml:"options,omitempty" toml:"options,omitempty" mapstructure:"options,omitempty"`
 }
 
@@ -54,10 +55,12 @@ type AuthClient struct {
 
 // AuthClientWrapper represents a authentication configuration.
 type AuthClientWrapper struct {
-	Web      *AuthClient `json:"web" yaml:"web,omitempty" toml:"web,omitempty" mapstructure:"web,omitempty"`
-	Mobile   *AuthClient `json:"mobile" yaml:"mobile,omitempty" toml:"mobile,omitempty" mapstructure:"mobile,omitempty"`
-	API      *AuthClient `json:"api" yaml:"api,omitempty" toml:"api,omitempty" mapstructure:"api,omitempty"`
-	Internal *AuthClient `json:"internal" yaml:"internal,omitempty" toml:"internal,omitempty" mapstructure:"internal,omitempty"`
+	Web      *AuthClient    `json:"web" yaml:"web,omitempty" toml:"web,omitempty" mapstructure:"web,omitempty"`
+	Mobile   *AuthClient    `json:"mobile" yaml:"mobile,omitempty" toml:"mobile,omitempty" mapstructure:"mobile,omitempty"`
+	API      *AuthClient    `json:"api" yaml:"api,omitempty" toml:"api,omitempty" mapstructure:"api,omitempty"`
+	Internal *AuthClient    `json:"internal" yaml:"internal,omitempty" toml:"internal,omitempty" mapstructure:"internal,omitempty"`
+	Invite   *AuthClient    `json:"invite" yaml:"invite,omitempty" toml:"invite,omitempty" mapstructure:"invite,omitempty"`
+	Config   *AuthProviders `json:"auth_providers_config" yaml:"auth_providers_config,omitempty" toml:"auth_providers_config,omitempty" mapstructure:"auth_providers_config,omitempty"`
 }
 
 // AuthProviders represents a configuration for multiple authentication providers.
