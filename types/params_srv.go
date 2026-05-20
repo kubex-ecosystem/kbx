@@ -32,7 +32,7 @@ func NewSrvBasic() SrvBasicParams { return SrvBasicParams{} }
 // NewSrvBasicDefault cria uma nova instância de SrvBasicParams com valores padrão.
 func NewSrvBasicDefault() SrvBasicParams {
 	return SrvBasicParams{
-		CompanyName:    "Canalize",
+		CompanyName:    "Kubex Ecosystem",
 		FriendlyName:   "GNyx",
 		AppName:        "kubex",
 		AppVersion:     "v0.1.0",
@@ -51,15 +51,16 @@ func NewSrvBasicDefault() SrvBasicParams {
 // SrvFilesParams representa parâmetros de arquivos.
 type SrvFilesParams struct {
 	// Paths and files
-	Cwd              string `yaml:"cwd,omitempty" json:"cwd,omitempty" mapstructure:"cwd,omitempty"`
-	LogFile          string `yaml:"log_file,omitempty" json:"log_file,omitempty" mapstructure:"log_file,omitempty"`
-	EnvFile          string `yaml:"env_file,omitempty" json:"env_file,omitempty" mapstructure:"env_file,omitempty"`
-	ConfigFile       string `yaml:"config_file,omitempty" json:"config_file,omitempty" mapstructure:"config_file,omitempty"`
-	MainDBName       string `yaml:"main_db_name,omitempty" json:"main_db_name,omitempty" mapstructure:"main_db_name,omitempty"`
-	DBConfigFile     string `yaml:"db_config_file,omitempty" json:"db_config_file,omitempty" mapstructure:"db_config_file,omitempty"`
-	TemplatesDir     string `yaml:"templates_dir,omitempty" json:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
-	MailerConfigFile string `yaml:"mailer_config_file,omitempty" json:"mailer_config_file,omitempty" mapstructure:"mailer_config_file,omitempty"`
-	ProvidersConfig  string `yaml:"providers_config,omitempty" json:"providers_config,omitempty" mapstructure:"providers_config,omitempty"`
+	Cwd                    string `yaml:"cwd,omitempty" json:"cwd,omitempty" mapstructure:"cwd,omitempty"`
+	LogFile                string `yaml:"log_file,omitempty" json:"log_file,omitempty" mapstructure:"log_file,omitempty"`
+	EnvFile                string `yaml:"env_file,omitempty" json:"env_file,omitempty" mapstructure:"env_file,omitempty"`
+	ConfigFile             string `yaml:"config_file,omitempty" json:"config_file,omitempty" mapstructure:"config_file,omitempty"`
+	MainDBName             string `yaml:"main_db_name,omitempty" json:"main_db_name,omitempty" mapstructure:"main_db_name,omitempty"`
+	DBConfigFile           string `yaml:"db_config_file,omitempty" json:"db_config_file,omitempty" mapstructure:"db_config_file,omitempty"`
+	TemplatesDir           string `yaml:"templates_dir,omitempty" json:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
+	MailerConfigFile       string `yaml:"mailer_config_file,omitempty" json:"mailer_config_file,omitempty" mapstructure:"mailer_config_file,omitempty"`
+	ProvidersConfig        string `yaml:"providers_config,omitempty" json:"providers_config,omitempty" mapstructure:"providers_config,omitempty"`
+	FirebaseSDKAdmFilePath string `yaml:"firebase_key_file,omitempty" json:"firebase_key_file,omitempty" mapstructure:"firebase_key_file,omitempty"`
 }
 
 // NewSrvFiles cria uma nova instância de SrvFilesParams.
@@ -68,15 +69,16 @@ func NewSrvFiles() SrvFilesParams { return SrvFilesParams{} }
 // NewSrvFilesDefault cria uma nova instância de SrvFilesParams com valores padrão.
 func NewSrvFilesDefault() SrvFilesParams {
 	return SrvFilesParams{
-		Cwd:              "",
-		LogFile:          "",
-		EnvFile:          "",
-		ConfigFile:       "",
-		MainDBName:       "kubex_db",
-		DBConfigFile:     "",
-		TemplatesDir:     "",
-		MailerConfigFile: "",
-		ProvidersConfig:  "",
+		Cwd:                    "",
+		LogFile:                "",
+		EnvFile:                "",
+		ConfigFile:             "",
+		MainDBName:             "kubex_db",
+		DBConfigFile:           "",
+		TemplatesDir:           "",
+		MailerConfigFile:       "",
+		ProvidersConfig:        "",
+		FirebaseSDKAdmFilePath: "",
 	}
 }
 

@@ -20,13 +20,13 @@ func EnvOr(key, defaultValue string) string {
 
 // ExpandIfEnv resolves a configuration value by checking for an environment variable
 // if the value is an environment variable, it will be expanded
-func ExpandIfEnv(value, defaultValue string) string {
-	value = NormalizeStr(value)
+func ExpandIfEnv(valOrKey, defaultValOrKey string) string {
+	valOrKey = NormalizeStr(valOrKey)
 
-	if envVal := EnvOr(value, value); !strings.EqualFold(value, envVal) {
+	if envVal := EnvOr(valOrKey, valOrKey); !strings.EqualFold(valOrKey, envVal) && len(envVal) > 0 {
 		return envVal // Expanded EnvVar
 	}
-	return value // Hardcoded value
+	return EnvOr(valOrKey, defaultValOrKey) // Hardcoded value
 }
 
 // EnvOrType retrieves an environment variable by key and attempts to convert it to the specified type T.

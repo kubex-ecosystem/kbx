@@ -157,7 +157,7 @@ func ParseSrvArgs(bind string, port string, pubCertKeyPath string, pubKeyPath st
 	SrvArgs.Runtime.Port = get.ValOrType(port, get.EnvOr(defaults["DefaultServerPort"].(string), "5000"))
 	SrvArgs.Runtime.PubCertKeyPath = os.ExpandEnv(get.ValOrType(pubCertKeyPath, get.EnvOr(defaults["DefaultGNyxPubCertKeyPath"].(string), "")))
 	SrvArgs.Runtime.PubKeyPath = os.ExpandEnv(get.ValOrType(pubKeyPath, get.EnvOr(defaults["DefaultGNyxPubKeyPath"].(string), "")))
-	SrvArgs.Runtime.PrivKeyPath = os.ExpandEnv(get.ValOrType(privKeyPath, get.EnvOr(defaults["DefaultCanalizeBEPrivKeyPath"].(string), "")))
+	SrvArgs.Runtime.PrivKeyPath = os.ExpandEnv(get.ValOrType(privKeyPath, get.EnvOr(defaults["DefaultGNyxBEPrivKeyPath"].(string), "")))
 	SrvArgs.Runtime.AccessTokenTTL = time.Duration(get.ValOrType(accessTokenTTL, 15)) * time.Minute
 	SrvArgs.Runtime.RefreshTokenTTL = time.Duration(get.ValOrType(refreshTokenTTL, 60)) * time.Minute
 	SrvArgs.Runtime.Issuer = get.ValOrType(issuer, "kubex-ecosystem")
@@ -622,6 +622,15 @@ func NewAuthProviders(cfgPath string) AuthProviders {
 				Config:                  &oauth2.Config{},
 			},
 			Mobile: NewAuthClient(),
+		},
+		Firebase: &AuthClientWrapper{
+			API: &AuthClient{
+				BasicAuth:         &types.BasicAuth{},
+				Scopes:            make([]string, 0),
+				RedirectURIs:      make([]string, 0),
+				JavaScriptOrigins: make([]string, 0),
+				Metadata:          make(map[string]any),
+			},
 		},
 	}
 }

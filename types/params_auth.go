@@ -37,6 +37,7 @@ type AuthClient struct {
 
 	ConfigPath              string   `json:"config_path" yaml:"config_path" toml:"config_path" mapstructure:"config_path"`
 	ProjectID               string   `json:"project_id,omitempty" env:"GOOGLE_PROJECT_ID"`
+	APIKey                  string   `json:"-" yaml:"-" toml:"-" mapstructure:"-"`
 	ClientID                string   `json:"client_id,omitempty" env:"GOOGLE_CLIENT_ID"`
 	ClientSecret            string   `json:"client_secret,omitempty" env:"GOOGLE_CLIENT_SECRET"`
 	RedirectURL             string   `json:"redirect_url,omitempty" env:"GOOGLE_REDIRECT_URL"`
@@ -67,6 +68,7 @@ type AuthClientWrapper struct {
 type AuthProviders struct {
 	Sankhya   *AuthClientWrapper   `json:"sankhya,omitempty" env:"SANKHYA_AUTH_CONFIG"`
 	Google    *AuthClientWrapper   `json:"google,omitempty" env:"GOOGLE_AUTH_CONFIG"`
+	Firebase  *AuthClientWrapper   `json:"firebase,omitempty" env:"FIREBASE_AUTH_CONFIG"`
 	Microsoft *AuthClientWrapper   `json:"microsoft,omitempty" env:"MICROSOFT_AUTH_CONFIG"`
 	Facebook  *AuthClientWrapper   `json:"facebook,omitempty" env:"FACEBOOK_AUTH_CONFIG"`
 	LinkedIn  *AuthClientWrapper   `json:"linkedin,omitempty" env:"LINKEDIN_AUTH_CONFIG"`

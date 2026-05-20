@@ -114,7 +114,7 @@ func runDaemon(cmd *cobra.Command, args []string) error {
 func printDaemonInfo(config any /* daemon.DaemonConfig */) {
 	gl.Log("info", "")
 	gl.Log("info", "🚀 ========================== Daemon Startup ============================")
-	gl.Log("info", "🤖   CANALIZEBE DAEMON - Repository Intelligence Platform")
+	gl.Log("info", "🤖   GNYX DAEMON - Repository Intelligence Platform")
 	gl.Log("info", "🚀 ============================================================")
 	gl.Log("info", "")
 	// gl.Infof("🏗️  GoBE Integration: %s", config.GoBeURL)
