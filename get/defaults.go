@@ -9,25 +9,38 @@ import (
 
 // Integer pointer helper functions - Convenience wrappers around generic Ptr function with type conversion
 
+// UintPtr returns a pointer to the given value n of type uint.
 func UintPtr(n uint64) *uint { return Ptr(uint(n)) }
-func IntPtr(n int64) *int    { return Ptr(int(n)) }
+
+// IntPtr returns a pointer to the given value n of type int.
+func IntPtr(n int64) *int { return Ptr(int(n)) }
 
 // Pointer helper functions - Convenience wrappers around generic Ptr function
 
+// Uint64Ptr returns a pointer to the given value n of type uint64.
 func Uint64Ptr(n uint64) *uint64 { return Ptr(n) }
-func Int64Ptr(n int64) *int64    { return Ptr(n) }
-func BlPtr(b bool) *bool         { return Ptr(b) }
+
+// Int64Ptr returns a pointer to the given value n of type int64.
+func Int64Ptr(n int64) *int64 { return Ptr(n) }
+
+// BlPtr returns a pointer to the given value b of type bool.
+func BlPtr(b bool) *bool { return Ptr(b) }
+
+// Fl64Ptr returns a pointer to the given value n of type float64.
 func Fl64Ptr(n float64) *float64 { return Ptr(n) }
-func StrPtr(s string) *string    { return Ptr(s) }
+
+// StrPtr returns a pointer to the given value s of type string.
+func StrPtr(s string) *string { return Ptr(s) }
 
 // Generic Ptr function - Returns a pointer to the given value
 
 // Ptr returns a pointer to the given value v of any type T.
-func Ptr[T any](v T) *T { return &v }
+func Ptr[T any](v T) *T { return new(v) }
 
 // Type functions - Retrieve the reflect.Type and type name of a given value
-
 func Type[T any](v T) reflect.Type { return reflect.TypeFor[T]() }
+
+// TypeName returns the type name of a given value.
 func TypeName(obj any) string {
 	if t := Type(obj); t.Kind() == reflect.Pointer {
 		return t.Elem().Name()

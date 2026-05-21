@@ -4,22 +4,11 @@ package types
 import (
 	"github.com/google/uuid"
 
+	"github.com/kubex-ecosystem/logz"
 	gl "github.com/kubex-ecosystem/logz"
 )
 
-type DBType string
-
-const (
-	DBTypePostgres DBType = "postgres"
-	DBTypeRabbitMQ DBType = "rabbitmq"
-	DBTypeRedis    DBType = "redis"
-	DBTypeMongoDB  DBType = "mongodb"
-	DBTypeMySQL    DBType = "mysql"
-	DBTypeMSSQL    DBType = "mssql"
-	DBTypeSQLite   DBType = "sqlite"
-	DBTypeOracle   DBType = "oracle"
-)
-
+// LogzConfig represents the configuration for the logger.
 type LogzConfig struct {
 	ID uuid.UUID
 
@@ -34,13 +23,7 @@ type LogzConfig struct {
 	*gl.LogzBufferingOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
 }
 
-// RootParams representa o arquivo de configuração do DS.
-type RootParams struct {
-	Name     string `json:"name,omitempty" yaml:"name,omitempty" mapstructure:"name,omitempty"`
-	FilePath string `json:"file_path,omitempty" yaml:"file_path,omitempty" mapstructure:"file_path,omitempty"`
-	Enabled  *bool  `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty" default:"true"`
-}
-
+// NewLogzConfig creates a new LogzConfig.
 func NewLogzConfig() *LogzConfig {
 	return &LogzConfig{
 		ID:                   uuid.New(),
@@ -50,4 +33,19 @@ func NewLogzConfig() *LogzConfig {
 		LogzRotatingOptions:  &gl.LogzRotatingOptions{},
 		LogzBufferingOptions: &gl.LogzBufferingOptions{},
 	}
+}
+
+// No Go, quando um struct contém campos que são ponteiros para outros structs,
+// os campos dos structs apontados são promovidos para o struct pai.
+// Isso significa que os campos podem ser acessados diretamente como se fossem
+// campos do struct pai, mas eles ainda são ponteiros.
+//
+// Para mais informações, veja:
+//   - https://pkg.go.dev/fmt#Sprintf
+//   - https://pkg.go.dev/fmt# %#v
+func ExemploPonteiroPromovido(l *LogzConfig) {
+	if !l.Debug || !l.LogzGeneralOptions.Debug {
+		return
+	}
+	logz.Successf("O objeto aparenta ser um 'mutante' em função dos ponteiros.. (%v) rsrs", l)
 }
