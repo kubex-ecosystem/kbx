@@ -222,7 +222,7 @@ type SrvConfig struct {
 	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Auth        AuthClientWrapper    `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
 	Invite      InviteConfig         `json:"invite" yaml:"invite,omitempty" mapstructure:"invite,omitempty"`
-	Providers   AuthProviders        `json:"auth_providers_config" yaml:"auth_providers_config,omitempty" mapstructure:"auth_providers_config,omitempty"`
+	// Providers   AuthProviders        `json:"auth_providers_config" yaml:"auth_providers_config,omitempty" mapstructure:"auth_providers_config,omitempty"`
 	// TemplatesDir string               `json:"templates_dir,omitempty" yaml:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
 }
 

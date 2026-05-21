@@ -195,3 +195,44 @@ func DefaultFalse(b *bool) bool {
 	}
 	return *b
 }
+
+// Safe checks if the given object is "safe" to use. Its seems like Valid, but with different rules.
+// In strict mode, it considers zero values of basic types (0, false, "") as safe.
+// In resilient mode, it treats empty collections as unsafe.
+func Safe(obj any, strict bool) bool {
+	v := reflect.ValueOf(obj)
+
+	// nil pointers or invalid values
+	if !v.IsValid() {
+		return false
+	}
+	if v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return false
+		}
+		v = v.Elem()
+	}
+
+	// zero value check (different meaning in strict vs resilient mode)
+	if v.IsZero() {
+		if strict {
+
+			switch v.Kind() {
+			case reflect.Bool, reflect.Int, reflect.Int64, reflect.Float64, reflect.String:
+				// 0, false, "" são válidos em modo estrito
+				return true
+			}
+		}
+		return false
+	}
+
+	// empty collections → false no resilient mode
+	switch v.Kind() {
+	case reflect.Slice, reflect.Array, reflect.Map:
+		if v.Len() == 0 {
+			return !strict
+		}
+	}
+
+	return true
+}
