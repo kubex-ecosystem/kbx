@@ -1,56 +1,34 @@
-// Package fsm provides a simple finite state machine implementation.
-//
-// It defines generic State, Event, and Transition types, and a ThreadSafeFSM
-// type that wraps an FSM with atomic operations for thread-safe state transitions.
-//
-// Example:
-//
-//	type State string
-//	type Event string
-//
-//	const (
-//	    Off State = "off"
-//	    On  State = "on"
-//	)
-//
-//	const (
-//	    Toggle Event = "toggle"
-//	)
-//
-//	transitions := []Transition{
-//	    {From: Off, Event: Toggle, To: On},
-//	    {From: On,  Event: Toggle, To: Off},
-//	}
-//
-//	fsm := NewFSM(Off, transitions)
-//	fsm.Trigger(Toggle) // transition from Off to On
 package fsm
 
-// State represents a state in the state machine.
-type State string
+import (
+	"github.com/kubex-ecosystem/kbx/tools/flow/control"
+)
+
+// State represents an atomic state based on bitflags.
+type State uint32
 
 // Event represents an event that can trigger a state transition.
-type Event string
+type Event uint32
 
-// Transition represents a transition between states.
+// Transition represents an atomic transition between states.
 type Transition struct {
-	From  State `json:"from" yaml:"from" xml:"from" toml:"from" mapstructure:"from"`
-	Event Event `json:"event" yaml:"event" xml:"event" toml:"event" mapstructure:"event"`
-	To    State `json:"to" yaml:"to" xml:"to" toml:"to" mapstructure:"to"`
+	From  State
+	Event Event
+	To    State
 }
 
-// FSM represents a finite state machine.
+// FSM represents an atomic finite state machine.
 type FSM struct {
-	current State                     `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
-	table   map[State]map[Event]State `json:"-" yaml:"-" xml:"-" toml:"-" mapstructure:"-"`
+	current control.FlagReg32[State]
+	table   map[State]map[Event]State
 }
 
-// NewFSM creates a new FSM with the given initial state and transitions.
+// NewFSM creates a new atomic FSM with the given initial state and transitions.
 func NewFSM(initial State, transitions []Transition) *FSM {
 	fsm := &FSM{
-		current: initial,
-		table:   make(map[State]map[Event]State),
+		table: make(map[State]map[Event]State),
 	}
+	fsm.current.Store(initial)
 
 	for _, t := range transitions {
 		if fsm.table[t.From] == nil {
@@ -62,27 +40,33 @@ func NewFSM(initial State, transitions []Transition) *FSM {
 	return fsm
 }
 
-// Current returns the current state of the FSM.
+// Current returns the current state of the FSM atômico.
 func (f *FSM) Current() State {
-	return f.current
+	return f.current.Load()
 }
 
-// Trigger transitions the FSM to a new state based on the given event.
+// Trigger transitions the FSM to a new state atomically using CAS.
 func (f *FSM) Trigger(event Event) bool {
-	if next, ok := f.table[f.current][event]; ok {
-		f.current = next
-		return true
+	for {
+		curr := f.current.Load()
+		if next, ok := f.table[curr][event]; ok {
+			if f.current.CompareAndSwap(curr, next) {
+				return true
+			}
+			// If CAS fails, someone else changed the state, retry the logic from the new state.
+			continue
+		}
+		return false
 	}
-	return false
 }
 
 // Can checks if the given event can trigger a transition from the current state.
 func (f *FSM) Can(event Event) bool {
-	_, ok := f.table[f.current][event]
+	_, ok := f.table[f.current.Load()][event]
 	return ok
 }
 
-// Reset resets the FSM to the given state.
+// Reset forces the FSM to the given state.
 func (f *FSM) Reset(state State) {
-	f.current = state
+	f.current.Store(state)
 }
