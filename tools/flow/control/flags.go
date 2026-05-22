@@ -79,7 +79,23 @@ const (
 	JobTimedOut
 )
 
-const terminalMask JobFlag = JobCompleted | JobFailed | JobTimedOut
+// StepFlag representa estágios de um pipeline (ex: logger).
+type StepFlag uint32
+
+const (
+	StepValidate StepFlag = 1 << iota
+	StepPreHooks
+	StepFormat
+	StepPostHooks
+	StepWrite
+	StepDone
+	StepFailed
+)
+
+const (
+	terminalMask     JobFlag  = JobCompleted | JobFailed | JobTimedOut
+	StepTerminalMask StepFlag = StepDone | StepFailed
+)
 
 var ErrTerminal = errors.New("job is in a terminal state")
 
@@ -124,6 +140,16 @@ func (s *JobState) Fail() error {
 }
 
 func (s *JobState) IsTerminal() bool { return s.r.Any(terminalMask) }
+
+// ManagerControl gerencia estágios e estados.
+type ManagerControl struct {
+	Stage FlagReg32[StepFlag]
+	State FlagReg32[StepFlag]
+}
+
+func (c *ManagerControl) IsTerminal() bool {
+	return c.State.Any(StepTerminalMask)
+}
 
 // FlagReg64 mirrors FlagReg32 for 64-bit sets.
 type FlagReg64[T ~uint64] struct{ v atomic.Uint64 }
