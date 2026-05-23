@@ -7,7 +7,7 @@ import (
 	"github.com/kubex-ecosystem/kbx/load"
 	"github.com/kubex-ecosystem/kbx/types"
 
-	gl "github.com/kubex-ecosystem/logz"
+	"fmt"
 )
 
 type SMTP = types.MailConnection
@@ -22,5 +22,5 @@ func BasicSMTP(from string) (*SMTP, error) {
 			return &smtp, nil
 		}
 	}
-	return nil, gl.Errorf("no SMTP configuration found in %s", filepath.Base(from))
+	return nil, fmt.Errorf("no SMTP configuration found in %s", filepath.Base(from))
 }

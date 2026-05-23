@@ -11,7 +11,6 @@ require (
 	github.com/emersion/go-imap v1.2.1
 	github.com/fatih/color v1.18.0
 	github.com/google/uuid v1.6.0
-	github.com/kubex-ecosystem/logz v1.6.89
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/spf13/cobra v1.10.2
 )

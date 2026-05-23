@@ -6,17 +6,7 @@ import (
 	"slices"
 
 	"github.com/kubex-ecosystem/kbx/types"
-	gl "github.com/kubex-ecosystem/logz"
 )
-
-// LogEntry checks if the given object is of type gl.Entry
-func LogEntry(obj any) bool {
-	if !Valid(obj) {
-		return false
-	}
-	_, ok := obj.(gl.Entry)
-	return ok
-}
 
 // NilPtr checks if the given object is a nil pointer or interface
 func NilPtr(obj any) bool {

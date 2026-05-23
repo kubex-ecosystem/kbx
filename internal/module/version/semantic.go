@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	info "github.com/kubex-ecosystem/kbx/internal/module/info"
 
-	gl "github.com/kubex-ecosystem/logz"
 	"github.com/spf13/cobra"
 )
 
@@ -59,8 +59,8 @@ func init() {
 func getLatestTag(repoURL string) (string, error) {
 	defer func() {
 		if rec := recover(); rec != nil {
-			gl.Log("error", "Recovered from panic in getLatestTag: %v", rec)
-			err = gl.Errorf("panic occurred while fetching latest tag: %v", rec)
+			fmt.Fprintf(os.Stderr, "Recovered from panic in getLatestTag: %v\n", rec)
+			err = fmt.Errorf("panic occurred while fetching latest tag: %v", rec)
 		}
 	}()
 
@@ -74,17 +74,17 @@ func getLatestTag(repoURL string) (string, error) {
 	if manifest == nil {
 		manifest, err = info.GetManifest()
 		// if err := manifest.LoadManifest(); err != nil {
-		// 	return "", gl.Errorf("failed to load manifest: %v", err)
+		// 	return "", fmt.Errorf("failed to load manifest: %v", err)
 		// }
 	}
 	if manifest.IsPrivate() {
-		return "", gl.Errorf("cannot fetch latest tag for private repositories")
+		return "", fmt.Errorf("cannot fetch latest tag for private repositories")
 	}
 
 	if repoURL == "" {
 		repoURL = manifest.GetRepository()
 		if repoURL == "" {
-			return "", gl.Errorf("repository URL is not set")
+			return "", fmt.Errorf("repository URL is not set")
 		}
 	}
 
@@ -98,7 +98,7 @@ func getLatestTag(repoURL string) (string, error) {
 	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return "", gl.Errorf("failed to fetch tags: %s", resp.Status)
+		return "", fmt.Errorf("failed to fetch tags: %s", resp.Status)
 	}
 	type Tag struct {
 		Name string `json:"name"`
@@ -108,7 +108,7 @@ func getLatestTag(repoURL string) (string, error) {
 	// This assumes the API returns a JSON array of tags.
 	// Adjust the decoding logic based on the actual API response structure.
 	if resp.Header.Get("Content-Type") != "application/json" {
-		return "", gl.Errorf("expected application/json, got %s", resp.Header.Get("Content-Type"))
+		return "", fmt.Errorf("expected application/json, got %s", resp.Header.Get("Content-Type"))
 	}
 
 	var tags []Tag
@@ -117,13 +117,13 @@ func getLatestTag(repoURL string) (string, error) {
 	}
 
 	if len(tags) == 0 {
-		return "", gl.Errorf("no tags found")
+		return "", fmt.Errorf("no tags found")
 	}
 	return tags[0].Name, nil
 }
 func (v *ServiceImpl) updateLatestVersion() error {
 	if manifest.IsPrivate() {
-		return gl.Errorf("cannot fetch latest version for private repositories")
+		return fmt.Errorf("cannot fetch latest version for private repositories")
 	}
 	repoURL := strings.TrimSuffix(v.gitModelURL, ".git")
 	tag, err := getLatestTag(repoURL)
@@ -178,7 +178,7 @@ func (v *ServiceImpl) parseVersion(versionToParse string) []int {
 }
 func (v *ServiceImpl) IsLatestVersion() (bool, error) {
 	if manifest.IsPrivate() {
-		return false, gl.Errorf("cannot check version for private repositories")
+		return false, fmt.Errorf("cannot check version for private repositories")
 	}
 	if v.latestVersion == "" {
 		if err := v.updateLatestVersion(); err != nil {
@@ -190,18 +190,18 @@ func (v *ServiceImpl) IsLatestVersion() (bool, error) {
 	latestVersionParts := v.parseVersion(v.latestVersion)
 
 	if len(currentVersionParts) == 0 || len(latestVersionParts) == 0 {
-		return false, gl.Errorf("invalid version format")
+		return false, fmt.Errorf("invalid version format")
 	}
 
 	if len(currentVersionParts) != len(latestVersionParts) {
-		return false, gl.Errorf("version parts length mismatch")
+		return false, fmt.Errorf("version parts length mismatch")
 	}
 
 	return v.versionAtMost(currentVersionParts, latestVersionParts)
 }
 func (v *ServiceImpl) GetLatestVersion() (string, error) {
 	if manifest.IsPrivate() {
-		return "", gl.Errorf("cannot fetch latest version for private repositories")
+		return "", fmt.Errorf("cannot fetch latest version for private repositories")
 	}
 	if v.latestVersion == "" {
 		if err := v.updateLatestVersion(); err != nil {
@@ -236,14 +236,15 @@ func (v *ServiceImpl) GetRepository() string {
 }
 func (v *ServiceImpl) setLastCheckedAt(t time.Time) {
 	v.lastCheckedAt = t
-	gl.Log("debug", "Last checked at: "+t.Format(time.RFC3339))
+
 }
 
 func NewVersionService() Service {
 	if manifest == nil {
 		manifest, err = info.GetManifest()
 		if err != nil {
-			gl.Fatalf("Failed to load manifest: %v", err)
+			fmt.Fprintf(os.Stderr, "Failed to load manifest: %v\n", err)
+			os.Exit(1)
 		}
 	}
 	return &ServiceImpl{
@@ -271,9 +272,9 @@ func init() {
 			Long:  "Print the version number of " + manifest.GetName() + " and other related information.",
 			Run: func(cmd *cobra.Command, args []string) {
 				if manifest.IsPrivate() {
-					gl.Log("warn", "The information shown may not be accurate for private repositories.")
-					gl.Log("info", "Current version: "+GetVersion())
-					gl.Log("info", "Git repository: "+GetGitRepositoryModelURL())
+					fmt.Fprintln(os.Stderr, "The information shown may not be accurate for private repositories.")
+					fmt.Fprintln(os.Stdout, "Current version: "+GetVersion())
+					fmt.Fprintln(os.Stdout, "Git repository: "+GetGitRepositoryModelURL())
 					return
 				}
 				GetVersionInfo()
@@ -287,7 +288,7 @@ func init() {
 			Long:  "Print the latest version number of " + manifest.GetName() + " from the Git repository.",
 			Run: func(cmd *cobra.Command, args []string) {
 				if manifest.IsPrivate() {
-					gl.Log("error", "Cannot fetch latest version for private repositories.")
+					fmt.Fprintln(os.Stderr, "Cannot fetch latest version for private repositories.")
 					return
 				}
 				GetLatestVersionInfo()
@@ -301,7 +302,7 @@ func init() {
 			Long:  "Check if the current version is the latest version of " + manifest.GetName() + " and print the version information.",
 			Run: func(cmd *cobra.Command, args []string) {
 				if manifest.IsPrivate() {
-					gl.Log("error", "Cannot check version for private repositories.")
+					fmt.Fprintln(os.Stderr, "Cannot check version for private repositories.")
 					return
 				}
 				GetVersionInfoWithLatestAndCheck()
@@ -315,18 +316,18 @@ func init() {
 			Long:  "Update the version information of " + manifest.GetName() + " by fetching the latest version from the Git repository.",
 			Run: func(cmd *cobra.Command, args []string) {
 				if manifest.IsPrivate() {
-					gl.Log("error", "Cannot update version for private repositories.")
+					fmt.Fprintln(os.Stderr, "Cannot update version for private repositories.")
 					return
 				}
 				if err := vrs.updateLatestVersion(); err != nil {
-					gl.Log("error", "Failed to update version: "+err.Error())
+					fmt.Fprintln(os.Stderr, "Failed to update version: "+err.Error())
 				} else {
 					latestVersion, err := vrs.GetLatestVersion()
 					if err != nil {
-						gl.Log("error", "Failed to get latest version: "+err.Error())
+						fmt.Fprintln(os.Stderr, "Failed to get latest version: "+err.Error())
 					} else {
-						gl.Log("info", "Current version: "+vrs.GetCurrentVersion())
-						gl.Log("info", "Latest version: "+latestVersion)
+						fmt.Fprintln(os.Stdout, "Current version: "+vrs.GetCurrentVersion())
+						fmt.Fprintln(os.Stdout, "Latest version: "+latestVersion)
 					}
 					vrs.setLastCheckedAt(time.Now())
 				}
@@ -339,7 +340,7 @@ func init() {
 			Short: "Get the current version of " + manifest.GetName(),
 			Long:  "Get the current version of " + manifest.GetName() + " from the manifest.",
 			Run: func(cmd *cobra.Command, args []string) {
-				gl.Log("info", "Current version: "+vrs.GetCurrentVersion())
+				fmt.Fprintln(os.Stdout, "Current version: "+vrs.GetCurrentVersion())
 			},
 		}
 	}
@@ -349,9 +350,9 @@ func init() {
 			Short: "Restart the " + manifest.GetName() + " service",
 			Long:  "Restart the " + manifest.GetName() + " service to apply any changes made.",
 			Run: func(cmd *cobra.Command, args []string) {
-				gl.Log("info", "Restarting the service...")
+				fmt.Fprintln(os.Stdout, "Restarting the service...")
 				// Logic to restart the service can be added here
-				gl.Log("success", "Service restarted successfully")
+				fmt.Fprintln(os.Stdout, "Service restarted successfully")
 			},
 		}
 	}
@@ -361,7 +362,7 @@ func GetVersion() string {
 	if manifest == nil {
 		manifest, err = info.GetManifest()
 		if err != nil {
-			gl.Log("error", "Failed to load manifest: "+err.Error())
+			fmt.Fprintln(os.Stderr, "Failed to load manifest: "+err.Error())
 			return "Unknown version"
 		}
 	}
@@ -374,13 +375,13 @@ func GetGitRepositoryModelURL() string {
 	return manifest.GetRepository()
 }
 func GetVersionInfo() string {
-	gl.Log("info", "Version: "+GetVersion())
-	gl.Log("info", "Git repository: "+GetGitRepositoryModelURL())
+	fmt.Fprintln(os.Stdout, "Version: "+GetVersion())
+	fmt.Fprintln(os.Stdout, "Git repository: "+GetGitRepositoryModelURL())
 	return fmt.Sprintf("Version: %s\nGit repository: %s", GetVersion(), GetGitRepositoryModelURL())
 }
 func GetLatestVersionFromGit() string {
 	if manifest.IsPrivate() {
-		gl.Log("error", "Cannot fetch latest version for private repositories.")
+		fmt.Fprintln(os.Stderr, "Cannot fetch latest version for private repositories.")
 		return "Cannot fetch latest version for private repositories."
 	}
 
@@ -390,20 +391,20 @@ func GetLatestVersionFromGit() string {
 
 	gitURLWithoutGit := strings.TrimSuffix(GetGitRepositoryModelURL(), ".git")
 	if gitURLWithoutGit == "" {
-		gl.Log("error", "No repository URL set in the manifest.")
+		fmt.Fprintln(os.Stderr, "No repository URL set in the manifest.")
 		return "No repository URL set in the manifest."
 	}
 
 	response, err := netClient.Get(gitURLWithoutGit + "/releases/latest")
 	if err != nil {
-		gl.Log("error", "Error fetching latest version: "+err.Error())
-		gl.Log("error", gitURLWithoutGit+"/releases/latest")
+		fmt.Fprintln(os.Stderr, "Error fetching latest version: "+err.Error())
+		fmt.Fprintln(os.Stderr, gitURLWithoutGit+"/releases/latest")
 		return err.Error()
 	}
 
 	if response.StatusCode != 200 {
-		gl.Log("error", "Error fetching latest version: "+response.Status)
-		gl.Log("error", "Url: "+gitURLWithoutGit+"/releases/latest")
+		fmt.Fprintln(os.Stderr, "Error fetching latest version: "+response.Status)
+		fmt.Fprintln(os.Stderr, "Url: "+gitURLWithoutGit+"/releases/latest")
 		body, _ := io.ReadAll(response.Body)
 		return fmt.Sprintf("Error: %s\nResponse: %s", response.Status, string(body))
 	}
@@ -414,22 +415,22 @@ func GetLatestVersionFromGit() string {
 }
 func GetLatestVersionInfo() string {
 	if manifest.IsPrivate() {
-		gl.Log("error", "Cannot fetch latest version for private repositories.")
+		fmt.Fprintln(os.Stderr, "Cannot fetch latest version for private repositories.")
 		return "Cannot fetch latest version for private repositories."
 	}
-	gl.Log("info", "Latest version: "+GetLatestVersionFromGit())
+	fmt.Fprintln(os.Stdout, "Latest version: "+GetLatestVersionFromGit())
 	return "Latest version: " + GetLatestVersionFromGit()
 }
 func GetVersionInfoWithLatestAndCheck() string {
 	if manifest.IsPrivate() {
-		gl.Log("error", "Cannot check version for private repositories.")
+		fmt.Fprintln(os.Stderr, "Cannot check version for private repositories.")
 		return "Cannot check version for private repositories."
 	}
 	if GetVersion() == GetLatestVersionFromGit() {
-		gl.Log("info", "You are using the latest version.")
+		fmt.Fprintln(os.Stdout, "You are using the latest version.")
 		return fmt.Sprintf("You are using the latest version.\n%s\n%s", GetVersionInfo(), GetLatestVersionInfo())
 	} else {
-		gl.Log("warn", "You are using an outdated version.")
+		fmt.Fprintln(os.Stderr, "You are using an outdated version.")
 		return fmt.Sprintf("You are using an outdated version.\n%s\n%s", GetVersionInfo(), GetLatestVersionInfo())
 	}
 }

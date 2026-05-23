@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	gl "github.com/kubex-ecosystem/logz"
+	"fmt"
 )
 
 // NotifierEventBase represents a notification to be sent
@@ -99,7 +99,7 @@ func (r *NotifierRegistry) Register(provider NotifierProvider) {
 func (r *NotifierRegistry) Notify(ctx context.Context, event NotifierEvent[any, NotifierConfig[any]]) error {
 	provider, exists := r.providers[event.Type()]
 	if !exists {
-		return gl.Errorf("no notifier provider registered for type '%s'", event.Type())
+		return fmt.Errorf("no notifier provider registered for type '%s'", event.Type())
 	}
 	return provider.Notify(ctx, event)
 }

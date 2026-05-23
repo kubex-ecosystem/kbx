@@ -7,10 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"errors"
+	"fmt"
+
 	"github.com/kubex-ecosystem/kbx/internal/module/kbx"
 	load "github.com/kubex-ecosystem/kbx/tools"
-
-	gl "github.com/kubex-ecosystem/logz"
 )
 
 type ToolCall struct {
@@ -31,7 +32,7 @@ type ChatRequest struct {
 
 func (r ChatRequest) Validate() error {
 	if strings.TrimSpace(r.Provider) == "" {
-		return gl.Error("Provider is required")
+		return errors.New("Provider is required")
 	}
 	return nil
 }
@@ -40,7 +41,7 @@ func (r ChatRequest) GetModel() string { return r.Model }
 
 func (r ChatRequest) Read(ctx context.Context) (ChatChunk, error) {
 	if r.Stream {
-		return ChatChunk{}, gl.Error("streaming not implemented in this method")
+		return ChatChunk{}, errors.New("streaming not implemented in this method")
 	}
 
 	var cnk ChatChunk
@@ -51,7 +52,7 @@ func (r ChatRequest) Read(ctx context.Context) (ChatChunk, error) {
 	var p ProviderExt
 	p, err := getLLMProviderByName(nil, r.Provider)
 	if err != nil {
-		return cnk, gl.Errorf("failed to get provider '%s': %v", r.Provider, err)
+		return cnk, fmt.Errorf("failed to get provider '%s': %v", r.Provider, err)
 	}
 	resp, err := p.Chat(
 		ctx,
@@ -378,7 +379,7 @@ func (cfg *LLMConfig) GetProviders() LLMProvidersExtMap {
 func (cfg *LLMConfig) Validate() error {
 	for name, provider := range cfg.Providers {
 		if err := provider.Available(); err != nil {
-			return gl.Errorf("provider '%s' is not available: %v", name, err)
+			return fmt.Errorf("provider '%s' is not available: %v", name, err)
 		}
 	}
 	return nil
@@ -387,7 +388,7 @@ func (cfg *LLMConfig) Validate() error {
 func (cfg *LLMConfig) GetCurrentProvider() (ProviderExt, error) {
 	if !kbx.IsObjValid(cfg.Providers) || len(cfg.Providers) == 0 {
 		cfg.Providers = make(map[string]*LLMProviderConfig, 0)
-		gl.Warn("no providers configured, using defaults")
+		// "no providers configured, using defaults"
 		pp := NewLLMConfig(
 			os.ExpandEnv(
 				kbx.GetEnvOrDefaultWithType(
@@ -401,17 +402,15 @@ func (cfg *LLMConfig) GetCurrentProvider() (ProviderExt, error) {
 		cfg.Providers = pp.Providers
 	}
 	if len(cfg.Providers) == 0 {
-		return nil, gl.Errorf("no providers configured")
+		return nil, fmt.Errorf("no providers configured")
 	} else {
-		for name, provider := range cfg.Providers {
+		for _, provider := range cfg.Providers {
 			if err := provider.Available(); err == nil {
 				return provider, nil
-			} else {
-				gl.Warnf("provider '%s' is not available: %v", name, err)
 			}
 		}
 	}
-	return nil, gl.Errorf("no available providers found in configuration")
+	return nil, fmt.Errorf("no available providers found in configuration")
 }
 
 func (cfg *LLMConfig) SetProvider(name string, provider ProviderExt) error {
@@ -419,13 +418,13 @@ func (cfg *LLMConfig) SetProvider(name string, provider ProviderExt) error {
 		cfg.Providers = make(map[string]*LLMProviderConfig)
 	}
 	if provider == nil {
-		return gl.Errorf("provider cannot be nil")
+		return fmt.Errorf("provider cannot be nil")
 	}
 	if len(name) == 0 {
-		return gl.Errorf("provider name cannot be empty")
+		return fmt.Errorf("provider name cannot be empty")
 	}
 	if _, exists := cfg.Providers[name]; !exists {
-		return gl.Errorf("provider with name '%s' does not exist", name)
+		return fmt.Errorf("provider with name '%s' does not exist", name)
 	}
 	if p, ok := cfg.Providers[name]; ok || p != nil {
 		p = &LLMProviderConfig{
@@ -445,7 +444,7 @@ func (cfg *LLMConfig) AddProvider(name string, provider ProviderExt) error {
 		cfg.Providers = make(map[string]*LLMProviderConfig)
 	}
 	if _, exists := cfg.Providers[name]; exists {
-		return gl.Errorf("provider with name '%s' already exists", name)
+		return fmt.Errorf("provider with name '%s' already exists", name)
 	}
 	p := &LLMProviderConfig{
 		name:         provider.Name(),
@@ -460,10 +459,10 @@ func (cfg *LLMConfig) AddProvider(name string, provider ProviderExt) error {
 
 func (cfg *LLMConfig) RemoveProvider(name string) error {
 	if cfg.Providers == nil {
-		return gl.Errorf("no providers configured")
+		return fmt.Errorf("no providers configured")
 	}
 	if _, exists := cfg.Providers[name]; !exists {
-		return gl.Errorf("provider with name '%s' does not exist", name)
+		return fmt.Errorf("provider with name '%s' does not exist", name)
 	}
 	delete(cfg.Providers, name)
 	return nil
@@ -532,16 +531,16 @@ func (pc *LLMProviderConfig) Type() string    { return pc.typ }
 func (pc *LLMProviderConfig) URLBase() string { return pc.BaseURL }
 func (pc *LLMProviderConfig) Available() error {
 	if pc.BaseURL == "" || pc.KeyEnv == "" {
-		return gl.Errorf("provider '%s' is not properly configured", pc.typ)
+		return fmt.Errorf("provider '%s' is not properly configured", pc.typ)
 	}
 	if _, ok := os.LookupEnv(pc.KeyEnv); !ok {
-		return gl.Errorf("environment variable '%s' for provider '%s' is not set", pc.KeyEnv, pc.typ)
+		return fmt.Errorf("environment variable '%s' for provider '%s' is not set", pc.KeyEnv, pc.typ)
 	}
 	if pc.DefaultModel == "" {
-		return gl.Errorf("provider '%s' does not have a default model configured", pc.typ)
+		return fmt.Errorf("provider '%s' does not have a default model configured", pc.typ)
 	}
 	if _, err := url.Parse(pc.BaseURL); err != nil {
-		return gl.Errorf("provider '%s' has an invalid base URL '%s': %v", pc.typ, pc.BaseURL, err)
+		return fmt.Errorf("provider '%s' has an invalid base URL '%s': %v", pc.typ, pc.BaseURL, err)
 	}
 	return nil
 }
@@ -558,25 +557,25 @@ func (pc *LLMProviderConfig) Notify(ctx context.Context, event NotificationEvent
 	// Basic generic implementation
 	switch event.Type {
 	case "rate_limit_exceeded":
-		gl.Warnf("Provider '%s' has exceeded its rate limit", pc.typ)
+		// "Provider '%s' has exceeded its rate limit", pc.typ
 	case "provider_error":
-		gl.Errorf("Provider '%s' encountered an error: %v", pc.typ, event.Content)
+		// provider error: event.Content
 	default:
 		switch event.Type {
 		case "error":
-			gl.Errorf("Provider '%s' error: %v", pc.typ, event.Content)
+			// error: event.Content
 		case "warning":
-			gl.Warnf("Provider '%s' warning: %v", pc.typ, event.Content)
+			// "Provider '%s' warning: %v", pc.typ, event.Content
 		case "info":
-			gl.Infof("Provider '%s' info: %v", pc.typ, event.Content)
+			// "Provider '%s' info: %v", pc.typ, event.Content
 		default:
 			switch event.Subject {
 			case "chat":
-				gl.Infof("Provider '%s' chat event: %v", pc.typ, event.Content)
+				// "Provider '%s' chat event: %v", pc.typ, event.Content
 			case "tool_call":
-				gl.Infof("Provider '%s' tool call event: %v", pc.typ, event.Content)
+				// "Provider '%s' tool call event: %v", pc.typ, event.Content
 			default:
-				gl.Infof("Provider '%s' event: %v", pc.typ, event.Content)
+				// "Provider '%s' event: %v", pc.typ, event.Content
 			}
 		}
 	}
@@ -606,7 +605,7 @@ func (pc *LLMProviderConfig) SetModel(ctx context.Context, model string) error {
 func (pc *LLMProviderConfig) HealthCheck(ctx context.Context) error {
 	// Placeholder implementation. In a real implementation, this would make a lightweight API call to the provider to check its health/status.
 	if err := pc.Available(); err != nil {
-		return gl.Errorf("health check failed for provider '%s': %v", pc.typ, err)
+		return fmt.Errorf("health check failed for provider '%s': %v", pc.typ, err)
 	}
 	return nil
 }
@@ -629,7 +628,7 @@ func getLLMProviderByName(cfg *LLMConfig, name string) (ProviderExt, error) {
 		return nil, err
 	}
 	if loadedCfg == nil {
-		return nil, gl.Errorf("provider config is not available")
+		return nil, fmt.Errorf("provider config is not available")
 	}
 	if loadedCfg.Providers == nil {
 		loadedCfg.Providers = make(map[string]*LLMProviderConfig)
@@ -637,19 +636,19 @@ func getLLMProviderByName(cfg *LLMConfig, name string) (ProviderExt, error) {
 	if p, ok := loadedCfg.Providers[name]; ok && p != nil {
 		return p, nil
 	}
-	return nil, gl.Errorf("provider with name '%s' not found in configuration", name)
+	return nil, fmt.Errorf("provider with name '%s' not found in configuration", name)
 }
 
 func loadLLMConfigFromFile(path string) (LLMConfig, error) {
 	cfg := NewLLMConfigDefault()
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		gl.Warnf("LLM config file '%s' does not exist, using defaults", path)
+		// "LLM config file '%s' does not exist, using defaults", path
 		return cfg, nil
 	}
 	pc := load.NewEmptyMapperType[LLMProviderConfig](path)
 	pcd, err := pc.DeserializeFromFile(filepath.Ext(path)[1:])
 	if err != nil {
-		return cfg, gl.Errorf("failed to load LLM config from file '%s': %v", path, err)
+		return cfg, fmt.Errorf("failed to load LLM config from file '%s': %v", path, err)
 	}
 	cfg.Providers[pcd.Name()] = pcd
 	return cfg, nil
@@ -671,7 +670,7 @@ func getLLMConfig(cfg *LLMConfig) (*LLMConfig, error) {
 		cfg.Providers = loadedCfg.Providers
 	} else {
 		cfg.Providers = make(map[string]*LLMProviderConfig, 0)
-		gl.Warn("no providers found in loaded config, using defaults")
+		// "no providers found in loaded config, using defaults"
 		pp := NewLLMConfig(
 			os.ExpandEnv(
 				kbx.GetEnvOrDefaultWithType(

@@ -2,9 +2,8 @@
 package get
 
 import (
+	"fmt"
 	"reflect"
-
-	gl "github.com/kubex-ecosystem/logz"
 )
 
 // Integer pointer helper functions - Convenience wrappers around generic Ptr function with type conversion
@@ -58,16 +57,14 @@ func TypeName(obj any) string {
 func SeedFromEnvMap[T any](prefix string, keyMap map[string]T, defMap map[string]T, ctlChan chan any) map[string]T {
 	defer func(hCtl chan any) {
 		if r := recover(); r != nil {
-			// Handle the panic (e.g., log the error)
-			gl.Errorf("Panic at the Hydration: %v", r)
 			if ctlChan != nil {
-				gl.Info("Async hydration due to panic recovery")
 				for key, defaultValue := range defMap {
 					keyMap[key] = ValOrType(keyMap[key], defaultValue)
 				}
 				ctlChan <- r
 				return
 			}
+			fmt.Printf("Panic at the Hydration: %v\n", r)
 		}
 	}(ctlChan)
 	for key, defaultValue := range defMap {
@@ -75,6 +72,5 @@ func SeedFromEnvMap[T any](prefix string, keyMap map[string]T, defMap map[string
 			ValOrType(keyMap[key], defaultValue),
 		)
 	}
-	gl.Debugf("Hydrated Map for DBType %s: %+v", prefix, keyMap)
 	return keyMap
 }

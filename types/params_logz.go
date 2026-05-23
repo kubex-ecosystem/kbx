@@ -1,51 +1,25 @@
 // Package types provides utilities for working with initialization arguments.
 package types
 
-import (
-	"github.com/google/uuid"
+import "github.com/google/uuid"
 
-	"github.com/kubex-ecosystem/logz"
-	gl "github.com/kubex-ecosystem/logz"
-)
+// LogLevel is a string alias for log level values.
+type LogLevel = string
 
 // LogzConfig represents the configuration for the logger.
 type LogzConfig struct {
-	ID uuid.UUID
-
-	*gl.LogzGeneralOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
-
-	*gl.LogzFormatOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
-
-	*gl.LogzOutputOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
-
-	*gl.LogzRotatingOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
-
-	*gl.LogzBufferingOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
+	ID       uuid.UUID `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`
+	Level    LogLevel  `json:"level,omitempty" yaml:"level,omitempty" mapstructure:"level,omitempty"`
+	MinLevel LogLevel  `json:"min_level,omitempty" yaml:"min_level,omitempty" mapstructure:"min_level,omitempty"`
+	MaxLevel LogLevel  `json:"max_level,omitempty" yaml:"max_level,omitempty" mapstructure:"max_level,omitempty"`
+	Debug    bool      `json:"debug,omitempty" yaml:"debug,omitempty" mapstructure:"debug,omitempty"`
+	Format   string    `json:"format,omitempty" yaml:"format,omitempty" mapstructure:"format,omitempty"`
+	Output   string    `json:"output,omitempty" yaml:"output,omitempty" mapstructure:"output,omitempty"`
 }
 
 // NewLogzConfig creates a new LogzConfig.
 func NewLogzConfig() *LogzConfig {
 	return &LogzConfig{
-		ID:                   uuid.New(),
-		LogzGeneralOptions:   &gl.LogzGeneralOptions{},
-		LogzFormatOptions:    &gl.LogzFormatOptions{},
-		LogzOutputOptions:    &gl.LogzOutputOptions{},
-		LogzRotatingOptions:  &gl.LogzRotatingOptions{},
-		LogzBufferingOptions: &gl.LogzBufferingOptions{},
+		ID: uuid.New(),
 	}
-}
-
-// No Go, quando um struct contém campos que são ponteiros para outros structs,
-// os campos dos structs apontados são promovidos para o struct pai.
-// Isso significa que os campos podem ser acessados diretamente como se fossem
-// campos do struct pai, mas eles ainda são ponteiros.
-//
-// Para mais informações, veja:
-//   - https://pkg.go.dev/fmt#Sprintf
-//   - https://pkg.go.dev/fmt# %#v
-func ExemploPonteiroPromovido(l *LogzConfig) {
-	if !l.Debug || !l.LogzGeneralOptions.Debug {
-		return
-	}
-	logz.Successf("O objeto aparenta ser um 'mutante' em função dos ponteiros.. (%v) rsrs", l)
 }

@@ -3,11 +3,11 @@
 package get
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/kubex-ecosystem/kbx/is"
-	gl "github.com/kubex-ecosystem/logz"
 )
 
 // ValueOr returns the value if it's valid,
@@ -33,7 +33,7 @@ func ValueOrCb[T *any](value *T, fn func() (*T, error)) (*T, error) {
 		return value, nil
 	}
 	return ValueOrIf(is.Safe(fn, false), fn, func() (*T, error) {
-		return nil, gl.Errorf("")
+		return nil, fmt.Errorf("")
 	})()
 }
 
@@ -43,12 +43,10 @@ func ValErrOr[T any](fn func() (T, error), d T) T {
 	if is.Safe(fn, false) {
 		value, err := fn()
 		if err != nil || !is.Valid(value) {
-			gl.Errorf("ValErrOr[%s] failed: %v", reflect.TypeFor[T]().String(), err)
 			return d
 		}
 		return value
 	}
-	gl.Errorf("We could not safely get the value (%s)", reflect.TypeFor[T]().String())
 	return d
 }
 

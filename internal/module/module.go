@@ -4,10 +4,6 @@ package module
 import (
 	"github.com/kubex-ecosystem/kbx/internal/module/version"
 
-	kbxInfo "github.com/kubex-ecosystem/kbx/tools/info"
-	kbxStyle "github.com/kubex-ecosystem/kbx/tools/style"
-	logz "github.com/kubex-ecosystem/logz"
-
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +23,7 @@ func (m *Kbx) ShortDescription() string {
 	return "Domus: GKBX Database and Docker manager/service. "
 }
 func (m *Kbx) LongDescription() string {
-	return `Domus: Is a tool to manage GKBX database and Docker services. It provides many DB flavors like MySQL, PostgreSQL, MongoDB, Redis, etc. It also provides Docker services like Docker Swarm, Docker Compose, etc. It is a command line tool that can be used to manage GKBX database and Docker services.`
+	return `Domus: Is a tool to manage GKBX database and Docker services.`
 }
 func (m *Kbx) Usage() string {
 	return "domus [command] [args]"
@@ -46,25 +42,14 @@ func (m *Kbx) Execute() error {
 	defer close(dbChanData)
 
 	if spyderErr := m.Command().Execute(); spyderErr != nil {
-		logz.Log("error", spyderErr.Error())
 		return spyderErr
-	} else {
-		return nil
 	}
+	return nil
 }
 func (m *Kbx) Command() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: m.Module(),
-		//Aliases:     []string{m.Alias(), "w", "wb", "webServer", "http"},
+		Use:     m.Module(),
 		Example: m.concatenateExamples(),
-		Annotations: kbxInfo.CLIBannerStyle(
-			m.Banners,
-			[]string{
-				m.LongDescription(),
-				m.ShortDescription(),
-			},
-			m.hideBanner,
-		),
 		Version: version.GetVersion(),
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
@@ -72,8 +57,6 @@ func (m *Kbx) Command() *cobra.Command {
 	}
 
 	cmd.AddCommand(version.CliCommand())
-
-	kbxStyle.SetUsageTemplate(cmd)
 
 	return cmd
 }

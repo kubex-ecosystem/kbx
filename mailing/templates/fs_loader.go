@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	gl "github.com/kubex-ecosystem/logz"
+	"fmt"
 )
 
 // FileSystemTemplateLoader lê templates a partir de um diretório base.
@@ -15,7 +15,7 @@ type FileSystemTemplateLoader struct {
 
 func (l *FileSystemTemplateLoader) LoadHTML(name string) (string, error) {
 	if l == nil {
-		return "", gl.Errorf("template loader is nil")
+		return "", fmt.Errorf("template loader is nil")
 	}
 	p := filepath.Join(l.BasePath, name, "content.html")
 	b, err := os.ReadFile(p)

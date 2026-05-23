@@ -8,7 +8,8 @@ import (
 	"time"
 
 	// "github.com/kubex-ecosystem/kbx_be/internal/app/daemon"
-	gl "github.com/kubex-ecosystem/logz"
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -72,7 +73,7 @@ Examples:
 func runDaemon(cmd *cobra.Command, args []string) error {
 	// Validate required flags
 	if gobeAPIKey == "" {
-		return gl.Errorf("--gobe-api-key is required (or set GOBE_API_KEY env var)")
+		return fmt.Errorf("--gobe-api-key is required (or set GOBE_API_KEY env var)")
 	}
 
 	// Create daemon configuration
@@ -102,53 +103,16 @@ func runDaemon(cmd *cobra.Command, args []string) error {
 
 	// Wait for shutdown signal
 	<-sigChan
-	gl.Log("info", "Received shutdown signal, stopping daemon...")
 
 	// Graceful shutdown
 	// d.Stop()
-	// gl.Log("info", "GNyx daemon stopped gracefully")
 
 	return nil
 }
 
 func printDaemonInfo(config any /* daemon.DaemonConfig */) {
-	gl.Log("info", "")
-	gl.Log("info", "🚀 ========================== Daemon Startup ============================")
-	gl.Log("info", "🤖   GNYX DAEMON - Repository Intelligence Platform")
-	gl.Log("info", "🚀 ============================================================")
-	gl.Log("info", "")
-	// gl.Infof("🏗️  GoBE Integration: %s", config.GoBeURL)
-	// gl.Infof("📅 Auto Schedule: %v", config.AutoScheduleEnabled)
-	// if config.AutoScheduleEnabled {
-	// 	gl.Infof(" (%s) ", config.ScheduleCron)
-	// }
-	// gl.Infof("🔔 Notifications: %v", config.NotificationChannels)
-	// gl.Infof("🏥 Health Checks: every %v", config.HealthCheckInterval)
-	gl.Log("info", "")
-	gl.Log("info", "📊 CAPABILITIES:")
-	gl.Log("info", "   • Repository Intelligence Analysis")
-	gl.Log("info", "   • DORA Metrics Collection")
-	gl.Log("info", "   • Code Health Index (CHI)")
-	gl.Log("info", "   • AI Impact Analysis")
-	gl.Log("info", "   • Automated Scheduling")
-	gl.Log("info", "   • Multi-channel Notifications")
-	gl.Log("info", "   • KubeX AI Squad Integration")
-	gl.Log("info", "   • Meta-recursivity Coordination")
-	gl.Log("info", "")
-	gl.Log("info", "🎯 INTEGRATION POINTS:")
-	gl.Log("info", "   • GoBE Backend APIs")
-	gl.Log("info", "   • Discord Webhooks")
-	gl.Log("info", "   • Email Notifications")
-	gl.Log("info", "   • GitHub Events")
-	gl.Log("info", "   • Jira Workflows (planned)")
-	gl.Log("info", "   • WakaTime Analytics (planned)")
-	gl.Log("info", "")
-	gl.Log("info", "🔄 META-RECURSIVITY:")
-	gl.Log("info", "   • Coordinates with lookatni (analysis)")
-	gl.Log("info", "   • Orchestrates gnyx (improvement)")
-	gl.Log("info", "   • Manages continuous optimization")
-	gl.Log("info", "✅ Daemon running... Press Ctrl+C to stop")
-	gl.Log("info", "")
+	fmt.Println("Daemon startup info not yet implemented")
+	_ = config
 }
 
 func getEnvOrDefault(key, defaultValue string) string {

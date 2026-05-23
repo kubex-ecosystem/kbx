@@ -11,13 +11,13 @@ import (
 	"net/url"
 	"sync/atomic"
 
+	"fmt"
+
 	get "github.com/kubex-ecosystem/kbx/get"
 	is "github.com/kubex-ecosystem/kbx/is"
 	tools "github.com/kubex-ecosystem/kbx/tools"
 	types "github.com/kubex-ecosystem/kbx/types"
 	oauth2 "golang.org/x/oauth2"
-
-	gl "github.com/kubex-ecosystem/logz"
 )
 
 // ------------------------------- New Manifest Functions -----------------------------//
@@ -77,7 +77,7 @@ func NewManifest() Manifest {
 // EnsureGlobalManifest ensures that the global manifest is set.
 func EnsureGlobalManifest(n, c *MManifest) {
 	if n == nil && c == nil {
-		gl.Fatal("No manifest available")
+		panic("No manifest available")
 	}
 	if c == nil {
 		c = n
@@ -136,9 +136,9 @@ func NewLogzParams() *LogzConfig { return &LogzConfig{} }
 // ParseLogzArgs parses the logz arguments.
 func ParseLogzArgs(level string, minLevel string, maxLevel string, output string) *LogzConfig {
 	LogzArgs := NewLogzParams()
-	LogzArgs.Level = gl.Level(get.ValOrType(level, "info"))
-	LogzArgs.MinLevel = gl.Level(get.ValOrType(minLevel, "info"))
-	LogzArgs.MaxLevel = gl.Level(get.ValOrType(maxLevel, "fatal"))
+	LogzArgs.Level = get.ValOrType(level, "info")
+	LogzArgs.MinLevel = get.ValOrType(minLevel, "info")
+	LogzArgs.MaxLevel = get.ValOrType(maxLevel, "fatal")
 	return LogzArgs
 }
 
@@ -490,10 +490,10 @@ func GetAuthOptionValue[T any](value T, name string) (AuthOptionValue[T], error)
 	val.Store(&value)
 
 	if len(nameStr) == 0 {
-		return AuthOptionValue[T]{Name: nameStr, Value: val}, gl.Errorf("name is empty for value '%v'", value)
+		return AuthOptionValue[T]{Name: nameStr, Value: val}, fmt.Errorf("name is empty for value '%v'", value)
 	}
 	if !is.Safe(value, false) {
-		return AuthOptionValue[T]{Name: nameStr, Value: val}, gl.Errorf("value '%v' is not safe", value)
+		return AuthOptionValue[T]{Name: nameStr, Value: val}, fmt.Errorf("value '%v' is not safe", value)
 	}
 	return AuthOptionValue[T]{Name: nameStr, Value: val}, nil
 }
@@ -501,10 +501,10 @@ func GetAuthOptionValue[T any](value T, name string) (AuthOptionValue[T], error)
 // NewAuthOptionValue creates a new instance of Opt.
 func NewAuthOptionValue[T any](name string, value T) (*AuthOptionValue[T], error) {
 	if !is.Safe(value, false) {
-		return nil, gl.Errorf("value '%v' is not safe", value)
+		return nil, fmt.Errorf("value '%v' is not safe", value)
 	}
 	if len(get.NormalizeStr(name)) == 0 {
-		return nil, gl.Errorf("name is empty for value '%v'", value)
+		return nil, fmt.Errorf("name is empty for value '%v'", value)
 	}
 	opt := &AuthOptionValue[T]{
 		Name: name,
@@ -524,7 +524,7 @@ func AuthClientWithOpts[T any](client *AuthClient, opts ...*AuthOptionValue[T]) 
 	for _, opt := range optsVal {
 		o := opt.Value.Load()
 		if o == nil {
-			return nil, gl.Errorf("failed to set option '%s'", opt.Name)
+			return nil, fmt.Errorf("failed to set option '%s'", opt.Name)
 		}
 		t := reflect.TypeFor[T]()
 		if t.Comparable() {
@@ -548,7 +548,7 @@ func AuthClientWithOpts[T any](client *AuthClient, opts ...*AuthOptionValue[T]) 
 				case "AuthProviderX509CertURL":
 					client.AuthProviderX509CertURL = string(*oStr)
 				default:
-					return nil, gl.Errorf("unknown option '%s' for AuthClient", opt.Name)
+					return nil, fmt.Errorf("unknown option '%s' for AuthClient", opt.Name)
 				}
 			}
 		} else {
@@ -556,7 +556,7 @@ func AuthClientWithOpts[T any](client *AuthClient, opts ...*AuthOptionValue[T]) 
 			case reflect.TypeFor[oauth2.Config]():
 			case reflect.TypeFor[BasicAuth]():
 			default:
-				return nil, gl.Errorf("unknown option '%s' for AuthClient", opt.Name)
+				return nil, fmt.Errorf("unknown option '%s' for AuthClient", opt.Name)
 			}
 		}
 	}
@@ -677,7 +677,7 @@ func Config[T any](cfgPath string) (T, error) {
 		if err != nil && !os.IsNotExist(err) {
 			return zero, err
 		} else if os.IsNotExist(err) {
-			gl.Warnf("configuration file '%s' does not exist", cfgPath)
+			// WARN: "configuration file '%s' does not exist", cfgPath)
 			return zero, nil
 		}
 		if reflect.TypeFor[T]() == reflect.TypeFor[MManifest]() {
@@ -685,13 +685,13 @@ func Config[T any](cfgPath string) (T, error) {
 			o := *obj
 			b, okob = any(o).(*MManifest)
 			if !okob {
-				return zero, gl.Errorf("loaded object is not of type MManifest")
+				return zero, fmt.Errorf("loaded object is not of type MManifest")
 			}
 			EnsureGlobalManifest(b, types.KubexManifest)
 		}
 		return *obj, nil
 	}
-	return zero, gl.Errorf("configuration type not registered")
+	return zero, fmt.Errorf("configuration type not registered")
 }
 
 // ConfigOrDefault loads a configuration of type T from the specified file path, or returns a default value if the configuration file does not exist.
@@ -716,7 +716,7 @@ func ConfigOrDefault[
 		BasicAuth](cfgPath string, genFile bool) (*T, error) {
 	cfgPath = os.ExpandEnv(strings.TrimSpace(strings.ToValidUTF8(cfgPath, "")))
 	if cfgPath == "" {
-		return nil, gl.Errorf("configuration path cannot be empty")
+		return nil, fmt.Errorf("configuration path cannot be empty")
 	}
 
 	// Só entra aqui se o tipo for algum já registrado, então não me preocupo em checar o erro, só logo retorno o default
@@ -725,11 +725,11 @@ func ConfigOrDefault[
 	if err == nil {
 		return cfg, nil
 	}
-	gl.Warnf("failed to load config from '%s', using default: %v", cfgPath, err)
+	// WARN: "failed to load config from '%s', using default: %v", cfgPath, err)
 
 	if !is.Compatible[T](cfg) {
-		gl.Warnf("loaded config is not compatible with expected type '%s'", reflect.TypeFor[T]())
-		return nil, gl.Errorf("loaded config is not compatible with expected type '%s'", reflect.TypeFor[T]())
+		// WARN: "loaded config is not compatible with expected type '%s'", reflect.TypeFor[T]())
+		return nil, fmt.Errorf("loaded config is not compatible with expected type '%s'", reflect.TypeFor[T]())
 	}
 
 	defaultCfg := defaultFactories[reflect.TypeFor[T]()]().(T)

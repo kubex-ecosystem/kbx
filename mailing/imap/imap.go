@@ -9,8 +9,9 @@ import (
 	"github.com/emersion/go-imap/client"
 	"github.com/kubex-ecosystem/kbx"
 
+	"fmt"
+
 	imapparser "github.com/kubex-ecosystem/kbx/tools/mail/imap"
-	gl "github.com/kubex-ecosystem/logz"
 )
 
 // Config define parâmetros mínimos para acesso IMAP.
@@ -25,7 +26,7 @@ func FetchUnread(ctx context.Context, cfg *Config) ([]*Message, error) {
 	if mailbox == "" {
 		mailbox = "INBOX"
 	}
-	address := gl.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 
 	var c *client.Client
 	var err error
@@ -112,5 +113,5 @@ func envelopeAddr(msg *imap.Message) string {
 	if name == "" {
 		return email
 	}
-	return gl.Sprintf("%s <%s>", name, email)
+	return fmt.Sprintf("%s <%s>", name, email)
 }
