@@ -6,6 +6,29 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// InviteConfig controla opções de envio e branding.
+type InviteConfig struct {
+	BaseURL     string        `json:"base_url,omitempty" yaml:"base_url,omitempty" toml:"base_url,omitempty" mapstructure:"base_url,omitempty"`
+	SenderName  string        `json:"sender_name,omitempty" yaml:"sender_name,omitempty" toml:"sender_name,omitempty" mapstructure:"sender_name,omitempty"`
+	SenderEmail string        `json:"sender_email,omitempty" yaml:"sender_email,omitempty" toml:"sender_email,omitempty" mapstructure:"sender_email,omitempty"`
+	CompanyName string        `json:"company_name,omitempty" yaml:"company_name,omitempty" toml:"company_name,omitempty" mapstructure:"company_name,omitempty"`
+	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
+}
+
+// NewInviteConfig cria uma nova instância de InviteConfig.
+func NewInviteConfig() InviteConfig { return InviteConfig{} }
+
+// NewInviteConfigDefault cria uma nova instância de InviteConfig com valores padrão.
+func NewInviteConfigDefault() InviteConfig {
+	return InviteConfig{
+		BaseURL:     "https://gnyx.kubex.world",
+		SenderName:  "Kubex Team",
+		SenderEmail: "contact@kubex.world",
+		CompanyName: "Kubex",
+		DefaultTTL:  7 * 24 * time.Hour,
+	}
+}
+
 // OptionsMap represents a map of client options.
 type OptionsMap map[string]any
 
