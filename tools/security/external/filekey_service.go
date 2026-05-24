@@ -15,10 +15,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kubex-ecosystem/kbx"
-
 	kbxGet "github.com/kubex-ecosystem/kbx/get"
 	sci "github.com/kubex-ecosystem/kbx/tools/security/interfaces"
+	"github.com/kubex-ecosystem/kbx/types"
 	gl "github.com/kubex-ecosystem/logz"
 )
 
@@ -29,8 +28,8 @@ var (
 // FileKeyringService is a drop-in replacement for KeyringService,
 // maintaining the same contract and method signatures.
 type FileKeyringService struct {
-	keyringService kbx.GlobalRef
-	keyringName    kbx.GlobalRef
+	keyringService types.GlobalRef
+	keyringName    types.GlobalRef
 	masterKey      []byte
 	baseDir        string
 }
@@ -104,8 +103,8 @@ func newFileKeyringService(service, name string, def any) *FileKeyringService {
 		_ = os.MkdirAll(dir, 0o700)
 	}
 	return &FileKeyringService{
-		keyringService: kbx.NewGlobalRef(service),
-		keyringName:    kbx.NewGlobalRef(name),
+		keyringService: types.NewGlobalRef(service),
+		keyringName:    types.NewGlobalRef(name),
 		masterKey:      raw,
 		baseDir:        dir,
 	}

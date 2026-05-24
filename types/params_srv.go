@@ -188,29 +188,6 @@ func NewSrvPerformanceDefault() SrvPerformanceParams {
 	}
 }
 
-// InviteConfig controla opções de envio e branding.
-type InviteConfig struct {
-	BaseURL     string        `json:"base_url,omitempty" yaml:"base_url,omitempty" toml:"base_url,omitempty" mapstructure:"base_url,omitempty"`
-	SenderName  string        `json:"sender_name,omitempty" yaml:"sender_name,omitempty" toml:"sender_name,omitempty" mapstructure:"sender_name,omitempty"`
-	SenderEmail string        `json:"sender_email,omitempty" yaml:"sender_email,omitempty" toml:"sender_email,omitempty" mapstructure:"sender_email,omitempty"`
-	CompanyName string        `json:"company_name,omitempty" yaml:"company_name,omitempty" toml:"company_name,omitempty" mapstructure:"company_name,omitempty"`
-	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
-}
-
-// NewInviteConfig cria uma nova instância de InviteConfig.
-func NewInviteConfig() InviteConfig { return InviteConfig{} }
-
-// NewInviteConfigDefault cria uma nova instância de InviteConfig com valores padrão.
-func NewInviteConfigDefault() InviteConfig {
-	return InviteConfig{
-		BaseURL:     "https://gnyx.kubex.world",
-		SenderName:  "Kubex Team",
-		SenderEmail: "contact@kubex.world",
-		CompanyName: "Kubex",
-		DefaultTTL:  7 * 24 * time.Hour,
-	}
-}
-
 // SrvConfig representa a configuração completa do servidor.
 type SrvConfig struct {
 	GlobalRef   `json:",inline" yaml:",inline" mapstructure:",squash"`
@@ -220,7 +197,7 @@ type SrvConfig struct {
 	Advanced    SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Flags       SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Auth        AuthClientWrapper    `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
+	Auth        AuthProviderWrapper  `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
 	Invite      InviteConfig         `json:"invite" yaml:"invite,omitempty" mapstructure:"invite,omitempty"`
 	// Providers   AuthProviders        `json:"auth_providers_config" yaml:"auth_providers_config,omitempty" mapstructure:"auth_providers_config,omitempty"`
 	// TemplatesDir string               `json:"templates_dir,omitempty" yaml:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
@@ -236,7 +213,7 @@ func NewSrvConfig() SrvConfig {
 		Advanced:    NewSrvAdvanced(),
 		Flags:       NewSrvFlags(),
 		Performance: NewSrvPerformance(),
-		Auth:        AuthClientWrapper{},
+		Auth:        AuthProviderWrapper{},
 		Invite:      NewInviteConfig(),
 	}
 }
@@ -251,7 +228,7 @@ func NewSrvConfigDefault() SrvConfig {
 		Advanced:    NewSrvAdvancedDefault(),
 		Flags:       NewSrvFlagsDefault(),
 		Performance: NewSrvPerformanceDefault(),
-		Auth:        AuthClientWrapper{},
+		Auth:        AuthProviderWrapper{},
 		Invite:      NewInviteConfigDefault(),
 	}
 }

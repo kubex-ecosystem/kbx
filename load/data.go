@@ -471,10 +471,10 @@ func NewGlobalRef(name string) GlobalRef { return types.NewGlobalRef(name) }
 type BasicAuth = types.BasicAuth
 
 // AuthClient is a type alias for types.AuthClient
-type AuthClient = types.AuthClient
+type AuthClient = types.AuthProvider
 
 // AuthSettings is a type alias for types.AuthSettings
-type AuthSettings = types.AuthSettings
+type AuthSettings = types.AuthProviderOptions
 
 // AuthOptionValue represents a wrapper for a value that can be used to set an option for an AuthClient.
 type AuthOptionValue[T any] struct {
@@ -576,10 +576,10 @@ func NewAuthClientz[T any](name string, value *T) AuthOptionValue[T] {
 }
 
 // AuthClientWrapper is a type alias for types.AuthClientWrapper
-type AuthClientWrapper = types.AuthClientWrapper
+type AuthClientWrapper = types.AuthProviderWrapper
 
 // AuthProviders is a type alias for types.AuthProviders
-type AuthProviders = types.AuthProviders
+type AuthProviders = types.AuthProvidersRegistry
 
 // NewAuthClient creates a new instance of AuthClient.
 func NewAuthClient() *AuthClient {

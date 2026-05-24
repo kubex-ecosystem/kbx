@@ -41,8 +41,6 @@ func NewCryptoServiceType() *CryptoService {
 
 // EncodeIfDecoded encodes a byte slice to Base64 URL encoding if it is not already encoded
 
-// Encrypt encrypts the given data using ChaCha20-Poly1305 algorithm
-// It ensures the data is decoded before encryption and the key is valid
 func (s *CryptoService) Encrypt(data []byte, key []byte) (string, string, error) {
 	if len(data) == 0 {
 		return "", "", gl.Error("data is empty")
@@ -128,8 +126,7 @@ func (s *CryptoService) Encrypt(data []byte, key []byte) (string, string, error)
 }
 
 // Decrypt decrypts the given encrypted data using ChaCha20-Poly1305 algorithm
-// It ensures the data is decoded before decryption and the key is valid
-// Decrypt(encryptedData []byte, key []byte) (decryptedData string, err error)
+// It ensures the data is decoded before decryption
 func (s *CryptoService) Decrypt(encrypted []byte, key []byte) (string, string, error) {
 	encrypted = bytes.TrimSpace(encrypted)
 	if len(encrypted) == 0 {

@@ -8,6 +8,12 @@ import (
 
 	"github.com/kubex-ecosystem/kbx/get"
 	"github.com/kubex-ecosystem/kbx/load"
+
+	crt "github.com/kubex-ecosystem/kbx/tools/security/certificates"
+	crp "github.com/kubex-ecosystem/kbx/tools/security/crypto"
+	krs "github.com/kubex-ecosystem/kbx/tools/security/external"
+	tsi "github.com/kubex-ecosystem/kbx/tools/security/interfaces"
+
 	"github.com/kubex-ecosystem/kbx/types"
 )
 
@@ -155,4 +161,35 @@ func LoadConfigOrDefault[
 	genFile bool,
 ) (*T, error) {
 	return load.ConfigOrDefault[T](cfgPath, genFile)
+}
+
+// ---------------------------------- Security --------------------------------------//
+
+type ICryptoService = tsi.ICryptoService
+type ICertManager = tsi.ICertManager
+type ICertService = tsi.ICertService
+type ISecretStorage = tsi.ISecretStorage // pragma: allowlist secret
+type IKeyringService = tsi.IKeyringService
+type IFileKeyringService = tsi.IFileKeyringService
+
+type CryptoService = crp.CryptoService
+type CertService = crt.CertService
+type FileKeyringService = krs.FileKeyringService
+type KeyringService = krs.FileKeyringService
+type SecretStorageAdapter = krs.SecretStorageAdapter // pragma: allowlist secret
+
+func NewFileKeyringService(appName string, appVersion string) IKeyringService {
+	return krs.NewFileKeyringService(appName, appVersion)
+}
+
+func NewCryptoService() ICryptoService {
+	return crp.NewCryptoService()
+}
+
+func NewCertService(keyPath, certPath, caPath string) ICertService {
+	return crt.NewCertService(keyPath, certPath)
+}
+
+func NewKeyringService(appName, appVersion string) IKeyringService {
+	return krs.NewFileKeyringService(appName, appVersion)
 }

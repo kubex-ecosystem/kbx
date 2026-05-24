@@ -61,6 +61,7 @@ require (
 	github.com/redis/go-redis/v9 v9.17.2
 	golang.org/x/crypto v0.46.0
 	golang.org/x/oauth2 v0.36.0
-	golang.org/x/text v0.32.0 // indirect
+	golang.org/x/text v0.32.0
 	google.golang.org/genai v1.47.0
+	gopkg.in/ini.v1 v1.67.2
 )
