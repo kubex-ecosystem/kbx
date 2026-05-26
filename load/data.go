@@ -727,12 +727,25 @@ func ConfigOrDefault[
 	}
 	// WARN: "failed to load config from '%s', using default: %v", cfgPath, err)
 
-	if !is.Compatible[T](cfg) {
-		// WARN: "loaded config is not compatible with expected type '%s'", reflect.TypeFor[T]())
-		return nil, fmt.Errorf("loaded config is not compatible with expected type '%s'", reflect.TypeFor[T]())
+	if cfg != nil && !is.NilPtr(cfg) {
+		if !is.Compatible[T](cfg) {
+			// WARN: "loaded config is not compatible with expected type '%s'", reflect.TypeFor[T]())
+			return nil, fmt.Errorf("loaded config is not compatible with expected type '%s'", reflect.TypeFor[T]())
+		}
 	}
 
-	defaultCfg := defaultFactories[reflect.TypeFor[T]()]().(T)
+	factoryVal := defaultFactories[reflect.TypeFor[T]()]()
+	var defaultCfg T
+	v := reflect.ValueOf(factoryVal)
+	if v.Kind() == reflect.Pointer {
+		if v.Type().Elem() == reflect.TypeFor[T]() {
+			defaultCfg = v.Elem().Interface().(T)
+		} else {
+			defaultCfg = factoryVal.(T)
+		}
+	} else {
+		defaultCfg = factoryVal.(T)
+	}
 	if !is.PtrOf[T](defaultCfg) {
 		if genFile {
 			cfgMapper.SetValue(&defaultCfg)
