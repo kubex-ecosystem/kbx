@@ -16,6 +16,11 @@ const (
 )
 
 const (
+	DefaultVaultDir = "$HOME/.kubex/secrets"
+	DefaultVaultKey = "kubex_kubex-jwt_secret.secret"
+)
+
+const (
 	DefaultVolumesDir     = "$HOME/.kubex/volumes"
 	DefaultRedisVolume    = "$HOME/.kubex/volumes/redis"
 	DefaultPostgresVolume = "$HOME/.kubex/volumes/postgresql"
