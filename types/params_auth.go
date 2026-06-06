@@ -43,14 +43,14 @@ type BasicAuth struct {
 
 // AuthSettings represents a configuration for authentication options.
 type AuthSettings struct {
-	JWTSecret           string        `json:"jwt_secret,omitempty" yaml:"jwt_secret,omitempty" toml:"jwt_secret,omitempty" mapstructure:"jwt_secret,omitempty"`
-	AccessTokenTTL      time.Duration `json:"access_token_ttl,omitempty" yaml:"access_token_ttl,omitempty" toml:"access_token_ttl,omitempty" mapstructure:"access_token_ttl,omitempty"`
-	RefreshTokenTTL     time.Duration `json:"refresh_token_ttl,omitempty" yaml:"refresh_token_ttl,omitempty" toml:"refresh_token_ttl,omitempty" mapstructure:"refresh_token_ttl,omitempty"`
-	PasswordSaltRounds  int           `json:"password_salt_rounds,omitempty" yaml:"password_salt_rounds,omitempty" toml:"password_salt_rounds,omitempty" mapstructure:"password_salt_rounds,omitempty"`
-	EnableEmailVerified bool          `json:"enable_email_verified,omitempty" yaml:"enable_email_verified,omitempty" toml:"enable_email_verified,omitempty" mapstructure:"enable_email_verified,omitempty"`
-	Invite              InviteConfig  `json:"invite" yaml:"invite,omitempty" toml:"invite,omitempty" mapstructure:"invite,omitempty"`
-	AuthProviders       AuthProviders `json:"auth_providers" yaml:"auth_providers,omitempty" toml:"auth_providers,omitempty" mapstructure:"auth_providers,omitempty"`
-	Options             OptionsMap    `json:"options,omitempty" yaml:"options,omitempty" toml:"options,omitempty" mapstructure:"options,omitempty"`
+	JWTSecret           string         `json:"jwt_secret,omitempty" yaml:"jwt_secret,omitempty" toml:"jwt_secret,omitempty" mapstructure:"jwt_secret,omitempty"`
+	AccessTokenTTL      time.Duration  `json:"access_token_ttl,omitempty" yaml:"access_token_ttl,omitempty" toml:"access_token_ttl,omitempty" mapstructure:"access_token_ttl,omitempty"`
+	RefreshTokenTTL     time.Duration  `json:"refresh_token_ttl,omitempty" yaml:"refresh_token_ttl,omitempty" toml:"refresh_token_ttl,omitempty" mapstructure:"refresh_token_ttl,omitempty"`
+	PasswordSaltRounds  int            `json:"password_salt_rounds,omitempty" yaml:"password_salt_rounds,omitempty" toml:"password_salt_rounds,omitempty" mapstructure:"password_salt_rounds,omitempty"`
+	EnableEmailVerified bool           `json:"enable_email_verified,omitempty" yaml:"enable_email_verified,omitempty" toml:"enable_email_verified,omitempty" mapstructure:"enable_email_verified,omitempty"`
+	Invite              InviteConfig   `json:"invite" yaml:"invite,omitempty" toml:"invite,omitempty" mapstructure:"invite,omitempty"`
+	AuthProviders       *AuthProviders `json:"auth_providers" yaml:"auth_providers,omitempty" toml:"auth_providers,omitempty" mapstructure:"auth_providers,omitempty"`
+	Options             OptionsMap     `json:"options,omitempty" yaml:"options,omitempty" toml:"options,omitempty" mapstructure:"options,omitempty"`
 }
 
 // AuthClient represents an OAuth client configuration.
@@ -74,7 +74,7 @@ type AuthClient struct {
 	JavaScriptOrigins       []string `json:"javascript_origins,omitempty" env:"GOOGLE_JAVASCRIPT_ORIGINS"`
 
 	Metadata map[string]any `json:"metadata,omitempty" env:"GOOGLE_METADATA"`
-	Options  AuthSettings   `json:"options,omitempty" yaml:"options,omitempty" toml:"options,omitempty" mapstructure:"options,omitempty"`
+	Options  *AuthSettings  `json:"options,omitempty" yaml:"options,omitempty" toml:"options,omitempty" mapstructure:"options,omitempty"`
 }
 
 // AuthClientWrapper represents a authentication configuration.
@@ -98,4 +98,60 @@ type AuthProviders struct {
 	Twitter   *AuthClientWrapper   `json:"twitter,omitempty" env:"TWITTER_AUTH_CONFIG"`
 	Github    *AuthClientWrapper   `json:"github,omitempty" env:"GITHUB_AUTH_CONFIG"`
 	Custom    []*AuthClientWrapper `json:"custom,omitempty" env:"CUSTOM_AUTH_CONFIG"`
+}
+
+func newAuthClientWrapper() *AuthClientWrapper {
+	return &AuthClientWrapper{
+		Web:      &AuthClient{},
+		Mobile:   &AuthClient{},
+		API:      &AuthClient{},
+		Internal: &AuthClient{},
+		Invite:   &AuthClient{},
+		Config:   &AuthProviders{},
+	}
+}
+
+func NewAuthProviders() *AuthProviders {
+	return &AuthProviders{
+		Sankhya:   newAuthClientWrapper(),
+		Google:    newAuthClientWrapper(),
+		Firebase:  newAuthClientWrapper(),
+		Microsoft: newAuthClientWrapper(),
+		Facebook:  newAuthClientWrapper(),
+		LinkedIn:  newAuthClientWrapper(),
+		Twitter:   newAuthClientWrapper(),
+		Github:    newAuthClientWrapper(),
+		Custom:    make([]*AuthClientWrapper, 0),
+	}
+}
+
+func NewAuthSettings() *AuthSettings {
+	return &AuthSettings{
+		JWTSecret:           "",
+		AccessTokenTTL:      0,
+		RefreshTokenTTL:     0,
+		PasswordSaltRounds:  0,
+		EnableEmailVerified: false,
+		Invite:              NewInviteConfigDefault(),
+		AuthProviders:       NewAuthProviders(),
+		Options:             OptionsMap{},
+	}
+}
+
+func NewAuthClient() *AuthClient {
+	return &AuthClient{
+		ConfigPath: "",
+		Options:    NewAuthSettings(),
+	}
+}
+
+func NewAuthClientWrapper() *AuthClientWrapper {
+	return &AuthClientWrapper{
+		Web:      NewAuthClient(),
+		Mobile:   NewAuthClient(),
+		API:      NewAuthClient(),
+		Internal: NewAuthClient(),
+		Invite:   NewAuthClient(),
+		Config:   NewAuthProviders(),
+	}
 }
