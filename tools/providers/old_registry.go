@@ -152,13 +152,13 @@ func (r *Registry) instantiateProviders() {
 		providerType := normalizeProviderType(name, pc)
 		constructor, ok := providerConstructors[providerType]
 		if !ok {
-			gl.Warnf("Skipping provider '%s' - unsupported type '%s'", name, providerType)
+			gl.Noticef("Skipping provider '%s' - unsupported type '%s'", name, providerType)
 			continue
 		}
 
 		key := resolveAPIKey(name, pc)
 		if key == "" {
-			gl.Warnf("Skipping provider '%s' - no API key found in %s", name, pc.KeyEnv)
+			gl.Noticef("Skipping provider '%s' - no API key found in %s", name, pc.KeyEnv)
 			continue
 		}
 

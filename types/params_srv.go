@@ -86,9 +86,11 @@ func NewSrvFilesDefault() SrvFilesParams {
 type SrvRuntimeParams struct {
 	// Runtime options
 
-	Host            string        `yaml:"host,omitempty" json:"host,omitempty" mapstructure:"host,omitempty"`
-	Port            string        `yaml:"port,omitempty" json:"port,omitempty" mapstructure:"port,omitempty"`
-	Bind            string        `yaml:"bind,omitempty" json:"bind,omitempty" mapstructure:"bind,omitempty"`
+	Host       string `yaml:"host,omitempty" json:"host,omitempty" mapstructure:"host,omitempty"`
+	Port       string `yaml:"port,omitempty" json:"port,omitempty" mapstructure:"port,omitempty"`
+	Bind       string `yaml:"bind,omitempty" json:"bind,omitempty" mapstructure:"bind,omitempty"`
+	StrictPort bool   `yaml:"strict_port,omitempty" json:"strict_port,omitempty" mapstructure:"strict_port,omitempty"`
+
 	PubCertKeyPath  string        `yaml:"pub_cert_key_path,omitempty" json:"pub_cert_key_path,omitempty" mapstructure:"pub_cert_key_path,omitempty"`
 	PubKeyPath      string        `yaml:"pub_key_path,omitempty" json:"pub_key_path,omitempty" mapstructure:"pub_key_path,omitempty"`
 	PrivKeyPath     string        `yaml:"priv_key_path,omitempty" json:"priv_key_path,omitempty" mapstructure:"priv_key_path,omitempty"`
@@ -199,6 +201,7 @@ type SrvConfig struct {
 	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Auth        AuthClientWrapper    `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
 	Invite      InviteConfig         `json:"invite" yaml:"invite,omitempty" mapstructure:"invite,omitempty"`
+
 	// Providers   AuthProviders        `json:"auth_providers_config" yaml:"auth_providers_config,omitempty" mapstructure:"auth_providers_config,omitempty"`
 	// TemplatesDir string               `json:"templates_dir,omitempty" yaml:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
 }
