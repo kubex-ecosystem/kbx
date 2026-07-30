@@ -1,4 +1,4 @@
-package registry
+package providers
 
 import (
 	"bufio"
@@ -85,7 +85,8 @@ func (o *openaiProvider) Chat(ctx context.Context, req providers.ChatRequest) (<
 		return nil, gl.Errorf("failed to create request: %v", err)
 	}
 
-	httpReq.Header.Set("Authorization", "Bearer "+o.apiKey)
+	// BYOK: chave do usuário (se veio) sobrepõe a configurada, só nesta chamada.
+	httpReq.Header.Set("Authorization", "Bearer "+req.ResolveKey(o.apiKey))
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	ch := make(chan providers.ChatChunk, 8)

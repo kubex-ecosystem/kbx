@@ -10,8 +10,6 @@ import (
 	"github.com/kubex-ecosystem/kbx/tools"
 	"github.com/kubex-ecosystem/kbx/tools/mail"
 	"github.com/kubex-ecosystem/kbx/types"
-
-	gl "github.com/kubex-ecosystem/logz"
 )
 
 var errNilRequest = errors.New("mailing: mail request is nil")
@@ -72,7 +70,6 @@ func (m *Mailer) GetSMTPConnection() *types.MailConnection {
 		conn.RetryCount = 3
 		conn.RetryInterval = 2 * time.Second
 		conn.Timeout = 5 * time.Second
-		gl.Warn("mailing: no SMTP connection found in config, using default parameters")
 		return conn
 	}
 	for _, conn := range m.Connections {

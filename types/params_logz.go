@@ -1,53 +1,25 @@
 // Package types provides utilities for working with initialization arguments.
 package types
 
-import (
-	"github.com/google/uuid"
+import "github.com/google/uuid"
 
-	gl "github.com/kubex-ecosystem/logz"
-)
+// LogLevel is a string alias for log level values.
+type LogLevel = string
 
-type DBType string
-
-const (
-	DBTypePostgres DBType = "postgres"
-	DBTypeRabbitMQ DBType = "rabbitmq"
-	DBTypeRedis    DBType = "redis"
-	DBTypeMongoDB  DBType = "mongodb"
-	DBTypeMySQL    DBType = "mysql"
-	DBTypeMSSQL    DBType = "mssql"
-	DBTypeSQLite   DBType = "sqlite"
-	DBTypeOracle   DBType = "oracle"
-)
-
+// LogzConfig represents the configuration for the logger.
 type LogzConfig struct {
-	ID uuid.UUID
-
-	*gl.LogzGeneralOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
-
-	*gl.LogzFormatOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
-
-	*gl.LogzOutputOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
-
-	*gl.LogzRotatingOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
-
-	*gl.LogzBufferingOptions `json:",inline" yaml:",inline" mapstructure:",squash"`
+	ID       uuid.UUID `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`
+	Level    LogLevel  `json:"level,omitempty" yaml:"level,omitempty" mapstructure:"level,omitempty"`
+	MinLevel LogLevel  `json:"min_level,omitempty" yaml:"min_level,omitempty" mapstructure:"min_level,omitempty"`
+	MaxLevel LogLevel  `json:"max_level,omitempty" yaml:"max_level,omitempty" mapstructure:"max_level,omitempty"`
+	Debug    bool      `json:"debug,omitempty" yaml:"debug,omitempty" mapstructure:"debug,omitempty"`
+	Format   string    `json:"format,omitempty" yaml:"format,omitempty" mapstructure:"format,omitempty"`
+	Output   string    `json:"output,omitempty" yaml:"output,omitempty" mapstructure:"output,omitempty"`
 }
 
-// RootParams representa o arquivo de configuração do DS.
-type RootParams struct {
-	Name     string `json:"name,omitempty" yaml:"name,omitempty" mapstructure:"name,omitempty"`
-	FilePath string `json:"file_path,omitempty" yaml:"file_path,omitempty" mapstructure:"file_path,omitempty"`
-	Enabled  *bool  `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty" default:"true"`
-}
-
+// NewLogzConfig creates a new LogzConfig.
 func NewLogzConfig() *LogzConfig {
 	return &LogzConfig{
-		ID:                   uuid.New(),
-		LogzGeneralOptions:   &gl.LogzGeneralOptions{},
-		LogzFormatOptions:    &gl.LogzFormatOptions{},
-		LogzOutputOptions:    &gl.LogzOutputOptions{},
-		LogzRotatingOptions:  &gl.LogzRotatingOptions{},
-		LogzBufferingOptions: &gl.LogzBufferingOptions{},
+		ID: uuid.New(),
 	}
 }

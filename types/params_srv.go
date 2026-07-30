@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// SrvBasicParams representa parâmetros básicos.
 type SrvBasicParams struct {
 	// Basic options
 	CompanyName  string `yaml:"company_name,omitempty" json:"company_name,omitempty" mapstructure:"company_name,omitempty"`
@@ -25,11 +26,13 @@ type SrvBasicParams struct {
 	UIDisabled bool `yaml:"ui_enabled" json:"ui_enabled" mapstructure:"ui_enabled"`
 }
 
+// NewSrvBasic cria uma nova instância de SrvBasicParams.
 func NewSrvBasic() SrvBasicParams { return SrvBasicParams{} }
 
+// NewSrvBasicDefault cria uma nova instância de SrvBasicParams com valores padrão.
 func NewSrvBasicDefault() SrvBasicParams {
 	return SrvBasicParams{
-		CompanyName:    "Canalize",
+		CompanyName:    "Kubex Ecosystem",
 		FriendlyName:   "GNyx",
 		AppName:        "kubex",
 		AppVersion:     "v0.1.0",
@@ -45,41 +48,49 @@ func NewSrvBasicDefault() SrvBasicParams {
 	}
 }
 
+// SrvFilesParams representa parâmetros de arquivos.
 type SrvFilesParams struct {
 	// Paths and files
-	Cwd              string `yaml:"cwd,omitempty" json:"cwd,omitempty" mapstructure:"cwd,omitempty"`
-	LogFile          string `yaml:"log_file,omitempty" json:"log_file,omitempty" mapstructure:"log_file,omitempty"`
-	EnvFile          string `yaml:"env_file,omitempty" json:"env_file,omitempty" mapstructure:"env_file,omitempty"`
-	ConfigFile       string `yaml:"config_file,omitempty" json:"config_file,omitempty" mapstructure:"config_file,omitempty"`
-	MainDBName       string `yaml:"main_db_name,omitempty" json:"main_db_name,omitempty" mapstructure:"main_db_name,omitempty"`
-	DBConfigFile     string `yaml:"db_config_file,omitempty" json:"db_config_file,omitempty" mapstructure:"db_config_file,omitempty"`
-	TemplatesDir     string `yaml:"templates_dir,omitempty" json:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
-	MailerConfigFile string `yaml:"mailer_config_file,omitempty" json:"mailer_config_file,omitempty" mapstructure:"mailer_config_file,omitempty"`
-	ProvidersConfig  string `yaml:"providers_config,omitempty" json:"providers_config,omitempty" mapstructure:"providers_config,omitempty"`
+	Cwd                    string `yaml:"cwd,omitempty" json:"cwd,omitempty" mapstructure:"cwd,omitempty"`
+	LogFile                string `yaml:"log_file,omitempty" json:"log_file,omitempty" mapstructure:"log_file,omitempty"`
+	EnvFile                string `yaml:"env_file,omitempty" json:"env_file,omitempty" mapstructure:"env_file,omitempty"`
+	ConfigFile             string `yaml:"config_file,omitempty" json:"config_file,omitempty" mapstructure:"config_file,omitempty"`
+	MainDBName             string `yaml:"main_db_name,omitempty" json:"main_db_name,omitempty" mapstructure:"main_db_name,omitempty"`
+	DBConfigFile           string `yaml:"db_config_file,omitempty" json:"db_config_file,omitempty" mapstructure:"db_config_file,omitempty"`
+	TemplatesDir           string `yaml:"templates_dir,omitempty" json:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
+	MailerConfigFile       string `yaml:"mailer_config_file,omitempty" json:"mailer_config_file,omitempty" mapstructure:"mailer_config_file,omitempty"`
+	ProvidersConfig        string `yaml:"providers_config,omitempty" json:"providers_config,omitempty" mapstructure:"providers_config,omitempty"`
+	FirebaseSDKAdmFilePath string `yaml:"firebase_key_file,omitempty" json:"firebase_key_file,omitempty" mapstructure:"firebase_key_file,omitempty"`
 }
 
+// NewSrvFiles cria uma nova instância de SrvFilesParams.
 func NewSrvFiles() SrvFilesParams { return SrvFilesParams{} }
 
+// NewSrvFilesDefault cria uma nova instância de SrvFilesParams com valores padrão.
 func NewSrvFilesDefault() SrvFilesParams {
 	return SrvFilesParams{
-		Cwd:              "",
-		LogFile:          "",
-		EnvFile:          "",
-		ConfigFile:       "",
-		MainDBName:       "kubex_db",
-		DBConfigFile:     "",
-		TemplatesDir:     "",
-		MailerConfigFile: "",
-		ProvidersConfig:  "",
+		Cwd:                    "",
+		LogFile:                "",
+		EnvFile:                "",
+		ConfigFile:             "",
+		MainDBName:             "kubex_db",
+		DBConfigFile:           "",
+		TemplatesDir:           "",
+		MailerConfigFile:       "",
+		ProvidersConfig:        "",
+		FirebaseSDKAdmFilePath: "",
 	}
 }
 
+// SrvRuntimeParams representa parâmetros de tempo de execução.
 type SrvRuntimeParams struct {
 	// Runtime options
 
-	Host            string        `yaml:"host,omitempty" json:"host,omitempty" mapstructure:"host,omitempty"`
-	Port            string        `yaml:"port,omitempty" json:"port,omitempty" mapstructure:"port,omitempty"`
-	Bind            string        `yaml:"bind,omitempty" json:"bind,omitempty" mapstructure:"bind,omitempty"`
+	Host       string `yaml:"host,omitempty" json:"host,omitempty" mapstructure:"host,omitempty"`
+	Port       string `yaml:"port,omitempty" json:"port,omitempty" mapstructure:"port,omitempty"`
+	Bind       string `yaml:"bind,omitempty" json:"bind,omitempty" mapstructure:"bind,omitempty"`
+	StrictPort bool   `yaml:"strict_port,omitempty" json:"strict_port,omitempty" mapstructure:"strict_port,omitempty"`
+
 	PubCertKeyPath  string        `yaml:"pub_cert_key_path,omitempty" json:"pub_cert_key_path,omitempty" mapstructure:"pub_cert_key_path,omitempty"`
 	PubKeyPath      string        `yaml:"pub_key_path,omitempty" json:"pub_key_path,omitempty" mapstructure:"pub_key_path,omitempty"`
 	PrivKeyPath     string        `yaml:"priv_key_path,omitempty" json:"priv_key_path,omitempty" mapstructure:"priv_key_path,omitempty"`
@@ -88,8 +99,10 @@ type SrvRuntimeParams struct {
 	Issuer          string        `yaml:"issuer,omitempty" json:"issuer,omitempty" mapstructure:"issuer,omitempty"`
 }
 
+// NewSrvRuntime cria uma nova instância de SrvRuntimeParams.
 func NewSrvRuntime() SrvRuntimeParams { return SrvRuntimeParams{} }
 
+// NewSrvRuntimeDefault cria uma nova instância de SrvRuntimeParams com valores padrão.
 func NewSrvRuntimeDefault() SrvRuntimeParams {
 	return SrvRuntimeParams{
 		Host:            "localhost",
@@ -104,6 +117,7 @@ func NewSrvRuntimeDefault() SrvRuntimeParams {
 	}
 }
 
+// SrvAdvancedParams representa parâmetros avançados.
 type SrvAdvancedParams struct {
 	// Advanced options
 
@@ -114,8 +128,10 @@ type SrvAdvancedParams struct {
 	EnvVars    map[string]string `yaml:"env_vars,omitempty" json:"env_vars,omitempty" mapstructure:"env_vars,omitempty"`
 }
 
+// NewSrvAdvanced cria uma nova instância de SrvAdvancedParams.
 func NewSrvAdvanced() SrvAdvancedParams { return SrvAdvancedParams{} }
 
+// NewSrvAdvancedDefault cria uma nova instância de SrvAdvancedParams com valores padrão.
 func NewSrvAdvancedDefault() SrvAdvancedParams {
 	return SrvAdvancedParams{
 		Context:    "",
@@ -126,6 +142,7 @@ func NewSrvAdvancedDefault() SrvAdvancedParams {
 	}
 }
 
+// SrvFlagsParams representa parâmetros de flags.
 type SrvFlagsParams struct {
 	// Flags
 
@@ -137,8 +154,10 @@ type SrvFlagsParams struct {
 	RootMode  bool `yaml:"root_mode,omitempty" json:"root_mode,omitempty" mapstructure:"root_mode,omitempty"`
 }
 
+// NewSrvFlags cria uma nova instância de SrvFlagsParams.
 func NewSrvFlags() SrvFlagsParams { return SrvFlagsParams{} }
 
+// NewSrvFlagsDefault cria uma nova instância de SrvFlagsParams com valores padrão.
 func NewSrvFlagsDefault() SrvFlagsParams {
 	return SrvFlagsParams{
 		FailFast:  false,
@@ -150,6 +169,7 @@ func NewSrvFlagsDefault() SrvFlagsParams {
 	}
 }
 
+// SrvPerformanceParams representa parâmetros de performance.
 type SrvPerformanceParams struct {
 	// Performance options
 
@@ -158,8 +178,10 @@ type SrvPerformanceParams struct {
 	Hash      string `yaml:"hash,omitempty" json:"hash,omitempty" mapstructure:"hash,omitempty"`
 }
 
+// NewSrvPerformance cria uma nova instância de SrvPerformanceParams.
 func NewSrvPerformance() SrvPerformanceParams { return SrvPerformanceParams{} }
 
+// NewSrvPerformanceDefault cria uma nova instância de SrvPerformanceParams com valores padrão.
 func NewSrvPerformanceDefault() SrvPerformanceParams {
 	return SrvPerformanceParams{
 		MaxProcs:  0,
@@ -168,27 +190,7 @@ func NewSrvPerformanceDefault() SrvPerformanceParams {
 	}
 }
 
-// InviteConfig controla opções de envio e branding.
-type InviteConfig struct {
-	BaseURL     string        `json:"base_url,omitempty" yaml:"base_url,omitempty" toml:"base_url,omitempty" mapstructure:"base_url,omitempty"`
-	SenderName  string        `json:"sender_name,omitempty" yaml:"sender_name,omitempty" toml:"sender_name,omitempty" mapstructure:"sender_name,omitempty"`
-	SenderEmail string        `json:"sender_email,omitempty" yaml:"sender_email,omitempty" toml:"sender_email,omitempty" mapstructure:"sender_email,omitempty"`
-	CompanyName string        `json:"company_name,omitempty" yaml:"company_name,omitempty" toml:"company_name,omitempty" mapstructure:"company_name,omitempty"`
-	DefaultTTL  time.Duration `json:"default_ttl,omitempty" yaml:"default_ttl,omitempty" toml:"default_ttl,omitempty" mapstructure:"default_ttl,omitempty"`
-}
-
-func NewInviteConfig() InviteConfig { return InviteConfig{} }
-
-func NewInviteConfigDefault() InviteConfig {
-	return InviteConfig{
-		BaseURL:     "https://app.kubex.world",
-		SenderName:  "Kubex Team",
-		SenderEmail: "team@kubex.world",
-		CompanyName: "Kubex",
-		DefaultTTL:  7 * 24 * time.Hour,
-	}
-}
-
+// SrvConfig representa a configuração completa do servidor.
 type SrvConfig struct {
 	GlobalRef   `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Basic       SrvBasicParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
@@ -197,10 +199,14 @@ type SrvConfig struct {
 	Advanced    SrvAdvancedParams    `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Flags       SrvFlagsParams       `json:",inline" yaml:",inline" mapstructure:",squash"`
 	Performance SrvPerformanceParams `json:",inline" yaml:",inline" mapstructure:",squash"`
-	Auth        AuthConfig           `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
+	Auth        AuthClientWrapper    `json:"auth" yaml:"auth,omitempty" mapstructure:"auth,omitempty"`
+	Invite      InviteConfig         `json:"invite" yaml:"invite,omitempty" mapstructure:"invite,omitempty"`
+
+	// Providers   AuthProviders        `json:"auth_providers_config" yaml:"auth_providers_config,omitempty" mapstructure:"auth_providers_config,omitempty"`
 	// TemplatesDir string               `json:"templates_dir,omitempty" yaml:"templates_dir,omitempty" mapstructure:"templates_dir,omitempty"`
 }
 
+// NewSrvConfig cria uma nova instância de SrvConfig.
 func NewSrvConfig() SrvConfig {
 	return SrvConfig{
 		GlobalRef:   GlobalRef{ID: uuid.New()},
@@ -210,10 +216,12 @@ func NewSrvConfig() SrvConfig {
 		Advanced:    NewSrvAdvanced(),
 		Flags:       NewSrvFlags(),
 		Performance: NewSrvPerformance(),
-		Auth:        AuthConfig{},
+		Auth:        AuthClientWrapper{},
+		Invite:      NewInviteConfig(),
 	}
 }
 
+// NewSrvConfigDefault cria uma nova instância de SrvConfig com valores padrão.
 func NewSrvConfigDefault() SrvConfig {
 	return SrvConfig{
 		GlobalRef:   GlobalRef{ID: uuid.New()},
@@ -223,6 +231,7 @@ func NewSrvConfigDefault() SrvConfig {
 		Advanced:    NewSrvAdvancedDefault(),
 		Flags:       NewSrvFlagsDefault(),
 		Performance: NewSrvPerformanceDefault(),
-		Auth:        AuthConfig{},
+		Auth:        AuthClientWrapper{},
+		Invite:      NewInviteConfigDefault(),
 	}
 }

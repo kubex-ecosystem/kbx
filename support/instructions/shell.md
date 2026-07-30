@@ -31,7 +31,7 @@ Conteúdo principal
 Modelo de header (copiar/colar e ajustar metadados)
 
 ```bash
-# filepath: /projects/kubex/grompt/support/string_utils.sh (exemplo)
+# filepath: /projects/kubex/gnyx/support/string_utils.sh (exemplo)
 #!/usr/bin/env bash
 # shellcheck disable=SC2015,SC1091
 
@@ -65,7 +65,7 @@ declare -a _main_args=( "$@" )
 Modelo de footer (padrão para controlar export / execução)
 
 ```bash
-# filepath: /projects/kubex/grompt/support/string_utils.sh (exemplo)
+# filepath: /projects/kubex/gnyx/support/string_utils.sh (exemplo)
 __secure_logic_main() {
   local _ws_name
   _ws_name="$(__secure_logic_sourced_name)"

@@ -2,8 +2,6 @@ package cli
 
 import (
 	"github.com/kubex-ecosystem/kbx"
-
-	gl "github.com/kubex-ecosystem/logz"
 	"github.com/spf13/cobra"
 )
 
@@ -33,27 +31,9 @@ func sendCommand() *cobra.Command {
 		Use:   "send",
 		Short: "Send a test email using the configured SMTP settings",
 		Run: func(cmd *cobra.Command, args []string) {
-			gl.SetDebugMode(debug)
-
-			gl.Log("info", "Sending test email...")
-
+			_ = debug
 			// sender := kbx.NewMailSender(mailParams)
-			// if sender == nil {
-			// 	gl.Log("error", "Failed to initialize mailer")
-			// 	return
-			// }
-
-			// msg := mailParams.Email
-			// msg.To = []string{"test@example.com"}
-			// msg.Subject = "Test Email from GNyx CLI"
-			// msg.Text = "This is a test email sent from the GNyx CLI."
-
-			// if err := sender.Send(mailParams.MailConfig, msg); err != nil {
-			// 	gl.Log("error", "Failed to send email:", err.Error())
-			// 	return
-			// }
-
-			gl.Log("info", "Test email sent successfully")
+			// ...
 		},
 	}
 

@@ -1,53 +1,52 @@
-// Package mail provides email sending functionality with multiple provider support and fallback mechanisms.
+// Package mail provides email sending functionality.
 package mail
 
 import (
-	"errors"
+	"fmt"
+	"net/smtp"
 	"strings"
-	"time"
 
-	"github.com/kubex-ecosystem/kbx/tools/mail/provider"
 	"github.com/kubex-ecosystem/kbx/types"
 )
 
-var provMap = map[string]types.MailProvider{
-	"gmail":     &provider.GmailProvider{},
-	"outlook":   &provider.OutlookProvider{},
-	"microsoft": &provider.MicrosoftProvider{},
-	// "sendmail":  provider.SendmailProvider{},
-}
-
-// fallback order: Kubex-style chaos-first resiliency
-var fbkOrder = []string{
-	"gmail",
-	"outlook",
-	"microsoft",
-	"sendmail",
-}
-
+// Send sends an email using the given SMTP connection configuration.
 func Send(cfg *types.MailConnection, msg *types.Email) error {
-	if cfg.Timeout <= 0 {
-		cfg.Timeout = 10 * time.Second
+	if cfg == nil {
+		return fmt.Errorf("mail: connection config is nil")
+	}
+	if msg == nil {
+		return fmt.Errorf("mail: message is nil")
 	}
 
-	primary := strings.ToLower(cfg.Provider)
-	if p, ok := provMap[primary]; ok {
-		if err := p.Send(cfg, msg); err == nil {
-			return nil
-		}
+	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	auth := smtp.PlainAuth("", cfg.User, cfg.Pass, cfg.Host)
+
+	to := msg.To
+	if len(to) == 0 {
+		return fmt.Errorf("mail: no recipients specified")
 	}
 
-	// fallback
-	for _, name := range fbkOrder {
-		if name == primary {
-			continue
-		}
-		if p, ok := provMap[name]; ok {
-			if err := p.Send(cfg, msg); err == nil {
-				return nil
-			}
-		}
-	}
+	body := buildMessage(cfg, msg)
+	return smtp.SendMail(addr, auth, msg.From, to, []byte(body))
+}
 
-	return errors.New("KBX-Mail: all providers failed")
+func buildMessage(cfg *types.MailConnection, msg *types.Email) string {
+	var sb strings.Builder
+	from := msg.From
+	if from == "" {
+		from = cfg.User
+	}
+	sb.WriteString("From: " + from + "\r\n")
+	sb.WriteString("To: " + strings.Join(msg.To, ", ") + "\r\n")
+	sb.WriteString("Subject: " + msg.Subject + "\r\n")
+	if msg.HTML != "" {
+		sb.WriteString("Content-Type: text/html; charset=UTF-8\r\n")
+		sb.WriteString("\r\n")
+		sb.WriteString(msg.HTML)
+	} else {
+		sb.WriteString("Content-Type: text/plain; charset=UTF-8\r\n")
+		sb.WriteString("\r\n")
+		sb.WriteString(msg.Text)
+	}
+	return sb.String()
 }

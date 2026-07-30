@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	gl "github.com/kubex-ecosystem/logz"
 )
 
 // Control representa a configuração de controle de um módulo.
@@ -30,13 +28,13 @@ func LoadControlByModule(dir string, moduleName string) (*Control, error) {
 	file := filepath.Join(dir, fmt.Sprintf("control_%s.json", moduleName))
 	f, err := os.Open(file)
 	if err != nil {
-		return nil, gl.Errorf("erro ao abrir %s: %v", file, err)
+		return nil, fmt.Errorf("erro ao abrir %s: %v", file, err)
 	}
 	defer f.Close()
 	var c Control
 	dec := json.NewDecoder(f)
 	if err := dec.Decode(&c); err != nil {
-		return nil, gl.Errorf("erro ao decodificar %s: %v", file, err)
+		return nil, fmt.Errorf("erro ao decodificar %s: %v", file, err)
 	}
 	// c.Reference = kbx.NewGlobalRef(moduleName)
 	return &c, nil
@@ -45,12 +43,12 @@ func LoadControlByModule(dir string, moduleName string) (*Control, error) {
 // SaveControl salva o controle do módulo em arquivo separado.
 func (c *Control) SaveControl(dir string) error {
 	// if c.Reference.Name == "" {
-	// return gl.Errorf("Reference.Name não pode ser vazio para salvar o controle")
+	// return fmt.Errorf("Reference.Name não pode ser vazio para salvar o controle")
 	// }
 	// file := filepath.Join(dir, fmt.Sprintf("control_%s.json", c.Reference.Name))
 	// f, err := os.Create(file)
 	// if err != nil {
-	// 	return gl.Errorf("erro ao criar %s: %v", file, err)
+	// 	return fmt.Errorf("erro ao criar %s: %v", file, err)
 	// }
 	// defer f.Close()
 	// enc := json.NewEncoder(f)

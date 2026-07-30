@@ -4,7 +4,7 @@ package templates
 import (
 	"embed"
 
-	gl "github.com/kubex-ecosystem/logz"
+	"fmt"
 )
 
 // TemplateLoader define como obter o HTML de um template.
@@ -20,7 +20,7 @@ type EmbedTemplateLoader struct {
 
 func (l *EmbedTemplateLoader) LoadHTML(name string) (string, error) {
 	if l == nil {
-		return "", gl.Errorf("template loader is nil")
+		return "", fmt.Errorf("template loader is nil")
 	}
 	b, err := l.FS.ReadFile("email/" + name + "/content.html")
 	if err != nil {

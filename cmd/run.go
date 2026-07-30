@@ -1,13 +1,8 @@
 package main
 
-import (
-	gl "github.com/kubex-ecosystem/logz"
-)
+import "fmt"
 
 func main() {
-
-	c := gl.GetLoggerZ("")
-	c.Info("Hello, World!")
-
+	fmt.Println("Hello, World!")
 	MMin()
 }

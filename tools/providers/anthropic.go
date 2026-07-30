@@ -1,4 +1,4 @@
-package registry
+package providers
 
 import (
 	"bufio"
@@ -173,7 +173,8 @@ func (p *anthropicProvider) Chat(ctx context.Context, req providers.ChatRequest)
 
 	// Set headers
 	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("x-api-key", p.apiKey)
+	// BYOK: chave do usuário (se veio) sobrepõe a configurada, só nesta chamada.
+	httpReq.Header.Set("x-api-key", req.ResolveKey(p.apiKey))
 	httpReq.Header.Set("anthropic-version", "2023-06-01")
 	httpReq.Header.Set("Accept", "text/event-stream")
 

@@ -1,16 +1,16 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-
 	// i18nwatcher "github.com/kubex-ecosystem/kbx_be/internal/services/watcherz/i18n"
-	gl "github.com/kubex-ecosystem/logz"
 )
 
 func Watcheri18nCmd() {
 	if len(os.Args) < 2 {
-		gl.Fatalf("uso: %s <caminho-do-projeto>", filepath.Base(os.Args[0]))
+		fmt.Fprintf(os.Stderr, "uso: %s <caminho-do-projeto>\n", filepath.Base(os.Args[0]))
+		os.Exit(1)
 	}
 	// root := os.Args[1]
 

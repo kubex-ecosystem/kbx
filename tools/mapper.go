@@ -14,7 +14,6 @@ import (
 	"reflect"
 	"strings"
 
-	gl "github.com/kubex-ecosystem/logz"
 	"github.com/pelletier/go-toml/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -67,8 +66,8 @@ func ensureParentDir(path string) error {
 	if err == nil {
 		return nil
 	}
-	gl.Debugf("Created parent dir %s for %s: %v", dir, path, err)
-	return gl.Errorf("error creating parent dir %s for %s: %v", dir, path, err)
+
+	return fmt.Errorf("error creating parent dir %s for %s: %v", dir, path, err)
 }
 
 // -------------------- Serialize --------------------
@@ -101,13 +100,13 @@ func (m *Mapper[T]) Serialize(format string) ([]byte, error) {
 			var b strings.Builder
 			for k, v := range env {
 				// simples; se quiser suportar escaping avançado, tratar aqui.
-				gl.Info(&b, "%s=%s\n", k, v)
+				fmt.Fprintf(&b, "%s=%s\n", k, v)
 			}
 			return []byte(b.String()), nil
 		}
-		return nil, gl.Errorf("ENV exige map[string]string; recebido: %T", *m.ptr)
+		return nil, fmt.Errorf("ENV exige map[string]string; recebido: %T", *m.ptr)
 	default:
-		return nil, gl.Errorf("formato não suportado: %s", format)
+		return nil, fmt.Errorf("formato não suportado: %s", format)
 	}
 }
 
@@ -117,28 +116,28 @@ func (m *Mapper[T]) SerializeToFile(format string) error {
 	}
 	data, err := m.Serialize(format)
 	if err != nil {
-		gl.Log("error", fmt.Sprintf("Error serializing object: %v", err))
+
 		return err
 	}
 	if err := ensureParentDir(m.filePath); err != nil {
-		gl.Log("error", fmt.Sprintf("Error creating parent dir: %v", err))
+
 		return err
 	}
 	f, err := os.OpenFile(m.filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 	if err != nil {
-		gl.Log("error", fmt.Sprintf("Error opening file: %v", err))
+
 		return err
 	}
 	defer func() {
 		if cerr := f.Close(); cerr != nil {
-			gl.Log("error", fmt.Sprintf("Error closing file: %v", cerr))
+
 		}
 	}()
 	if _, err := f.Write(data); err != nil {
-		gl.Log("error", fmt.Sprintf("Error writing file: %v", err))
+
 		return err
 	}
-	gl.Log("debug", fmt.Sprintf("Serialized to %s (%s) [%d bytes]", m.filePath, strings.ToUpper(format), len(data)))
+
 	return nil
 }
 
@@ -165,7 +164,7 @@ func (m *Mapper[T]) Deserialize(object []byte, format string) (*T, error) {
 		// Como geralmente é pequeno para config, leremos via io.ReadAll? Evitamos: então rejeita aqui.
 		return nil, errors.New("ASN.1 streaming não suportado no momento")
 	default:
-		return nil, gl.Errorf("formato não suportado: %s", format)
+		return nil, fmt.Errorf("formato não suportado: %s", format)
 	}
 }
 
@@ -174,25 +173,25 @@ func (m *Mapper[T]) DeserializeFromFile(format string) (*T, error) {
 		return nil, errors.New("mapper: ponteiro de destino nil")
 	}
 	if _, err := os.Stat(m.filePath); err != nil {
-		gl.Log("error", fmt.Sprintf("File does not exist: %v", err))
+
 		return nil, err
 	}
 	f, err := os.Open(m.filePath)
 	if err != nil {
-		gl.Log("error", fmt.Sprintf("Error opening file: %v", err))
+
 		return nil, err
 	}
 	defer func(ipt string) {
-		// gl.Debugf("Closing input file %s", ipt)
+		//
 		if cerr := f.Close(); cerr != nil {
-			gl.Log("error", fmt.Sprintf("Error closing file: %v", cerr))
+
 		}
 	}(m.filePath)
 
 	if format == "" {
 		format = detectFormatByExt(m.filePath)
 		if format == "" {
-			return nil, gl.Errorf("não foi possível detectar o formato pelo sufixo de %s; informe o formato", m.filePath)
+			return nil, fmt.Errorf("não foi possível detectar o formato pelo sufixo de %s; informe o formato", m.filePath)
 		}
 	}
 	switch strings.ToLower(format) {
@@ -211,7 +210,7 @@ func (m *Mapper[T]) DeserializeFromFile(format string) (*T, error) {
 		// Como geralmente é pequeno para config, leremos via io.ReadAll? Evitamos: então rejeita aqui.
 		return nil, errors.New("ASN.1 streaming não suportado no momento")
 	default:
-		return nil, gl.Errorf("formato não suportado: %s", format)
+		return nil, fmt.Errorf("formato não suportado: %s", format)
 	}
 }
 
@@ -227,20 +226,20 @@ func (m *Mapper[T]) decodeJSONStream(r io.Reader) (*T, error) {
 		// Suporta array JSON OU sequência de objetos
 		tok, err := dec.Token()
 		if err != nil {
-			return nil, gl.Errorf("JSON: erro lendo primeiro token: %v", err)
+			return nil, fmt.Errorf("JSON: erro lendo primeiro token: %v", err)
 		}
 		if delim, ok := tok.(json.Delim); ok && delim == '[' {
 			// [ obj, obj, ... ]
 			for dec.More() {
 				elemPtr := reflect.New(elemType).Interface()
 				if err := dec.Decode(elemPtr); err != nil {
-					return nil, gl.Errorf("JSON: erro decodificando elemento do array: %v", err)
+					return nil, fmt.Errorf("JSON: erro decodificando elemento do array: %v", err)
 				}
 				sliceVal = reflect.Append(sliceVal, reflect.ValueOf(elemPtr).Elem())
 			}
 			// consumir ']'
 			if _, err := dec.Token(); err != nil {
-				return nil, gl.Errorf("JSON: erro lendo token de fechamento do array: %v", err)
+				return nil, fmt.Errorf("JSON: erro lendo token de fechamento do array: %v", err)
 			}
 		} else {
 			// não começou com '[', então assumimos sequência de objetos
@@ -251,7 +250,7 @@ func (m *Mapper[T]) decodeJSONStream(r io.Reader) (*T, error) {
 			// Na prática, o token foi '{', então o próximo Decode pega o objeto inteiro.
 			firstElem := reflect.New(elemType).Interface()
 			if err := dec.Decode(firstElem); err != nil {
-				return nil, gl.Errorf("JSON: erro decodificando primeiro elemento fora de array: %v", err)
+				return nil, fmt.Errorf("JSON: erro decodificando primeiro elemento fora de array: %v", err)
 			}
 			sliceVal = reflect.Append(sliceVal, reflect.ValueOf(firstElem).Elem())
 
@@ -259,7 +258,7 @@ func (m *Mapper[T]) decodeJSONStream(r io.Reader) (*T, error) {
 			for {
 				// pular espaços/brancos
 				if err := consumeWhitespace(dec); err != nil && !errors.Is(err, io.EOF) {
-					return nil, gl.Errorf("JSON: erro consumindo whitespace: %v", err)
+					return nil, fmt.Errorf("JSON: erro consumindo whitespace: %v", err)
 				}
 				// Tentar próximo objeto
 				nextElem := reflect.New(elemType).Interface()
@@ -272,8 +271,8 @@ func (m *Mapper[T]) decodeJSONStream(r io.Reader) (*T, error) {
 					if isBenignJSONEnd(err) {
 						break
 					}
-					// gl.Debugf("JSON: erro decodificando arquivo: %s(%s)", m.filePath, reflect.TypeFor[T]())
-					return nil, gl.Errorf("JSON: erro decodificando elemento subsequente: %v", err)
+					//
+					return nil, fmt.Errorf("JSON: erro decodificando elemento subsequente: %v", err)
 				}
 				sliceVal = reflect.Append(sliceVal, reflect.ValueOf(nextElem).Elem())
 			}
@@ -284,8 +283,8 @@ func (m *Mapper[T]) decodeJSONStream(r io.Reader) (*T, error) {
 
 	// T = objeto/map simples
 	if err := dec.Decode(m.ptr); err != nil {
-		// gl.Debugf("JSON: erro decodificando arquivo: %s(%s)", m.filePath, reflect.TypeFor[T]())
-		return nil, gl.Errorf("JSON: erro decodificando objeto: %v", err)
+		//
+		return nil, fmt.Errorf("JSON: erro decodificando objeto: %v", err)
 	}
 	// garantir que não há lixo após o objeto
 	if err := ensureJSONEOF(dec); err != nil {
@@ -300,7 +299,7 @@ func (m *Mapper[T]) GetValue() *T {
 
 func (m *Mapper[T]) SetValue(value *T) error {
 	if value == nil {
-		return gl.Errorf("JSON: valor não pode ser nulo")
+		return fmt.Errorf("JSON: valor não pode ser nulo")
 	}
 	*m.ptr = *value
 	return nil
@@ -331,9 +330,9 @@ func ensureJSONEOF(dec *json.Decoder) error {
 		if isBenignJSONEnd(err) {
 			return nil
 		}
-		return gl.Errorf("JSON: dados extras após o objeto: %v", err)
+		return fmt.Errorf("JSON: dados extras após o objeto: %v", err)
 	}
-	return gl.Errorf("JSON: dados extras após o objeto")
+	return fmt.Errorf("JSON: dados extras após o objeto")
 }
 
 func (m *Mapper[T]) decodeYAMLStream(r io.Reader) (*T, error) {
@@ -348,7 +347,7 @@ func (m *Mapper[T]) decodeYAMLStream(r io.Reader) (*T, error) {
 				if errors.Is(err, io.EOF) {
 					break
 				}
-				return nil, gl.Errorf("YAML: erro decodificando documento: %v", err)
+				return nil, fmt.Errorf("YAML: erro decodificando documento: %v", err)
 			}
 			// documentos vazios podem vir como zero value; ainda assim anexamos
 			sliceVal = reflect.Append(sliceVal, reflect.ValueOf(elemPtr).Elem())
@@ -359,7 +358,7 @@ func (m *Mapper[T]) decodeYAMLStream(r io.Reader) (*T, error) {
 
 	// um único doc
 	if err := dec.Decode(m.ptr); err != nil {
-		return nil, gl.Errorf("YAML: erro decodificando: %v", err)
+		return nil, fmt.Errorf("YAML: erro decodificando: %v", err)
 	}
 	return m.ptr, nil
 }
@@ -367,7 +366,7 @@ func (m *Mapper[T]) decodeYAMLStream(r io.Reader) (*T, error) {
 func (m *Mapper[T]) decodeTOMLStream(r io.Reader) (*T, error) {
 	dec := toml.NewDecoder(r)
 	if err := dec.Decode(m.ptr); err != nil {
-		return nil, gl.Errorf("TOML: erro decodificando: %v", err)
+		return nil, fmt.Errorf("TOML: erro decodificando: %v", err)
 	}
 	return m.ptr, nil
 }
@@ -375,7 +374,7 @@ func (m *Mapper[T]) decodeTOMLStream(r io.Reader) (*T, error) {
 func (m *Mapper[T]) decodeXMLStream(r io.Reader) (*T, error) {
 	dec := xml.NewDecoder(r)
 	if err := dec.Decode(m.ptr); err != nil {
-		return nil, gl.Errorf("XML: erro decodificando: %v", err)
+		return nil, fmt.Errorf("XML: erro decodificando: %v", err)
 	}
 	return m.ptr, nil
 }
@@ -384,7 +383,7 @@ func (m *Mapper[T]) decodeENVStream(r io.Reader) (*T, error) {
 	// Apenas map[string]string
 	rv := reflect.ValueOf(m.ptr).Elem()
 	if !(rv.Kind() == reflect.Map && rv.Type().Key().Kind() == reflect.String && rv.Type().Elem().Kind() == reflect.String) {
-		return nil, gl.Errorf("ENV exige destino map[string]string; recebido: %T", *m.ptr)
+		return nil, fmt.Errorf("ENV exige destino map[string]string; recebido: %T", *m.ptr)
 	}
 	if rv.IsNil() {
 		rv.Set(reflect.MakeMap(rv.Type()))
@@ -408,7 +407,7 @@ func (m *Mapper[T]) decodeENVStream(r io.Reader) (*T, error) {
 		k, v, ok := cutOnce(line, '=')
 		if !ok {
 			// Linha inválida no contexto .env — falha explícita (ou poderíamos ignorar)
-			return nil, gl.Errorf("ENV: linha inválida (esperado KEY=VALUE): %q", line)
+			return nil, fmt.Errorf("ENV: linha inválida (esperado KEY=VALUE): %q", line)
 		}
 		k = strings.TrimSpace(k)
 		v = strings.TrimSpace(v)
@@ -417,7 +416,7 @@ func (m *Mapper[T]) decodeENVStream(r io.Reader) (*T, error) {
 		rv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(v))
 	}
 	if err := sc.Err(); err != nil {
-		return nil, gl.Errorf("ENV: erro lendo arquivo: %v", err)
+		return nil, fmt.Errorf("ENV: erro lendo arquivo: %v", err)
 	}
 	return m.ptr, nil
 }

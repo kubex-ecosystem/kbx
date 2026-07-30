@@ -2,11 +2,8 @@ package kbx
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"reflect"
-
-	logz "github.com/kubex-ecosystem/logz"
 )
 
 var (
@@ -154,10 +151,7 @@ func GetValueOrDefaultAny[T any](value T, defaultValue T) T {
 func HydrateMapFromEnvOrDefaults[T any](dbType string, target map[string]T, defaults map[string]T, hydrationCtl chan any) map[string]T {
 	defer func(hCtl chan any) {
 		if r := recover(); r != nil {
-			// Handle the panic (e.g., log the error)
-			logz.Log("error", fmt.Sprintf("Panic at the Hydration: %v", r))
 			if hydrationCtl != nil {
-				logz.Log("info", "HydrationCtl", "Async hydration due to panic recovery")
 				for key, defaultValue := range defaults {
 					target[key] = GetValueOrDefaultAny(target[key], defaultValue)
 				}
@@ -172,8 +166,6 @@ func HydrateMapFromEnvOrDefaults[T any](dbType string, target map[string]T, defa
 			GetValueOrDefaultAny(target[key], defaultValue),
 		)
 	}
-
-	logz.Log("debug", fmt.Sprintf("Hydrated Map for DBType %s: %+v", dbType, target))
 
 	return target
 }
@@ -194,4 +186,45 @@ func DefaultFalse(b *bool) bool {
 		return false
 	}
 	return *b
+}
+
+// Safe checks if the given object is "safe" to use. Its seems like Valid, but with different rules.
+// In strict mode, it considers zero values of basic types (0, false, "") as safe.
+// In resilient mode, it treats empty collections as unsafe.
+func Safe(obj any, strict bool) bool {
+	v := reflect.ValueOf(obj)
+
+	// nil pointers or invalid values
+	if !v.IsValid() {
+		return false
+	}
+	if v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return false
+		}
+		v = v.Elem()
+	}
+
+	// zero value check (different meaning in strict vs resilient mode)
+	if v.IsZero() {
+		if strict {
+
+			switch v.Kind() {
+			case reflect.Bool, reflect.Int, reflect.Int64, reflect.Float64, reflect.String:
+				// 0, false, "" são válidos em modo estrito
+				return true
+			}
+		}
+		return false
+	}
+
+	// empty collections → false no resilient mode
+	switch v.Kind() {
+	case reflect.Slice, reflect.Array, reflect.Map:
+		if v.Len() == 0 {
+			return !strict
+		}
+	}
+
+	return true
 }
