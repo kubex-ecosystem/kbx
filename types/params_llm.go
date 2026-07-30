@@ -37,6 +37,36 @@ func (r ChatRequest) Validate() error {
 	return nil
 }
 
+// HeaderBYOK é o header onde o chamador coloca a chave DO USUÁRIO (bring your
+// own key), quando quer que a requisição seja cobrada dele e não da chave
+// configurada no servidor.
+const HeaderBYOK = "X-API-Key"
+
+// ResolveKey decide qual chave usa esta requisição.
+//
+// Se o chamador enviou a chave do próprio usuário em Headers["X-API-Key"], ela
+// vence; senão vale a chave configurada no provider. É o ÚNICO ponto de decisão
+// — todo provider passa por aqui, então BYOK não pode ficar valendo em um e não
+// em outro.
+//
+// A chave é usada apenas nesta chamada: não é guardada no provider nem logada.
+func (r ChatRequest) ResolveKey(configurada string) string {
+	if r.Headers != nil {
+		if k := strings.TrimSpace(r.Headers[HeaderBYOK]); k != "" {
+			return k
+		}
+	}
+	return configurada
+}
+
+// UsesBYOK informa se esta requisição traz chave própria do usuário.
+func (r ChatRequest) UsesBYOK() bool {
+	if r.Headers == nil {
+		return false
+	}
+	return strings.TrimSpace(r.Headers[HeaderBYOK]) != ""
+}
+
 func (r ChatRequest) GetModel() string { return r.Model }
 
 func (r ChatRequest) Read(ctx context.Context) (ChatChunk, error) {

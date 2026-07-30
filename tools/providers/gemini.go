@@ -70,11 +70,37 @@ func (g *geminiProvider) Available() error {
 	return nil
 }
 
+// clientPara devolve o cliente que atende ESTA requisição.
+//
+// O provider guarda um cliente montado com a chave configurada. Quando a
+// requisição traz chave própria do usuário (BYOK), esse cliente não serve — a
+// chave do Gemini entra na construção do cliente, não em header por chamada.
+// Nesse caso montamos um cliente descartável, válido só para esta requisição:
+// a chave do usuário nunca é guardada no provider.
+//
+// O custo (um cliente por chamada BYOK) é irrelevante perto da latência do LLM.
+func (g *geminiProvider) clientPara(ctx context.Context, req providers.ChatRequest) (*genai.Client, error) {
+	key := req.ResolveKey(g.apiKey)
+	if key == g.apiKey {
+		return g.client, nil // caminho de sempre, intocado
+	}
+	c, err := genai.NewClient(ctx, &genai.ClientConfig{APIKey: key})
+	if err != nil {
+		return nil, gl.Errorf("failed to create Gemini client for request key: %v", err)
+	}
+	return c, nil
+}
+
 // Chat performs a chat completion request using Gemini's streaming API with the SDK
 func (g *geminiProvider) Chat(ctx context.Context, req providers.ChatRequest) (<-chan providers.ChatChunk, error) {
 	modelName := req.Model
 	if modelName == "" {
 		modelName = g.defaultModel
+	}
+
+	client, err := g.clientPara(ctx, req)
+	if err != nil {
+		return nil, err
 	}
 
 	var contents []*genai.Content // Conteúdo principal (mensagens/prompt)
@@ -137,7 +163,7 @@ func (g *geminiProvider) Chat(ctx context.Context, req providers.ChatRequest) (<
 		startTime := time.Now()
 
 		// Chamada CORRIGIDA: Usa o iterador do GenerateContentStream
-		iter := g.client.Models.GenerateContentStream(ctx, modelName, contents, config)
+		iter := client.Models.GenerateContentStream(ctx, modelName, contents, config)
 
 		promptTokens := 0
 		completionTokens := 0

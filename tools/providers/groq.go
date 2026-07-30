@@ -179,7 +179,8 @@ func (p *groqProvider) Chat(ctx context.Context, req providers.ChatRequest) (<-c
 
 	// Set headers (OpenAI-compatible)
 	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("Authorization", "Bearer "+p.apiKey)
+	// BYOK: chave do usuário (se veio) sobrepõe a configurada, só nesta chamada.
+	httpReq.Header.Set("Authorization", "Bearer "+req.ResolveKey(p.apiKey))
 	httpReq.Header.Set("Accept", "text/event-stream")
 
 	// Create response channel
