@@ -21,9 +21,9 @@ func NewInviteConfig() InviteConfig { return InviteConfig{} }
 // NewInviteConfigDefault cria uma nova instância de InviteConfig com valores padrão.
 func NewInviteConfigDefault() InviteConfig {
 	return InviteConfig{
-		BaseURL:     "https://gnyx.kubex.world",
+		BaseURL:     "https://gnyx.kubex.space",
 		SenderName:  "Kubex Team",
-		SenderEmail: "contact@kubex.world",
+		SenderEmail: "contact@kubex.space",
 		CompanyName: "Kubex",
 		DefaultTTL:  7 * 24 * time.Hour,
 	}
