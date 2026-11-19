@@ -42,7 +42,7 @@ func NewManifestType() *MManifest {
 		License:      "MIT",
 		Published:    false,
 		Aliases:      []string{"kbx-manifest"},
-		Homepage:     "https://kubex.world",
+		Homepage:     "https://kubex.space",
 		Repository:   "github.com/kubex-ecosystem/kbx",
 		Keywords:     []string{"kubex", "kbx", "manifest", "configuration", "ecosystem"},
 		Bin:          bin,
@@ -171,7 +171,7 @@ func NewSrvDefaultConfig(defaults map[string]any) SrvConfig {
 	addr := net.JoinHostPort(host, get.EnvOr("KUBEX_GNYX_PORT", defaults["DefaultServerPort"].(string)))
 	url := url.URL{Scheme: scheme, Host: addr}
 	baseURL := get.ValueOrIf(get.EnvOr("KUBEX_ENV", "development") == "production",
-		"https://api.kubex.world",
+		"https://api.kubex.space",
 		url.String(),
 	)
 	defaultTTL := get.EnvOrType("INVITE_EXPIRATION", 7*24*time.Hour)
