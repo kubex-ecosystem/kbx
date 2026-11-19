@@ -378,7 +378,7 @@ func NewLLMConfigDefault() LLMConfig {
 	}
 	cfg.Security = LLMSecurityConfig{
 		EnableHTTPS:    true,
-		AllowedOrigins: []string{"https://kubex.world"},
+		AllowedOrigins: []string{"https://kubex.space"},
 		JWTSecret:      "",
 		APIKeys:        []string{},
 	}
@@ -387,7 +387,7 @@ func NewLLMConfigDefault() LLMConfig {
 	}
 	cfg.Repository = "https://github.com/kubex-ecosystem/kubex-gemx-gnyx"
 	cfg.Version = "1.0.0"
-	cfg.Authors = []string{"Kubex Dev Team <dev@kubex.world>"}
+	cfg.Authors = []string{"Kubex Dev Team <dev@kubex.space>"}
 	cfg.License = "MIT"
 
 	return cfg
